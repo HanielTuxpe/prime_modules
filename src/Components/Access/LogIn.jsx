@@ -51,7 +51,7 @@ const Login = ({ onLogin }) => {
                 toast.success(loginResponse.data.message);
                 setIsCodeRequired(true); // Mostrar el campo de código
                 setRecaptchaToken(null);
-            }
+            } 
         } catch (error) {
             if (error.response) {
                 const errorMessage = error.response.data.message || 'Error en el proceso de inicio de sesión.';
