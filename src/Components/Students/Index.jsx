@@ -1,10 +1,23 @@
-import { Container, Box } from '@mui/material';
-import banner from '../../assets/banner.png'; // Ruta relativa ajustada
+import { useState } from 'react';
+import { Container, Box, Typography } from '@mui/material';
+import banner from '../../assets/banner.png';
 import StudentCalendar from './Calendar';
+import { keyframes } from '@emotion/react';
+
+// Animación de aparición
+const fadeIn = keyframes`
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`;
 
 const Index = () => {
-
-    {/**VARIABLES GLOBALES DEL COMPO */}
+    const [selectedEvent, setSelectedEvent] = useState(null); // Estado para la actividad seleccionada
 
     return (
         <Container
@@ -13,8 +26,7 @@ const Index = () => {
                 flexDirection: 'column',
                 marginTop: '5%',
                 width: '100%',
-                maxWidth: '100vw',
-                alignItems: 'top'
+                alignItems: 'top',
             }}
         >
             {/* Contenedor de la imagen */}
@@ -24,7 +36,7 @@ const Index = () => {
                     flexDirection: 'row',
                     alignItems: 'center',
                     width: '100%',
-                    gap: 6
+                    gap: 6,
                 }}
             >
                 <img
@@ -45,34 +57,81 @@ const Index = () => {
                 sx={{
                     display: 'flex',
                     flexDirection: 'row',
-                    gap: 2, // Espacio entre los dos boxes
-                    marginTop: 4, // Espacio superior
+                    gap: 2,
+                    marginTop: 4,
                 }}
             >
                 <Box
                     sx={{
-                        flex: 1, // Hace que el Box ocupe el mismo tamaño
-                        backgroundColor: '#cdcdcd', // Color de fondo
-                        padding: 2, // Espaciado interno
-                        borderRadius: 5, // Bordes redondeados
+                        flex: 1,
+                        backgroundColor: '#cdcdcd',
+                        padding: 2,
+                        borderRadius: 5,
+                        height: 300,
+                        maxWidth: 600
                     }}
                 >
-                    {/* Contenido del primer Box */}
-                    <StudentCalendar/>
+                    {/* Calendario con la función para manejar el clic en eventos */}
+                    <StudentCalendar onSelectEvent={setSelectedEvent} />
                 </Box>
-                
-                {/**BOX PARA PONER LAS ACTIVIDADES DE ACUERDO A LAS FECHAS xd */}
+
+                {/* Box donde se muestra la actividad seleccionada */}
                 <Box
                     sx={{
-                        flex: 1, // Hace que el Box ocupe el mismo tamaño
-                        backgroundColor: '#cdcdcd', // Color de fondo
-                        padding: 2, // Espaciado interno
-                        borderRadius: 5, // Bordes redondeados
+                        flex: 1,
+                        backgroundColor: '#cdcdcd',
+                        padding: 2,
+                        borderRadius: 5,
+                        textAlign: 'left',
+                        animation: selectedEvent ? `${fadeIn} 0.5s ease-out` : 'none',
+                        boxShadow: 2,
+
                     }}
                 >
-                    {/* Contenido del segundo Box */}
-                    <h3>Box 2</h3>
-                    <p>Contenido para el segundo box.</p>
+                    {selectedEvent ? (
+                        <>
+                            <Typography
+                                variant="h6"
+                                sx={{
+                                    fontWeight: 600,
+                                    color: '#333',
+                                }}
+                            >
+                                {selectedEvent.title}
+                            </Typography>
+                            <Typography
+                                variant="body1"
+                                sx={{
+                                    marginY: 1,
+                                    color: '#555',
+                                }}
+                            >
+                                {selectedEvent.description.split('\n').map((item, index) => (
+                                    <span key={index}>
+                                        {item}
+                                        <br />
+                                    </span>
+                                ))}
+                            </Typography>
+                            <Typography
+                                variant="caption"
+                                sx={{
+                                    color: '#888',
+                                }}
+                            >
+                                {selectedEvent.end.toLocaleString()}
+                            </Typography>
+                        </>
+                    ) : (
+                        <Typography
+                            variant="body1"
+                            sx={{
+                                color: '#888',
+                            }}
+                        >
+                            Selecciona una actividad en el calendario
+                        </Typography>
+                    )}
                 </Box>
             </Box>
         </Container>
