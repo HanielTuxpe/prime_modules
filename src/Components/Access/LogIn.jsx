@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { TextField, Button, Container, Typography, Box, Link, IconButton } from '@mui/material';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-//import { useNavigate } from 'react-router-dom';
 import banner from '../../assets/banner-login.png';
 import { useMediaQuery } from '@mui/material';
 import ReCAPTCHA from 'react-google-recaptcha';
@@ -10,25 +9,31 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import { iniciarSesion } from './SessionService';
 import PropTypes from 'prop-types';
+import DOMPurify from 'dompurify';
 
-const Login = ({ onLogin }) => {
+const Login = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [userType, setUserType] = useState('');
     const [code, setCode] = useState('');
     const [recaptchaToken, setRecaptchaToken] = useState(null);
     const [showPassword, setShowPassword] = useState(false);
-    const [isCodeRequired, setIsCodeRequired] = useState(false); // Nuevo estado para manejar el código
-    //const navigate = useNavigate();
+    const [isCodeRequired, setIsCodeRequired] = useState(false);
     const isMobile = useMediaQuery('(max-width: 600px)');
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        // Validación de campos
         if (!username.trim() || !password.trim() || !userType.trim()) {
             toast.warning('Por favor, complete todos los campos.');
             return;
         }
+
+        // Sanitización de campos
+        const sanitizedUsername = DOMPurify.sanitize(username.trim());
+        const sanitizedPassword = DOMPurify.sanitize(password.trim());
+        const sanitizedUserType = DOMPurify.sanitize(userType.trim());
 
         if (!recaptchaToken) {
             toast.warning('La validación de reCAPTCHA es necesaria.');
@@ -43,11 +48,10 @@ const Login = ({ onLogin }) => {
 
             // Si el reCAPTCHA es exitoso, proceder a validar las credenciales de usuario
             const loginResponse = await axios.post('https://prj-server.onrender.com/login', {
-                username,
-                password,
-                userType,
+                username: sanitizedUsername,
+                password: sanitizedPassword,
+                userType: sanitizedUserType,
             });
-            
 
             if (loginResponse.status === 200) {
                 toast.success(loginResponse.data.message);
@@ -85,9 +89,7 @@ const Login = ({ onLogin }) => {
 
                 // Aseguramos la redirección después de un tiempo breve para garantizar el flujo correcto.
                 toast.success(verifyResponse.data.message);
- 
                 window.location.replace('/index');
-
             }
         } catch (error) {
             if (error.response) {
@@ -116,6 +118,7 @@ const Login = ({ onLogin }) => {
                 flexDirection: 'column',
                 width: '100%',
                 color: '#fff',
+                marginTop: '1%'
             }}
         >
             <Box
@@ -278,6 +281,5 @@ const Login = ({ onLogin }) => {
 Login.propTypes = {
     onLogin: PropTypes.func.isRequired,
 };
-
 
 export default Login;

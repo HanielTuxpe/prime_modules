@@ -7,6 +7,15 @@ import Login from './Components/Access/LogIn';
 import ForgotPassword from './Components/Access/PasswdRecovery';
 import Header from './Components/Public/Header';
 import Footer from './Components/Public/Footer';
+
+import {Error400, Error404, Error500} from './Components/Public/Error_Codigo';
+
+// info de la empresa
+import Politicas from './Components/Public/InfoDeEmpresa/Politicas';
+import FAQS from './Components/Public/InfoDeEmpresa/FaQs';
+import AcercaDe from './Components/Public/InfoDeEmpresa/AcercaDe';
+
+
 import { obtenerTipoUsuario, cerrarSesion } from './Components/Access/SessionService';
 import getTheme from './Components/theme';
 
@@ -64,6 +73,15 @@ const App = () => {
             <Route path="/public/" element={<IndexPublic />} />
             <Route path="/public/login" element={usuario ? <Navigate to="/" /> : <Login />} />
             <Route path="/public/forgot-password" element={<ForgotPassword />} />
+
+            {/* Rutas públicas info de la empresa */}
+            <Route path="/public/Politicas" element={<Politicas />} />
+            <Route path="/public/FAQS" element={<FAQS />} />
+            <Route path="/public/Acercade" element={<AcercaDe />} />
+
+            <Route path="/public/Error404" element={<Error404 />} />
+            <Route path="/public/Error400" element={<Error400 />} />
+            <Route path="/public/Error500" element={<Error500 />} />
 
           </Routes>
         </Layout>

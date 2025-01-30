@@ -7,6 +7,7 @@ import banner from '../../assets/banner-login.png';
 import { useMediaQuery } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import DOMPurify from 'dompurify';
 
 const ForgotPassword = () => {
     const [email, setEmail] = useState('');
@@ -55,24 +56,25 @@ const ForgotPassword = () => {
         return '#FFFFFF'; // Color por defecto
     };
 
-
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (!email.trim()) {
+        const sanitizedEmail = DOMPurify.sanitize(email);  // Sanitizamos el email para evitar inyecciones XSS
+
+        if (!sanitizedEmail.trim()) {
             toast.warning('Por favor, ingrese su correo electrónico.');
             return;
         }
 
         const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailPattern.test(email)) {
+        if (!emailPattern.test(sanitizedEmail)) {
             toast.warning('Por favor, ingresa un correo electrónico válido.');
             return;
         }
 
         try {
             const response = await axios.post('https://prj-server.onrender.com/forgot-password', {
-                email,
+                email: sanitizedEmail,
             });
 
             if (response.status === 200) {
@@ -94,9 +96,16 @@ const ForgotPassword = () => {
     const handleVerify = async (e) => {
         e.preventDefault();
 
+        const sanitizedCodigo = DOMPurify.sanitize(codigo);  // Sanitizamos el código para evitar inyecciones XSS
+
+        if (!sanitizedCodigo.trim()) {
+            toast.warning('Por favor, ingrese el código de verificación.');
+            return;
+        }
+
         try {
             const response = await axios.post('https://prj-server.onrender.com/verify-code', {
-                code: codigo,
+                code: sanitizedCodigo,
             });
 
             if (response.status === 200) {
@@ -114,20 +123,20 @@ const ForgotPassword = () => {
     const handleResetPassword = async (e) => {
         e.preventDefault();
 
-        if (!newPassword.trim()) {
+        const sanitizedNewPassword = DOMPurify.sanitize(newPassword);  // Sanitizamos la nueva contraseña
+
+        if (!sanitizedNewPassword.trim()) {
             toast.warning('Por favor, ingrese su nueva contraseña.');
             return;
         }
 
         const passwordPattern = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*()_+.,;:])[A-Za-z\d!@#$%^&*()_+.,;:]{8,}$/;
-        if (!passwordPattern.test(newPassword)) {
+        if (!passwordPattern.test(sanitizedNewPassword)) {
             toast.warning('La contraseña debe tener al menos 8 caracteres, incluyendo mayúsculas, minúsculas, números y caracteres especiales (.!@#$%^&*()_+).');
             return;
         }
 
         try {
-
-            // Realizar la solicitud con fetch
             const response = await fetch('https://prj-server.onrender.com/reset-password', {
                 method: 'POST',
                 headers: {
@@ -135,16 +144,13 @@ const ForgotPassword = () => {
                 },
                 body: JSON.stringify({
                     token,
-                    newPassword,
+                    newPassword: sanitizedNewPassword,
                 }),
             });
 
-            // Parsear la respuesta
             const data = await response.json();
 
-            console.log(data);
-
-            if (response.ok) { // `response.ok` es equivalente a verificar si el status es 200-299
+            if (response.ok) {
                 toast.success(data.message);
                 navigate('/login');
             } else {
@@ -274,8 +280,6 @@ const ForgotPassword = () => {
                                 Verificar Código
                             </Button>
 
-                      
-
                         </Box>
                     ) : (
                         <Box component="form" onSubmit={handleResetPassword} sx={{ mt: 3 }}>
@@ -313,13 +317,9 @@ const ForgotPassword = () => {
                                 }}
                             />
                             <Typography variant="body1" sx={{ mt: 1 }}>
-                                {passwordProgress === 0 && ''}
-                                {passwordProgress === 20 && 'Muy débil'}
-                                {passwordProgress === 40 && 'Débil'}
-                                {passwordProgress === 60 && 'Moderada'}
-                                {passwordProgress === 80 && 'Fuerte'}
-                                {passwordProgress === 100 && 'Contraseña segura'}
+                                {passwordProgress === 100 ? 'Contraseña segura' : 'Crea una contraseña más segura'}
                             </Typography>
+
                             <Button
                                 type="submit"
                                 fullWidth
@@ -329,13 +329,10 @@ const ForgotPassword = () => {
                             >
                                 Restablecer Contraseña
                             </Button>
-
                         </Box>
                     )}
                 </Box>
-
             </Box>
-
         </Container>
     );
 };

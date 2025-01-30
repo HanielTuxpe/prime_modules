@@ -59,16 +59,13 @@ const ResponsiveFooter = () => {
                                     gap={1}
                                     mt={1}
                                 >
-                                    <Link href="/privacy-policy" variant={"h7"} sx={{ color: "#fff", textDecoration: "none" }}>
+                                    <Link href="/public/Politicas" variant={"h7"} sx={{ color: "#fff", textDecoration: "none" }}>
                                         Política de Privacidad
                                     </Link>
-                                    <Link href="/terms-conditions" variant={"h7"} sx={{ color: "#fff", textDecoration: "none" }}>
-                                        Términos y Condiciones
+                                    <Link href="/public/FAQS" variant={"h7"} sx={{ color: "#fff", textDecoration: "none" }}>
+                                    FAQS
                                     </Link>
-                                    <Link href="/legal-disclaimer" variant={"h7"} sx={{ color: "#fff", textDecoration: "none" }}>
-                                        Deslinde Legal
-                                    </Link>
-                                    <Link href="/about"  variant={"h7"} sx={{ color: "#fff", textDecoration: "none" }}>
+                                    <Link href="/public/Acercade"  variant={"h7"} sx={{ color: "#fff", textDecoration: "none" }}>
                                         Acerca de...
                                     </Link>
                                 </Box>
@@ -96,16 +93,13 @@ const ResponsiveFooter = () => {
                                 gap={1}
                                 alignItems="center"
                             >
-                                <Link href="/privacy-policy" variant={"h7"} sx={{ color: '#fff', textDecoration: 'none' }}>
+                                <Link href="/public/Politicas" variant={"h7"} sx={{ color: '#fff', textDecoration: 'none' }}>
                                     Política de Privacidad
                                 </Link>
-                                <Link href="/terms-conditions" variant={"h7"} sx={{ color: '#fff', textDecoration: 'none' }}>
-                                    Términos y Condiciones
+                                <Link href="/public/fAQS" variant={"h7"} sx={{ color: '#fff', textDecoration: 'none' }}>
+                                   FAQS
                                 </Link>
-                                <Link href="/legal-disclaimer" variant={"h7"} sx={{ color: '#fff', textDecoration: 'none' }}>
-                                    Deslinde Legal
-                                </Link>
-                                <Link href="/about" variant={"h7"} sx={{ color: '#fff', textDecoration: 'none' }}>
+                                <Link href="/public/Acercade" variant={"h7"} sx={{ color: '#fff', textDecoration: 'none' }}>
                                     Acerca de...
                                 </Link>
                             </Box>
