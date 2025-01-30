@@ -24,15 +24,6 @@ const StyledDrawer = styled(Drawer)(() => ({
     },
 }));
 
-SideMenu.propTypes = {
-    open: PropTypes.bool.isRequired, 
-    toggleMenu: PropTypes.func.isRequired,
-    onLogout: PropTypes.func.isRequired,
-    toggleDarkMode: PropTypes.func.isRequired,
-    darkMode: PropTypes.bool.isRequired,
-    usuario: PropTypes.object.isRequired, // Cambia esto si usuario tiene una estructura específica
-  };
-
 function SideMenu({ open, toggleMenu, onLogout, toggleDarkMode, darkMode, usuario }) {
     const navigate = useNavigate();
     const [user, setUser] = useState(() => obtenerTipoUsuario()); // Inicializa el estado con el valor de la cookie
@@ -229,5 +220,15 @@ function SideMenu({ open, toggleMenu, onLogout, toggleDarkMode, darkMode, usuari
         </StyledDrawer>
     );
 }
+
+SideMenu.propTypes = {
+    open: PropTypes.bool.isRequired, 
+    toggleMenu: PropTypes.func.isRequired,
+    onLogout: PropTypes.func.isRequired,
+    toggleDarkMode: PropTypes.func.isRequired,
+    darkMode: PropTypes.bool.isRequired,
+    usuario: PropTypes.object.isRequired, // Cambia esto si usuario tiene una estructura específica
+  };
+
 
 export default SideMenu;

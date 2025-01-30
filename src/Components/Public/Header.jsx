@@ -13,14 +13,6 @@ import MenuPrincipal from '../Public/Menu'; // Importa tu menú
 import { obtenerTipoUsuario } from '../Access/SessionService';
 import PropTypes from 'prop-types';
 
-Header.propTypes = {
-    usuario: PropTypes.bool.isRequired, 
-    toggleMenu: PropTypes.func.isRequired,
-    onLogout: PropTypes.func.isRequired,
-    toggleDarkMode: PropTypes.func.isRequired,
-    darkMode: PropTypes.bool.isRequired,
-  };
-
 const Header = ({ usuario, onLogout, toggleDarkMode, darkMode }) => {
     const theme = useTheme();
     const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
@@ -184,5 +176,13 @@ const Header = ({ usuario, onLogout, toggleDarkMode, darkMode }) => {
 
     );
 };
+
+Header.propTypes = {
+    usuario: PropTypes.bool.isRequired, 
+    toggleMenu: PropTypes.func.isRequired,
+    onLogout: PropTypes.func.isRequired,
+    toggleDarkMode: PropTypes.func.isRequired,
+    darkMode: PropTypes.bool.isRequired,
+  };
 
 export default Header;

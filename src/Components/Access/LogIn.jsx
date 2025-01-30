@@ -11,10 +11,6 @@ import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import { iniciarSesion } from './SessionService';
 import PropTypes from 'prop-types';
 
-Login.propTypes = {
-    onLogin: PropTypes.func.isRequired,
-};
-
 const Login = ({ onLogin }) => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
@@ -281,5 +277,10 @@ const Login = ({ onLogin }) => {
         </Container>
     );
 };
+
+Login.propTypes = {
+    onLogin: PropTypes.func.isRequired,
+};
+
 
 export default Login;

@@ -113,8 +113,9 @@ const eventStyleGetter = (event) => {
 const StudentCalendar = ({ onSelectEvent }) => (
     <Box
         sx={{
-            height: 300,
-            maxWidth: 600
+            height: 450,
+            maxWidth: 600,
+            color: "#000000"
         }}
     >
         <StyledCalendar

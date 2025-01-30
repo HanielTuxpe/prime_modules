@@ -39,7 +39,8 @@ const App = () => {
   const theme = getTheme(darkMode);
 
   const Layout = ({ children }) => (
-    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', width: '100%' }}>
+
       <Header usuario={usuario} onLogout={handleLogout} toggleDarkMode={toggleDarkMode} darkMode={darkMode} />
       <Container component="main" sx={{ mt: 1, flexGrow: 1 }}>
         {children}
@@ -49,7 +50,7 @@ const App = () => {
   );
 
   Layout.propTypes = {
-    children: PropTypes.node.isRequired, // Valida que `children` sea un nodo válido de React
+    children: PropTypes.node.isRequired,
   };
 
   return (

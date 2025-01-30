@@ -67,7 +67,7 @@ const Index = () => {
                         backgroundColor: '#cdcdcd',
                         padding: 2,
                         borderRadius: 5,
-                        height: 300,
+                        maxheight: 700,
                         maxWidth: 600
                     }}
                 >
