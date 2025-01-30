@@ -60,6 +60,7 @@ const App = () => {
         <Layout key={usuario ? 'authenticated' : 'guest'}>
           <Routes>
 
+            <Route path="/" element={<Index />} />
             <Route path="/public/" element={<Index />} />
             <Route path="/public/login" element={usuario ? <Navigate to="/" /> : <Login />} />
             <Route path="/public/forgot-password" element={<ForgotPassword />} />
