@@ -27,6 +27,7 @@ const Index = () => {
                 marginTop: '5%',
                 width: '100%',
                 alignItems: 'top',
+              
             }}
         >
             {/* Contenedor de la imagen */}
@@ -37,6 +38,7 @@ const Index = () => {
                     alignItems: 'center',
                     width: '100%',
                     gap: 6,
+                   
                 }}
             >
                 <img

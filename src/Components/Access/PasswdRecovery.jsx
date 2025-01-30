@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { TextField, Button, Container, Typography, Box, LinearProgress, IconButton } from '@mui/material';
+import { TextField, Button, Container, Typography, Box, LinearProgress, IconButton, Link } from '@mui/material';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
@@ -239,6 +239,13 @@ const ForgotPassword = () => {
                             >
                                 Enviar Correo de Recuperación
                             </Button>
+
+                            <Typography variant="body2" align="center">
+                                <Link href="/public/login" variant="h5" sx={{ mr: 1, fontSize: 18, color: '#fff' }}>
+                                    Regresar
+                                </Link>
+                            </Typography>
+
                         </Box>
                     ) : !isCodeVerified ? (
                         <Box component="form" onSubmit={handleVerify} sx={{ mt: 3 }}>
@@ -266,6 +273,9 @@ const ForgotPassword = () => {
                             >
                                 Verificar Código
                             </Button>
+
+                      
+
                         </Box>
                     ) : (
                         <Box component="form" onSubmit={handleResetPassword} sx={{ mt: 3 }}>
@@ -319,10 +329,13 @@ const ForgotPassword = () => {
                             >
                                 Restablecer Contraseña
                             </Button>
+
                         </Box>
                     )}
                 </Box>
+
             </Box>
+
         </Container>
     );
 };

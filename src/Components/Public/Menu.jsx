@@ -40,33 +40,33 @@ function SideMenu({ open, toggleMenu, onLogout, toggleDarkMode, darkMode, usuari
 
 
     const handleLoginClick = () => {
-        navigate('/login');
+        navigate('/public/login');
     };
 
     const handleLogoutClick = () => {
         onLogout();
-        navigate('/');
+        navigate('/public/');
     };
 
     const handleGoIndex = () => {
         // Verifica si hay un usuario almacenado
         if (user) {
-            navigate('/index'); // Si hay usuario, navega a /index
+            navigate('/public/index'); // Si hay usuario, navega a /index
         } else {
-            navigate('/'); // Si no hay usuario, navega a /
+            navigate('/public/'); // Si no hay usuario, navega a /
         }
     };
 
     const handleCrudClick = () => {
-        navigate('/Crud');
+        navigate('/public/Crud');
     };
 
     const handleUsuariosClick = () => {
-        navigate('/Usuarios');
+        navigate('/public/Usuarios');
     };
 
     const handleReporteSistemClick = () => {
-        navigate('/ReporteSistem');
+        navigate('/public/ReporteSistem');
     };
 
     return (

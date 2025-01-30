@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { CssBaseline, ThemeProvider, Box, Container } from '@mui/material';
-import Index from './Components/Students/Index';
+import IndexPublic from './Components/Students/Index';
 import Login from './Components/Access/LogIn';
 import ForgotPassword from './Components/Access/PasswdRecovery';
 import Header from './Components/Public/Header';
@@ -60,8 +60,8 @@ const App = () => {
         <Layout key={usuario ? 'authenticated' : 'guest'}>
           <Routes>
 
-            <Route path="/" element={<Index />} />
-            <Route path="/public/" element={<Index />} />
+            <Route path="/" element={<IndexPublic />} />
+            <Route path="/public/" element={<IndexPublic />} />
             <Route path="/public/login" element={usuario ? <Navigate to="/" /> : <Login />} />
             <Route path="/public/forgot-password" element={<ForgotPassword />} />
 
