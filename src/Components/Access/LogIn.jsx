@@ -1,14 +1,19 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { TextField, Button, Container, Typography, Box, Link, IconButton } from '@mui/material';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { useNavigate } from 'react-router-dom';
+//import { useNavigate } from 'react-router-dom';
 import banner from '../../assets/banner-login.png';
 import { useMediaQuery } from '@mui/material';
 import ReCAPTCHA from 'react-google-recaptcha';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import { iniciarSesion } from './SessionService';
+import PropTypes from 'prop-types';
+
+Login.propTypes = {
+    onLogin: PropTypes.func.isRequired,
+};
 
 const Login = ({ onLogin }) => {
     const [username, setUsername] = useState('');
@@ -18,7 +23,7 @@ const Login = ({ onLogin }) => {
     const [recaptchaToken, setRecaptchaToken] = useState(null);
     const [showPassword, setShowPassword] = useState(false);
     const [isCodeRequired, setIsCodeRequired] = useState(false); // Nuevo estado para manejar el código
-    const navigate = useNavigate();
+    //const navigate = useNavigate();
     const isMobile = useMediaQuery('(max-width: 600px)');
 
     const handleSubmit = async (e) => {

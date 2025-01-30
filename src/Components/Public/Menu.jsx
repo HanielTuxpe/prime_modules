@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Drawer, List, ListItem, ListItemIcon, ListItemText, Typography, Box, IconButton, useTheme, useMediaQuery, Tooltip } from '@mui/material';
-import { TableChart } from '@mui/icons-material';
+//import { TableChart } from '@mui/icons-material';
 import { styled } from '@mui/system';
 import { useNavigate } from 'react-router-dom';
 import { obtenerTipoUsuario } from '../Access/SessionService';
@@ -10,6 +10,7 @@ import Brightness7Icon from '@mui/icons-material/Brightness7';
 import LoginIcon from '@mui/icons-material/Login';
 import Home from '@mui/icons-material/Home';
 import { Business, People, Report } from '@mui/icons-material';
+import PropTypes from 'prop-types';
 
 const drawerWidth = 240;
 
@@ -22,6 +23,15 @@ const StyledDrawer = styled(Drawer)(() => ({
         color: '#fff',
     },
 }));
+
+SideMenu.propTypes = {
+    open: PropTypes.bool.isRequired, 
+    toggleMenu: PropTypes.func.isRequired,
+    onLogout: PropTypes.func.isRequired,
+    toggleDarkMode: PropTypes.func.isRequired,
+    darkMode: PropTypes.bool.isRequired,
+    usuario: PropTypes.object.isRequired, // Cambia esto si usuario tiene una estructura específica
+  };
 
 function SideMenu({ open, toggleMenu, onLogout, toggleDarkMode, darkMode, usuario }) {
     const navigate = useNavigate();

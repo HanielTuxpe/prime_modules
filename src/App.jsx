@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { CssBaseline, ThemeProvider, Box, Container } from '@mui/material';
-
 import Index from './Components/Students/Index';
 import Login from './Components/Access/LogIn';
 import ForgotPassword from './Components/Access/PasswdRecovery';
@@ -47,6 +47,10 @@ const App = () => {
       <Footer />
     </Box>
   );
+
+  Layout.propTypes = {
+    children: PropTypes.node.isRequired, // Valida que `children` sea un nodo válido de React
+  };
 
   return (
     <ThemeProvider sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }} theme={theme}>

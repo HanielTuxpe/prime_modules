@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Typography from '@mui/material/Typography';
 import { Box, IconButton, useMediaQuery, Container, useTheme, Tooltip } from '@mui/material';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
@@ -11,6 +11,15 @@ import { useNavigate } from 'react-router-dom';
 import logo from '../../assets/uthh.png';
 import MenuPrincipal from '../Public/Menu'; // Importa tu menú
 import { obtenerTipoUsuario } from '../Access/SessionService';
+import PropTypes from 'prop-types';
+
+Header.propTypes = {
+    usuario: PropTypes.bool.isRequired, 
+    toggleMenu: PropTypes.func.isRequired,
+    onLogout: PropTypes.func.isRequired,
+    toggleDarkMode: PropTypes.func.isRequired,
+    darkMode: PropTypes.bool.isRequired,
+  };
 
 const Header = ({ usuario, onLogout, toggleDarkMode, darkMode }) => {
     const theme = useTheme();
@@ -71,7 +80,6 @@ const Header = ({ usuario, onLogout, toggleDarkMode, darkMode }) => {
                     alignItems: "center",
                     flexDirection: isSmallScreen ? 'row' : 'row', // Cambia la dirección a columna en pantallas pequeñas
                     maxWidth: "none",
-                    alignItems: "center", // Centra el contenido verticalmente
                     '@media (min-width: 600px)': {
                         paddingLeft: 0, // Elimina el padding a partir de 600px
                         paddingRight: 0, // Elimina el padding a partir de 600px
