@@ -15,6 +15,11 @@ import Politicas from './Components/Public/InfoDeEmpresa/Politicas';
 import FAQS from './Components/Public/InfoDeEmpresa/FaQs';
 import AcercaDe from './Components/Public/InfoDeEmpresa/AcercaDe';
 
+import Calificaciones from './Components/Students/Calificaciones';
+import Historial from './Components/Students/Historial';
+import Rendimiento from './Components/Students/Rendimiento';
+
+
 
 import { obtenerTipoUsuario, cerrarSesion } from './Components/Access/SessionService';
 import getTheme from './Components/theme';
@@ -82,6 +87,11 @@ const App = () => {
             <Route path="/public/Error404" element={<Error404 />} />
             <Route path="/public/Error400" element={<Error400 />} />
             <Route path="/public/Error500" element={<Error500 />} />
+
+
+            <Route path="/Estudiante/Calificaciones" element={<Calificaciones />} />
+            <Route path="/Estudiante/Historial" element={<Historial />} />
+            <Route path="/Estudiante/Rendimiento" element={<Rendimiento />} />
 
           </Routes>
         </Layout>
