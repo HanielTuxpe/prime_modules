@@ -24,7 +24,7 @@ const Index = () => {
             sx={{
                 display: 'flex',
                 flexDirection: 'column',
-                marginTop: '5%',
+                marginTop: '1%',
                 width: '100%',
                 alignItems: 'top',
               
