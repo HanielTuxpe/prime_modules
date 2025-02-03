@@ -21,26 +21,26 @@ const getTheme = (darkMode) =>
         },
         typography: {
             fontFamily: 'Roboto Condensed',
-            h5: { fontWeight: 700,  color: darkMode ? '#FFFFFF' : '#FFFFFF' ,textShadow: darkMode ? '0 5px 3px rgb(0, 0, 0)' : 'none',},
-            h7: {  fontWeight: 700 ,  color: darkMode ? '#FFFFFF' : '#FFFFFF',  textShadow: darkMode ? '0 5px 3px rgb(0, 0, 0)' : 'none',},
-            h4: {  fontWeight: 700 ,  color: darkMode ? '#FFFFFF' : '#000000',  textShadow: darkMode ? '0 5px 3px rgb(0, 0, 0)' : 'none',},
+            h5: { fontWeight: 700,  color: darkMode ? '#FFFFFF' : '#FFFFFF' ,},
+            h7: {  fontWeight: 700 ,  color: darkMode ? '#FFFFFF' : '#FFFFFF',  },
+            h4: {  fontWeight: 700 ,  color: darkMode ? '#FFFFFF' : '#000000',  },
          
-            h3: { fontWeight: 600,  fontSize: '2.5rem', color: darkMode ? '#FFFFFF' : '#921F45' ,textShadow: darkMode ? '0 5px 3px rgb(0, 0, 0)' : 'none',},
-            h6: { fontWeight: 700,  color: darkMode ? '#FFFFFF' : '#921F45' ,textShadow: darkMode ? '0 5px 3px rgb(0, 0, 0)' : 'none',},
+            h3: { fontWeight: 600,  fontSize: '2.5rem', color: darkMode ? '#FFFFFF' : '#921F45' ,},
+            h6: { fontWeight: 700,  color: darkMode ? '#FFFFFF' : '#921F45' ,},
 
             subtitle1: {
                 fontWeight: 600, // Peso medio
                 fontSize: '1rem', // Tamaño de fuente
                 color: darkMode ? '#FFFFFF' : '#000000', // Color adaptable al modo
                 lineHeight: 1.5, // Altura de línea
-                textShadow: darkMode ? '0 5px 3px rgb(0, 0, 0)' : 'none',
+                
             },
             subtitle2: {
                 fontWeight: 600, // Peso medio
                 fontSize: '1rem', // Tamaño de fuente
                 color: darkMode ? '#FFFFFF' : '#FFFFFF', // Color adaptable al modo
                 lineHeight: 1.5, // Altura de línea
-                textShadow: darkMode ? '0 5px 3px rgb(0, 0, 0)' : 'none',
+                
             },
 
             body1: {

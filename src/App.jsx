@@ -21,6 +21,7 @@ import getTheme from './Components/theme';
 
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import Profile from './Components/Students/Profile';
 
 const App = () => {
   const [usuario, setUsuario] = useState(null);
@@ -70,6 +71,7 @@ const App = () => {
           <Routes>
 
             <Route path="/" element={<IndexPublic />} />
+            <Route path="/student/profile" element={<Profile />} />
             <Route path="/public/" element={<IndexPublic />} />
             <Route path="/public/login" element={usuario ? <Navigate to="/" /> : <Login />} />
             <Route path="/public/forgot-password" element={<ForgotPassword />} />
