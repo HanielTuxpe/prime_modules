@@ -75,23 +75,27 @@ const App = () => {
           <Routes>
 
             <Route path="/" element={<IndexPublic />} />
-            <Route path="/public/" element={<IndexPublic />} />
-            <Route path="/public/login" element={usuario ? <Navigate to="/" /> : <Login />} />
-            <Route path="/public/forgot-password" element={<ForgotPassword />} />
+            <Route path="/Publico/" element={<IndexPublic />} />
+            <Route path="/Publico/login" element={usuario ? <Navigate to="/" /> : <Login />} />
+            <Route path="/Publico/forgot-password" element={<ForgotPassword />} />
 
             {/* Rutas públicas info de la empresa */}
-            <Route path="/public/Politicas" element={<Politicas />} />
-            <Route path="/public/FAQS" element={<FAQS />} />
-            <Route path="/public/Acercade" element={<AcercaDe />} />
+            <Route path="/Publico/Politicas" element={<Politicas />} />
+            <Route path="/Publico/FAQS" element={<FAQS />} />
+            <Route path="/Publico/Acercade" element={<AcercaDe />} />
 
-            <Route path="/public/Error404" element={<Error404 />} />
-            <Route path="/public/Error400" element={<Error400 />} />
-            <Route path="/public/Error500" element={<Error500 />} />
+            <Route path="/Publico/Error404" element={<Error404 />} />
+            <Route path="/Publico/Error400" element={<Error400 />} />
+            <Route path="/Publico/Error500" element={<Error500 />} />
 
-
+            <Route path="/Estudiante/" element={<IndexPublic />} />
             <Route path="/Estudiante/Calificaciones" element={<Calificaciones />} />
             <Route path="/Estudiante/Historial" element={<Historial />} />
             <Route path="/Estudiante/Rendimiento" element={<Rendimiento />} />
+
+           {/*<Route path="/Docente/MateriasImpartidas" element={<MateriasImpartidas />} />
+            <Route path="/Docente/Tutor/" element={<GrupoAccesorado />} />*/}
+
 
           </Routes>
         </Layout>

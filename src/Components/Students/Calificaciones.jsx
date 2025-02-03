@@ -44,7 +44,7 @@ const StudentGrades = () => {
     }
 
     return (
-        <Card sx={{ maxWidth: '100%', margin: "auto", mt: 4, boxShadow: 3, padding: 2, borderRadius:'1%'}}>
+        <Card sx={{ maxWidth: '100%', margin: "auto", mt: 4, boxShadow: 3, padding: 2, borderRadius: '1%' }}>
             <CardContent>
                 <Typography variant="h6" sx={{ fontWeight: "bold", color: "primary" }}>
                     ALUMNO: {student.name}
@@ -61,8 +61,14 @@ const StudentGrades = () => {
                             onChange={(e) => setSelectedSemester(e.target.value)}
                             sx={{ ml: 1 }}
                         >
-                            <MenuItem   value="7mo. CUATRIMESTRE"  sx={{ color: "text.primary"}} >7mo. CUATRIMESTRE</MenuItem>
-                            <MenuItem  value="8vo. CUATRIMESTRE" sx={{ color: "text.primary" }} >8vo. CUATRIMESTRE</MenuItem>
+                            <MenuItem value="1ro. CUATRIMESTRE" sx={{ color: "text.primary" }} >1ro. CUATRIMESTRE</MenuItem>
+                            <MenuItem value="2do. CUATRIMESTRE" sx={{ color: "text.primary" }} >2do. CUATRIMESTRE</MenuItem>
+                            <MenuItem value="3ro. CUATRIMESTRE" sx={{ color: "text.primary" }} >3ro. CUATRIMESTRE</MenuItem>
+                            <MenuItem value="4to. CUATRIMESTRE" sx={{ color: "text.primary" }} >4to. CUATRIMESTRE</MenuItem>
+                            <MenuItem value="5to. CUATRIMESTRE" sx={{ color: "text.primary" }} >5to. CUATRIMESTRE</MenuItem>
+                            <MenuItem value="6to. CUATRIMESTRE" sx={{ color: "text.primary" }} >6to. CUATRIMESTRE</MenuItem>
+                            <MenuItem value="7mo. CUATRIMESTRE" sx={{ color: "text.primary" }} >7mo. CUATRIMESTRE</MenuItem>
+                            <MenuItem value="8vo. CUATRIMESTRE" sx={{ color: "text.primary" }} >8vo. CUATRIMESTRE</MenuItem>
                         </Select>
                     </Typography>
                     <Typography variant="body2">
@@ -89,17 +95,17 @@ const StudentGrades = () => {
                                 <TableRow key={index} sx={{ backgroundColor: index % 2 === 0 ? "#D9D9D9" : "white" }}>
                                     <TableCell>{subject.name}</TableCell>
 
-                                    <TableCell  align="center">
+                                    <TableCell align="center">
                                         <TableCell align="center">{subject.m1}</TableCell>
                                         <TableCell align="center">OR</TableCell>
                                     </TableCell>
 
-                                    <TableCell  align="center">
-                                    <TableCell align="center">{subject.m2}</TableCell>
+                                    <TableCell align="center">
+                                        <TableCell align="center">{subject.m2}</TableCell>
                                         <TableCell align="center">OR</TableCell>
                                     </TableCell>
 
-                                    <TableCell  align="center">
+                                    <TableCell align="center">
                                         <TableCell align="center">{subject.m3}</TableCell>
                                         <TableCell align="center">OR</TableCell>
                                     </TableCell>
@@ -116,7 +122,7 @@ const StudentGrades = () => {
                     </Table>
                 </TableContainer>
 
-                <Typography variant="h5" align="right" sx={{ mt: 3, fontWeight: "bold", color: "green" }}>
+                <Typography variant="h5" align="right" sx={{ mt: 3, fontWeight: "bold", color: "#921F45" }}>
                     PROMEDIO: {student.average}
                 </Typography>
             </CardContent>
