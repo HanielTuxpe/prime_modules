@@ -28,6 +28,7 @@ import getTheme from './Components/theme';
 
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import Profile from './Components/Students/Profile';
 
 const App = () => {
   const [usuario, setUsuario] = useState(null);
@@ -94,6 +95,7 @@ const App = () => {
             <Route path="/Estudiante/Calificaciones" element={<Calificaciones />} />
             <Route path="/Estudiante/Historial" element={<Historial />} />
             <Route path="/Estudiante/Rendimiento" element={<Rendimiento />} />
+            <Route path="/Estudiante/Perfil" element={<Profile />} />
 
             <Route path="/Asesor/GrupoAsesorado/" element={<GrupoAccesorado />} />
 
