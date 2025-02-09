@@ -267,7 +267,7 @@ const Login = () => {
                         </Button>
 
                         <Typography variant="body2" align="center">
-                            <Link href="/public/forgot-password" variant="h5" sx={{ mr: 1, fontSize: 18, color: '#fff' }}>
+                            <Link href="/Publico/forgot-password" variant="h5" sx={{ mr: 1, fontSize: 18, color: '#fff' }}>
                                 ¿Olvidaste tu contraseña?
                             </Link>
                         </Typography>

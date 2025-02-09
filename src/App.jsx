@@ -19,6 +19,8 @@ import Calificaciones from './Components/Students/Calificaciones';
 import Historial from './Components/Students/Historial';
 import Rendimiento from './Components/Students/Rendimiento';
 
+import GrupoAccesorado from './Components/Asesor/GrupoAsesorado'; //';
+
 
 
 import { obtenerTipoUsuario, cerrarSesion } from './Components/Access/SessionService';
@@ -92,6 +94,8 @@ const App = () => {
             <Route path="/Estudiante/Calificaciones" element={<Calificaciones />} />
             <Route path="/Estudiante/Historial" element={<Historial />} />
             <Route path="/Estudiante/Rendimiento" element={<Rendimiento />} />
+
+            <Route path="/Asesor/GrupoAsesorado/" element={<GrupoAccesorado />} />
 
            {/*<Route path="/Docente/MateriasImpartidas" element={<MateriasImpartidas />} />
             <Route path="/Docente/Tutor/" element={<GrupoAccesorado />} />*/}

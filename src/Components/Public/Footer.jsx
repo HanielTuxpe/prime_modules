@@ -59,13 +59,13 @@ const ResponsiveFooter = () => {
                                     gap={1}
                                     mt={1}
                                 >
-                                    <Link href="/public/Politicas" variant={"h7"} sx={{ color: "#fff", textDecoration: "none" }}>
+                                    <Link href="/Publico/Politicas" variant={"h7"} sx={{ color: "#fff", textDecoration: "none" }}>
                                         Política de Privacidad
                                     </Link>
-                                    <Link href="/public/FAQS" variant={"h7"} sx={{ color: "#fff", textDecoration: "none" }}>
+                                    <Link href="/Publico/FAQS" variant={"h7"} sx={{ color: "#fff", textDecoration: "none" }}>
                                     FAQS
                                     </Link>
-                                    <Link href="/public/Acercade"  variant={"h7"} sx={{ color: "#fff", textDecoration: "none" }}>
+                                    <Link href="/Publico/Acercade"  variant={"h7"} sx={{ color: "#fff", textDecoration: "none" }}>
                                         Acerca de...
                                     </Link>
                                 </Box>
@@ -93,13 +93,13 @@ const ResponsiveFooter = () => {
                                 gap={1}
                                 alignItems="center"
                             >
-                                <Link href="/public/Politicas" variant={"h7"} sx={{ color: '#fff', textDecoration: 'none' }}>
+                                <Link href="/Publico/Politicas" variant={"h7"} sx={{ color: '#fff', textDecoration: 'none' }}>
                                     Política de Privacidad
                                 </Link>
-                                <Link href="/public/fAQS" variant={"h7"} sx={{ color: '#fff', textDecoration: 'none' }}>
+                                <Link href="/Publico/fAQS" variant={"h7"} sx={{ color: '#fff', textDecoration: 'none' }}>
                                    FAQS
                                 </Link>
-                                <Link href="/public/Acercade" variant={"h7"} sx={{ color: '#fff', textDecoration: 'none' }}>
+                                <Link href="/Publico/Acercade" variant={"h7"} sx={{ color: '#fff', textDecoration: 'none' }}>
                                     Acerca de...
                                 </Link>
                             </Box>

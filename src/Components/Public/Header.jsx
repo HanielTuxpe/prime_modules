@@ -32,20 +32,20 @@ const Header = ({ usuario, onLogout, toggleDarkMode, darkMode }) => {
     }, []);
 
     const handleLoginClick = () => {
-        navigate('/public/login');
+        navigate('/Publico/login');
     };
 
     const handleLogoutClick = () => {
         onLogout();
-        navigate('/public/');
+        navigate('/Publico/');
     };
 
     const handleGoIndex = () => {
         // Verifica si hay un usuario almacenado
         if (user) {
-            navigate('/public/index'); // Si hay usuario, navega a /index
+            navigate('/Publico/index'); // Si hay usuario, navega a /index
         } else {
-            navigate('/public/'); // Si no hay usuario, navega a /
+            navigate('/Publico/'); // Si no hay usuario, navega a /
         }
     };
 

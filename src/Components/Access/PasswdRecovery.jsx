@@ -247,7 +247,7 @@ const ForgotPassword = () => {
                             </Button>
 
                             <Typography variant="body2" align="center">
-                                <Link href="/public/login" variant="h5" sx={{ mr: 1, fontSize: 18, color: '#fff' }}>
+                                <Link href="/Publico/login" variant="h5" sx={{ mr: 1, fontSize: 18, color: '#fff' }}>
                                     Regresar
                                 </Link>
                             </Typography>
