@@ -16,7 +16,7 @@ const ModuloAsesor = () => {
                 { materia: "Arte", m1: { nota: 9, tipo: "OR" }, m2: { nota: 8, tipo: "OR" }, m3: { nota: 9, tipo: "OR" }, finalGrade: 9 },
                 { materia: "Deportes", m1: { nota: 8, tipo: "OR" }, m2: { nota: 7, tipo: "E1" }, m3: { nota: 8, tipo: "OR" }, finalGrade: 8 }
             ],
-            average: 8.75
+            average: 8
         },
         {
             nombre: "María Gómez", calificaciones: [
@@ -29,7 +29,7 @@ const ModuloAsesor = () => {
                 { materia: "Arte", m1: { nota: 8, tipo: "E1" }, m2: { nota: 9, tipo: "OR" }, m3: { nota: 9, tipo: "OR" }, finalGrade: 9 },
                 { materia: "Deportes", m1: { nota: 7, tipo: "OR" }, m2: { nota: 8, tipo: "OR" }, m3: { nota: 7, tipo: "OR" }, finalGrade: 7 }
             ],
-            average: 8.25
+            average: 8
         },
         {
             nombre: "Luis Hernández", calificaciones: [
@@ -42,7 +42,7 @@ const ModuloAsesor = () => {
                 { materia: "Arte", m1: { nota: 10, tipo: "OR" }, m2: { nota: 9, tipo: "OR" }, m3: { nota: 10, tipo: "OR" }, finalGrade: 10 },
                 { materia: "Deportes", m1: { nota: 9, tipo: "OR" }, m2: { nota: 10, tipo: "OR" }, m3: { nota: 10, tipo: "OR" }, finalGrade: 10 }
             ],
-            average: 9.88
+            average: 9
         },
         {
             nombre: "Pedro Ramírez", calificaciones: [
@@ -55,7 +55,7 @@ const ModuloAsesor = () => {
                 { materia: "Arte", m1: { nota: 6, tipo: "E1" }, m2: { nota: 5, tipo: "E2" }, m3: { nota: 5, tipo: "E3" }, finalGrade: 5 },
                 { materia: "Deportes", m1: { nota: 5, tipo: "E3" }, m2: { nota: 4, tipo: "E3" }, m3: { nota: 5, tipo: "E3" }, finalGrade: 5 }
             ],
-            average: 5.38
+            average: 5
         }
     ];
 

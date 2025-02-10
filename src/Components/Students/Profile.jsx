@@ -75,9 +75,6 @@ const Profile = () => {
                     <Typography variant="body1" sx={{ fontWeight: 600, color: '#333'  }}>Matrícula del alumno</Typography>
                     <Typography variant="body1" sx={{ fontWeight: 600, color: '#333'  }}>20181236</Typography>
 
-                    <Typography variant="body1" sx={{ fontWeight: 600, color: '#333'  }}>Teléfono del alumno</Typography>
-                    <Typography variant="body1" sx={{ fontWeight: 600, color: '#333'  }}>+52 123 456 7890</Typography>
-
                     <Typography variant="body1" sx={{ fontWeight: 600, color: '#333'  }}>Correo Electrónico Institucional</Typography>
                     <Typography variant="body1" sx={{ fontWeight: 600, color: '#333'  }}>alumno@uthh.edu.mx</Typography>
 
