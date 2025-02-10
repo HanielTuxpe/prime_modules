@@ -3,6 +3,7 @@ import { CircularProgress, Card, CardContent, Typography, Box, Grid, useTheme, }
 import DynamicHistory from './Graphs/DynamicHistory';
 import axios from "axios";
 import { useState, useEffect } from "react";
+import AnimatedGraph from './Graphs/AnimatedGraph';
 
 export default function RendimientoAlumnos() {
 
@@ -18,7 +19,6 @@ export default function RendimientoAlumnos() {
             });
             if (response.status === 200 && response.data) {
                 setData(response.data.data);
-                console.log(data);
             }
         } catch (error) {
             console.error("Error detected:", error);  // Verificar el error exacto
@@ -54,25 +54,6 @@ export default function RendimientoAlumnos() {
         //backgroundColor: { fill: 'transparent' }, // Fondo transparente
     };
 
-    // Datos para el gráfico de barras (longitud de exámenes)
-    const datosExamenes = [
-        ['Duración (minutos)', 'Cantidad de Exámenes'],
-        ['10', 15],
-        ['20', 5],
-        ['30', 4],
-        ['40', 2],
-        ['50', 1],
-    ];
-
-    const opcionesExamenes = {
-        title: 'Duración de Exámenes, en minutos',
-        hAxis: { title: 'Duración (minutos)' },
-        vAxis: { title: 'Cantidad' },
-        colors: ['#6a1b9a'],
-        legend: 'none',
-        //backgroundColor: { fill: 'transparent' }, // Fondo transparente
-    };
-
 
     if (data.length === 0) {
         return (
@@ -89,9 +70,9 @@ export default function RendimientoAlumnos() {
                     padding: 4,
                 }}>
                     <Typography sx={{color: '#000'}} variant="h6" gutterBottom>
-                        Historial de Promedios por Cuatrimestre
+                        No hay datos disponibles.
                     </Typography>
-                    <Typography sx={{color: '#000'}} variant="body1">No hay datos disponibles.</Typography>
+                    <Typography sx={{color: '#000'}} variant="body1">Cargando datos.</Typography>
                     <CircularProgress />
                 </Card>
             </Box>
@@ -137,18 +118,12 @@ export default function RendimientoAlumnos() {
                         data={datosRendimiento}
                         options={opcionesRendimiento}
                     />
-
-                    {/* Gráfico de barras */}
-                    <Chart
-                        chartType="ColumnChart"
-                        width="100%"
-                        height="400px"
-                        data={datosExamenes}
-                        options={opcionesExamenes}
-                    />
-
                     {/* Gráfico de barras */}
                     <DynamicHistory matricula={matricula} />
+
+                    {/* Gráfico Dinámico */}
+
+                    <AnimatedGraph matricula={matricula} />
 
                 </center>
             </Card>
