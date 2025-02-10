@@ -1,8 +1,6 @@
-import React from 'react';
 import { Chart } from 'react-google-charts';
-import { Card, CardContent, Typography, Box, Grid, useTheme, } from '@mui/material';
-
-
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, Typography, Box, Grid, useTheme } from '@mui/material';
 
 export default function RendimientoAlumnos() {
 
@@ -49,15 +47,46 @@ export default function RendimientoAlumnos() {
         //backgroundColor: { fill: 'transparent' }, // Fondo transparente
     };
 
+    const [Cuatrimestre7, setCuatrimestre7] = useState([
+        ["Materia", "Ordinario", "Extras"],
+        ["mate", 9, 0],
+        ["poo", 10, 0],
+        ["TI", 9, 0],
+        ["EOS", 10, 0],
+        ["HIstoria", 9, 0],
+        ["Robotica", 0, 7],
+    ]);
+
+    const [Cuatrimestre8, setCuatrimestre8] = useState([
+        ["Materia", "Ordinario", "Extras"],
+        ["mate", 0, 7],
+        ["poo", 0, 7],
+        ["TI", 8, 0],
+        ["EOS", 8, 0],
+        ["HIstoria", 0, 7],
+        ["Robotica", 0, 6],
+    ]);
+    // Estado para los datos de la gráfica
+    const [chartData, setChartData] = useState(Cuatrimestre7);
+
+    // Cambiar los datos de la gráfica cada 2 segundos
+    useEffect(() => {
+        const intervalId = setInterval(() => {
+            setChartData(prevData => (prevData === Cuatrimestre7 ? Cuatrimestre8 : Cuatrimestre7));
+        }, 5000); // Cambia cada 2 segundos
+
+        // Limpiar el intervalo al desmontar el componente
+        return () => clearInterval(intervalId);
+    }, []);
+
     return (
-        <Box sx={{ p: 4, minHeight: '100vh', }}>
+        <Box sx={{ p: 4, minHeight: '100vh' }}>
             <Card sx={{
                 borderRadius: '16px',
                 boxShadow: '0 6px 18px rgba(0, 0, 0, 0.1)',
                 transition: 'all 0.3s ease-in-out',
                 backgroundColor: theme.palette.paper,
             }}>
-
 
                 {/* Encabezado */}
                 <Card sx={{ background: 'linear-gradient(to right,rgb(160, 12, 71),rgb(199, 22, 87))', color: 'white', borderRadius: 3, boxShadow: 3 }}>
@@ -98,6 +127,21 @@ export default function RendimientoAlumnos() {
                         options={opcionesExamenes}
                     />
 
+                    {/* Gráfico de dispersión que alterna entre chartData y chartData2 */}
+                    <Chart
+                        chartType="ScatterChart"
+                        width="100%"
+                        height="400px"
+                        data={chartData}
+                        options={{
+                            title: "Company Performance",
+                            legend: { position: "bottom" },
+                            animation: {
+                                duration: 2000,
+                                easing: "out",
+                            },
+                        }}
+                    />
 
                 </center>
             </Card>
