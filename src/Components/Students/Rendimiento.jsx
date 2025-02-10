@@ -134,7 +134,7 @@ export default function RendimientoAlumnos() {
                         height="400px"
                         data={chartData}
                         options={{
-                            title: "Company Performance",
+                            title: "Calificaciones Por Cuatrimestre",
                             legend: { position: "bottom" },
                             animation: {
                                 duration: 2000,
