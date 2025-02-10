@@ -37,11 +37,11 @@ function SideMenu({ open, toggleMenu }) {
                 //return <AdminMenu />;
             case 'Alumno':
                 return <AlumnoMenu />;
-            //case 'Asesor':
-                //return <AsesorMenu />;
+            case 'Asesor':
+                return <AsesorMenu />;
             default:
                 return (
-                    <AsesorMenu />
+                    <AlumnoMenu />
                 );
         }
     };

@@ -54,38 +54,35 @@ export default function RendimientoAlumnos() {
         //backgroundColor: { fill: 'transparent' }, // Fondo transparente
     };
 
-    if (data.length === 0) {
-        return (
-            <Box sx={{ p: 4, minHeight: '100vh', }}>
-                <Card sx={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    borderRadius: '16px',
-                    boxShadow: '0 6px 18px rgba(0, 0, 0, 0.1)',
-                    transition: 'all 0.3s ease-in-out',
-                    backgroundColor: theme.palette.paper,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    padding: 4,
-                }}>
-                    <Typography sx={{color: '#000'}} variant="h6" gutterBottom>
-                        Historial de Promedios por Cuatrimestre
-                    </Typography>
-                    <Typography sx={{color: '#000'}} variant="body1">No hay datos disponibles.</Typography>
-                    <CircularProgress />
-                </Card>
-            </Box>
-        );
-    }
+    // Datos para el gráfico de barras (longitud de exámenes)
+    const datosExamenes = [
+        ['Duración (minutos)', 'Cantidad de Exámenes'],
+        ['10', 15],
+        ['20', 5],
+        ['30', 4],
+        ['40', 2],
+        ['50', 1],
+    ];
+
+    const opcionesExamenes = {
+        title: 'Duración de Exámenes, en minutos',
+        hAxis: { title: 'Duración (minutos)' },
+        vAxis: { title: 'Cantidad' },
+        colors: ['#6a1b9a'],
+        legend: 'none',
+        //backgroundColor: { fill: 'transparent' }, // Fondo transparente
+    };
 
     return (
-        <Box sx={{ p: 4, minHeight: '100vh', }}>
+        <Box sx={{ p: 4, minHeight: '100vh' }}>
             <Card sx={{
                 borderRadius: '16px',
                 boxShadow: '0 6px 18px rgba(0, 0, 0, 0.1)',
                 transition: 'all 0.3s ease-in-out',
                 backgroundColor: theme.palette.paper,
             }}>
+
+
                 {/* Encabezado */}
                 <Card sx={{ background: 'linear-gradient(to right,rgb(160, 12, 71),rgb(199, 22, 87))', color: 'white', borderRadius: 3, boxShadow: 3 }}>
                     <CardContent>
@@ -117,7 +114,14 @@ export default function RendimientoAlumnos() {
                     />
 
                     {/* Gráfico de barras */}
-                    <DynamicHistory matricula={matricula} />
+                    <Chart
+                        chartType="ColumnChart"
+                        width="100%"
+                        height="400px"
+                        data={datosExamenes}
+                        options={opcionesExamenes}
+                    />
+
 
                 </center>
             </Card>
