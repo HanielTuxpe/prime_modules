@@ -93,21 +93,21 @@ const StudentGrades = () => {
                         <TableBody>
                             {student.grades.map((subject, index) => (
                                 <TableRow key={index} sx={{ backgroundColor: index % 2 === 0 ? "#D9D9D9" : "white" }}>
-                                    <TableCell sx={{ color: "#000000", fontWeight: "bold" }} >{subject.name}</TableCell>
+                                    <TableCell>{subject.name}</TableCell>
 
                                     <TableCell align="center">
-                                        <TableCell align="center" sx={{ color: "#000000", fontWeight: "bold" }} >{subject.m1}</TableCell>
-                                        <TableCell align="center" sx={{ color: "#000000", fontWeight: "bold" }} >OR</TableCell>
+                                        <TableCell align="center">{subject.m1}</TableCell>
+                                        <TableCell align="center">OR</TableCell>
                                     </TableCell>
 
                                     <TableCell align="center">
-                                        <TableCell align="center" sx={{ color: "#000000", fontWeight: "bold" }} >{subject.m2}</TableCell>
-                                        <TableCell align="center" sx={{ color: "#000000", fontWeight: "bold" }} >OR</TableCell>
+                                        <TableCell align="center">{subject.m2}</TableCell>
+                                        <TableCell align="center">OR</TableCell>
                                     </TableCell>
 
                                     <TableCell align="center">
-                                        <TableCell align="center" sx={{ color: "#000000", fontWeight: "bold" }} >{subject.m3}</TableCell>
-                                        <TableCell align="center" sx={{ color: "#000000", fontWeight: "bold" }} >OR</TableCell>
+                                        <TableCell align="center">{subject.m3}</TableCell>
+                                        <TableCell align="center">OR</TableCell>
                                     </TableCell>
 
                                     <TableCell

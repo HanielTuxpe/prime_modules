@@ -12,7 +12,7 @@ import PropTypes from 'prop-types';
 import DOMPurify from 'dompurify';
 
 const Login = () => {
-    const [username, setUsername] = useState('');
+    const [matricula, setMatricula] = useState('');
     const [password, setPassword] = useState('');
     const [userType, setUserType] = useState('');
     const [code, setCode] = useState('');
@@ -25,13 +25,13 @@ const Login = () => {
         e.preventDefault();
 
         // Validación de campos
-        if (!username.trim() || !password.trim() || !userType.trim()) {
+        if (!matricula.trim() || !password.trim() || !userType.trim()) {
             toast.warning('Por favor, complete todos los campos.');
             return;
         }
 
         // Sanitización de campos
-        const sanitizedUsername = DOMPurify.sanitize(username.trim());
+        const sanitizedMatricula = DOMPurify.sanitize(matricula.trim());
         const sanitizedPassword = DOMPurify.sanitize(password.trim());
         const sanitizedUserType = DOMPurify.sanitize(userType.trim());
 
@@ -47,8 +47,8 @@ const Login = () => {
             });
 
             // Si el reCAPTCHA es exitoso, proceder a validar las credenciales de usuario
-            const loginResponse = await axios.post('https://prj-server.onrender.com/login', {
-                username: sanitizedUsername,
+            const loginResponse = await axios.post('http://localhost:3000/access', {
+                matricula: sanitizedMatricula,
                 password: sanitizedPassword,
                 userType: sanitizedUserType,
             });
@@ -80,7 +80,7 @@ const Login = () => {
         try {
             // Verificar código
             const verifyResponse = await axios.post('https://prj-server.onrender.com/code-login', {
-                username,
+                matricula,
                 code: Number(code),
             });
 
@@ -195,9 +195,8 @@ const Login = () => {
                                     onChange={(e) => setUserType(e.target.value)}
                                 >
                                     <option value=" "> </option>
-                                    <option value="Admin">Admin</option>
-                                    <option value="Student">Estudiante</option>
-                                    <option value="docen">Docente</option>
+                                    <option value="estudiante">Estudiante</option>
+                                    <option value="docente">Docente</option>
                                 </TextField>
 
                                 <TextField
@@ -205,13 +204,13 @@ const Login = () => {
                                     margin="normal"
                                     required
                                     fullWidth
-                                    id="username"
-                                    label="Usuario"
-                                    name="username"
-                                    autoComplete="username"
+                                    id="matricula"
+                                    label="Matricula"
+                                    name="matricula"
+                                    autoComplete="matricula"
                                     autoFocus
-                                    value={username}
-                                    onChange={(e) => setUsername(e.target.value)}
+                                    value={matricula}
+                                    onChange={(e) => setMatricula(e.target.value)}
                                 />
                                 <Box sx={{ position: 'relative' }}>
                                     <TextField

@@ -111,6 +111,7 @@ const eventStyleGetter = (event) => {
 };
 
 const StudentCalendar = ({ onSelectEvent }) => (
+
     <Box
         sx={{
             height: 450,
