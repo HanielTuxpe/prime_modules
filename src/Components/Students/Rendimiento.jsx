@@ -73,6 +73,31 @@ export default function RendimientoAlumnos() {
         //backgroundColor: { fill: 'transparent' }, // Fondo transparente
     };
 
+
+    if (data.length === 0) {
+        return (
+            <Box sx={{ p: 4, minHeight: '100vh', }}>
+                <Card sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    borderRadius: '16px',
+                    boxShadow: '0 6px 18px rgba(0, 0, 0, 0.1)',
+                    transition: 'all 0.3s ease-in-out',
+                    backgroundColor: theme.palette.paper,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    padding: 4,
+                }}>
+                    <Typography sx={{color: '#000'}} variant="h6" gutterBottom>
+                        Historial de Promedios por Cuatrimestre
+                    </Typography>
+                    <Typography sx={{color: '#000'}} variant="body1">No hay datos disponibles.</Typography>
+                    <CircularProgress />
+                </Card>
+            </Box>
+        );
+    }
+
     return (
         <Box sx={{ p: 4, minHeight: '100vh' }}>
             <Card sx={{
@@ -122,6 +147,8 @@ export default function RendimientoAlumnos() {
                         options={opcionesExamenes}
                     />
 
+                    {/* Gráfico de barras */}
+                    <DynamicHistory matricula={matricula} />
 
                 </center>
             </Card>
