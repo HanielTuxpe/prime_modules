@@ -4,10 +4,12 @@ import { Chart } from "react-google-charts";
 import { CircularProgress, Box, Typography } from "@mui/material";
 import PropTypes from "prop-types";
 
-
 const AnimatedGraph = ({ matricula }) => {
-
     const [loading, setLoading] = useState(true);
+    const [chartData, setChartData] = useState([]);
+    const [currentCuatrimestre, setCurrentCuatrimestre] = useState(1);
+    const [cuatrimestres, setCuatrimestres] = useState({});
+
 
     const fetchData = async () => {
         try {
@@ -15,13 +17,50 @@ const AnimatedGraph = ({ matricula }) => {
                 params: { matricula: matricula }
             });
             if (response.status === 200 && response.data.data) {
-                setChartData(response.data.data);
+                const formattedData = formatData(response.data.data);
+                setCuatrimestres(formattedData);
+                setCurrentCuatrimestre(Object.keys(formattedData)[0]);
+                setChartData(formattedData[Object.keys(formattedData)[0]]);
             }
         } catch (error) {
-            console.error("Error detected:", error);  // Verificar el error exacto
+            console.error("Error detected:", error);
         }
     };
-    
+
+    const formatData = (data) => {
+        const cuatrimestresData = {};
+        data.forEach(item => {
+            const { Cuatrimestre, Materia, PromedioFinal, Parcial1, Parcial2, Parcial3, Parcial1E1, Parcial2E1, Parcial3E1, Parcial1E2, Parcial2E2, Parcial3E2, Parcial1E3, Parcial2E3, Parcial3E3 } = item;
+
+            let extras = 0;
+            // Procesar Parcial1
+            if (Parcial1 === 0 || Parcial1 < 6) {
+                [Parcial1E1, Parcial1E2, Parcial1E3].forEach((score, index) => {
+                    if (score > 6) extras += (index + 1);  // Sumar el extra basado en la posición (1, 2 o 3)
+                });
+            }
+
+            // Procesar Parcial2
+            if (Parcial2 === 0 || Parcial2 < 6) {
+                [Parcial2E1, Parcial2E2, Parcial2E3].forEach((score, index) => {
+                    if (score > 6) extras += (index + 1);  // Sumar el extra basado en la posición (1, 2 o 3)
+                });
+            }
+
+            // Procesar Parcial3
+            if (Parcial3 === 0 || Parcial3 < 6) {
+                [Parcial3E1, Parcial3E2, Parcial3E3].forEach((score, index) => {
+                    if (score > 6) extras += (index + 1);  // Sumar el extra basado en la posición (1, 2 o 3)
+                });
+            }
+
+            if (!cuatrimestresData[Cuatrimestre]) {
+                cuatrimestresData[Cuatrimestre] = [["Materia", "Promedio Final", "Cantidad de Extras"]];
+            }
+            cuatrimestresData[Cuatrimestre].push([Materia, PromedioFinal, extras]);
+        });
+        return cuatrimestresData;
+    };
 
     useEffect(() => {
         if (matricula) {
@@ -31,47 +70,25 @@ const AnimatedGraph = ({ matricula }) => {
         }
     }, [matricula]);
 
-    const [Cuatrimestre7, setCuatrimestre7] = useState([
-        ["Materia", "Ordinario", "Extras"],
-        ["mate", 9, 0],
-        ["poo", 10, 0],
-        ["TI", 9, 0],
-        ["EOS", 10, 0],
-        ["HIstoria", 9, 0],
-        ["Robotica", 0, 7],
-    ]);
-
-    const [Cuatrimestre8, setCuatrimestre8] = useState([
-        ["Materia", "Ordinario", "Extras"],
-        ["mate", 0, 7],
-        ["poo", 0, 7],
-        ["TI", 8, 0],
-        ["EOS", 8, 0],
-        ["HIstoria", 0, 7],
-        ["Robotica", 0, 6],
-    ]);
-
-    
-    // Estado para los datos de la gráfica
-    const [chartData, setChartData] = useState(Cuatrimestre7);
-
-    // Cambiar los datos de la gráfica cada 5 segundos
     useEffect(() => {
         const intervalId = setInterval(() => {
-            setChartData(prevData => (prevData === Cuatrimestre7 ? Cuatrimestre8 : Cuatrimestre7));
-        }, 5000); // Cambia cada 2 segundos
+            const keys = Object.keys(cuatrimestres);
+            const currentIndex = keys.indexOf(currentCuatrimestre.toString());
+            const nextIndex = (currentIndex + 1) % keys.length;
+            const nextCuatrimestre = keys[nextIndex];
+            setCurrentCuatrimestre(nextCuatrimestre);
+            setChartData(cuatrimestres[nextCuatrimestre]);
+        }, 10000);
 
-        // Limpiar el intervalo al desmontar el componente
         return () => clearInterval(intervalId);
-    }, []);
+    }, [cuatrimestres, currentCuatrimestre]);
 
     return (
-        <Box sx={{ p: 4, minHeight: '100vh', }}>
+        <Box sx={{ p: 4, minHeight: '100vh' }}>
             <Typography variant="h4" gutterBottom>
-                Gráfica de Historial de Calificaciones
+                Calificaciones Por Cuatrimestre
             </Typography>
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', }}>
-                {/* Gráfico de dispersión que alterna entre chartData y chartData2 */}
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                 {loading ? (
                     <CircularProgress />
                 ) : (
@@ -81,12 +98,15 @@ const AnimatedGraph = ({ matricula }) => {
                         height="400px"
                         data={chartData}
                         options={{
-                            title: "Calificaciones Por Cuatrimestre",
+                            title: `Calificaciones del Cuatrimestre ${currentCuatrimestre}`,
                             legend: { position: "bottom" },
                             animation: {
                                 duration: 2000,
                                 easing: "out",
                             },
+                            colors: ['#0000ff', '#ff0000'], // Puntos o barras de color azul y rojo
+                            //backgroundColor: '#ff6347', 
+                    
                         }}
                     />
                 )}
@@ -96,8 +116,7 @@ const AnimatedGraph = ({ matricula }) => {
 };
 
 AnimatedGraph.propTypes = {
-    matricula: PropTypes.string.isRequired,  // Cambiar a string en lugar de func
+    matricula: PropTypes.string.isRequired,
 };
-
 
 export default AnimatedGraph;

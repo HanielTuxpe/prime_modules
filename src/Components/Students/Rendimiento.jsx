@@ -8,7 +8,7 @@ import AnimatedGraph from './Graphs/AnimatedGraph';
 export default function RendimientoAlumnos() {
 
     const theme = useTheme();
-    const matricula = '20221026';
+    const matricula = '20221269';
     const [data, setData] = useState([]);
 
 
