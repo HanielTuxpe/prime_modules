@@ -8,8 +8,9 @@ import {
 const StudentGrades = () => {
     const [student, setStudent] = useState(null);
     const [selectedSemester, setSelectedSemester] = useState("1ro. CUATRIMESTRE");
-    const matricula = '20221269';
+    const matricula = '20221038';
     const [cuatrimestresData, setCuatrimestresData] = useState({});
+    const [promedioCuatrimestre, setPromedioCuatrimestre] = useState({});
 
     // Mapeo de los números del cuatrimestre a sus nombres
     const cuatrimestreMap = {
@@ -26,7 +27,6 @@ const StudentGrades = () => {
         "11": "11vo. CUATRIMESTRE",
         "12": "12vo. CUATRIMESTRE"
     };
-    
 
     useEffect(() => {
         fetchData();
@@ -57,6 +57,8 @@ const StudentGrades = () => {
 
     const formatData = (data) => {
         const formattedData = {};
+        const promedioCuatrimestre = {}; // Aquí guardaremos el promedio final por cuatrimestre
+
         data.forEach(item => {
             const { Cuatrimestre, Materia, PromedioFinal, Parcial1, Parcial2, Parcial3, Parcial1E1, Parcial1E2, Parcial1E3, Parcial2E1, Parcial2E2, Parcial2E3, Parcial3E1, Parcial3E2, Parcial3E3 } = item;
 
@@ -76,14 +78,39 @@ const StudentGrades = () => {
             const parcial3 = getBestScore(Parcial3, Parcial3E1, Parcial3E2, Parcial3E3);
 
             if (!formattedData[cuatrimestreNombre]) {
-                formattedData[cuatrimestreNombre] = [];
+                formattedData[cuatrimestreNombre] = { materias: [], promedioFinal: 0, count: 0 }; // Inicializar con promedio y contador
             }
-            formattedData[cuatrimestreNombre].push({
+
+            // Agregar materia y sus detalles
+            formattedData[cuatrimestreNombre].materias.push({
                 materia: Materia,
                 parcial1, parcial2, parcial3,
                 promedioFinal: PromedioFinal
             });
+
+            // Sumar el promedio final para este cuatrimestre
+            formattedData[cuatrimestreNombre].promedioFinal += PromedioFinal;
+            formattedData[cuatrimestreNombre].count += 1;
         });
+
+        // Calcular el promedio final por cuatrimestre
+        Object.keys(formattedData).forEach(cuatrimestre => {
+            const cuatrimestreData = formattedData[cuatrimestre];
+            const promedio = cuatrimestreData.promedioFinal / cuatrimestreData.count;
+
+            // Asignar el promedio calculado al cuatrimestre
+            promedioCuatrimestre[cuatrimestre] = promedio;
+
+            // Limpiar los datos intermedios
+            delete cuatrimestreData.count;
+            delete cuatrimestreData.promedioFinal;
+        });
+
+        // Ahora tienes los promedios por cuatrimestre en la variable promedioCuatrimestre
+        console.log(promedioCuatrimestre); // Puedes usar esto para verificar los promedios
+
+        setPromedioCuatrimestre(promedioCuatrimestre); // Actualiza el estado con los promedios calculados
+
         return formattedData;
     };
 
@@ -98,27 +125,26 @@ const StudentGrades = () => {
                 <Typography variant="h6" sx={{ fontWeight: "bold", color: "primary" }}>
                     CARRERA: {student.NombreCarrera}
                 </Typography>
+                <Typography variant="h6" sx={{ fontWeight: "bold", color: "primary" }}>
+                    <strong>GRUPO:</strong> {student.Grupo}
+                </Typography>
 
-                <div style={{ display: "flex", justifyContent: "space-between", marginTop: 10 }}>
-                    <Typography variant="body2">
-                        <strong>CUATRIMESTRE:</strong>
-                        <Select
-                            value={selectedSemester}
-                            onChange={(e) => setSelectedSemester(e.target.value)}
-                            sx={{ ml: 1 }}
-                        >
-                            {Object.keys(cuatrimestresData).map((cuatri, index) => (
-                                <MenuItem  sx={{color:"text.primary"}} key={index} value={cuatri}>{cuatri}</MenuItem>
-                            ))}
-                        </Select>
-                    </Typography>
-                    <Typography variant="body2">
-                        <strong>GRUPO:</strong> {student.Grupo}
-                    </Typography>
-                    <Typography variant="body2">
-                        <strong>PERIODO:</strong> {student.period}
-                    </Typography>
-                </div>
+                <Typography variant="body2">
+                    <strong>CUATRIMESTRE:</strong>
+                    <Select
+                        value={selectedSemester}
+                        onChange={(e) => setSelectedSemester(e.target.value)}
+                        sx={{ ml: 1 }}
+                    >
+                        {Object.keys(cuatrimestresData).map((cuatri, index) => (
+                            <MenuItem sx={{ color: "text.primary" }} key={index} value={cuatri}>{cuatri}</MenuItem>
+                        ))}
+                    </Select>
+                </Typography>
+
+
+              
+
 
                 <TableContainer component={Paper} sx={{ mt: 3, border: "1px solid #921F45" }}>
                     <Table>
@@ -132,7 +158,7 @@ const StudentGrades = () => {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {cuatrimestresData[selectedSemester]?.map((subject, index) => (
+                            {cuatrimestresData[selectedSemester]?.materias?.map((subject, index) => (
                                 <TableRow key={index} sx={{ backgroundColor: index % 2 === 0 ? "#D9D9D9" : "white" }}>
                                     <TableCell sx={{ fontWeight: "bold" }}>{subject.materia}</TableCell>
                                     <TableCell align="center">{subject.parcial1.calificacion}&nbsp;&nbsp;{subject.parcial1.tipo}</TableCell>
@@ -144,6 +170,11 @@ const StudentGrades = () => {
                         </TableBody>
                     </Table>
                 </TableContainer>
+
+                {/* Promedio Final por Cuatrimestre */}
+                <Typography variant="h6" sx={{ marginTop: 2, fontWeight: "bold" }}>
+                    Promedio del {selectedSemester}: {promedioCuatrimestre[selectedSemester]?.toFixed(2) || "N/A"}
+                </Typography>
             </CardContent>
         </Card>
     );
