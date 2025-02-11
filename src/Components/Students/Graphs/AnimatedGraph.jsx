@@ -85,7 +85,7 @@ const AnimatedGraph = ({ matricula }) => {
 
     return (
         <Box sx={{ p: 4, minHeight: '100vh' }}>
-            <Typography variant="h4" gutterBottom>
+            <Typography variant="h6" gutterBottom>
                 Calificaciones Por Cuatrimestre
             </Typography>
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
@@ -98,7 +98,7 @@ const AnimatedGraph = ({ matricula }) => {
                         height="400px"
                         data={chartData}
                         options={{
-                            title: `Calificaciones del Cuatrimestre ${currentCuatrimestre}`,
+                            title: `Calificaciones de ${currentCuatrimestre} Cuatrimestre`,
                             legend: { position: "bottom" },
                             animation: {
                                 duration: 2000,

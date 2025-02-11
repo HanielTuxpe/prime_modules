@@ -1,4 +1,3 @@
-import { Chart } from 'react-google-charts';
 import { CircularProgress, Card, CardContent, Typography, Box, Grid, useTheme, } from '@mui/material';
 import DynamicHistory from './Graphs/DynamicHistory';
 import axios from "axios";
@@ -30,30 +29,6 @@ export default function RendimientoAlumnos() {
             fetchData();
         }
     }, [matricula]);
-
-    // Datos para el gráfico de rendimiento (gráfico de área apilada)
-    const datosRendimiento = [
-        ['Cuatrimestre', 'Ordinario', 'Extras'],
-        ['1', 7, 3],
-        ['2', 8, 2],
-        ['3', 8, 1],
-        ['4', 9, 0],
-        ['5', 10, 0],
-        ['6', 7, 4],
-        ['7', 9, 1],
-    ];
-
-    const opcionesRendimiento = {
-        title: 'Rendimiento del Alumno',
-        hAxis: { title: 'Cuatrimestre' },
-        vAxis: { title: 'Calificación' },
-        isStacked: true,
-        areaOpacity: 0.4,
-        colors: ['#1f77b4', '#ff7f0e'],
-        legend: { position: 'top' },
-        //backgroundColor: { fill: 'transparent' }, // Fondo transparente
-    };
-
 
     if (data.length === 0) {
         return (
@@ -110,14 +85,7 @@ export default function RendimientoAlumnos() {
                 </Card>
                 <center>
 
-                    {/* Gráfico de área apilada */}
-                    <Chart
-                        chartType="AreaChart"
-                        width="100%"
-                        height="400px"
-                        data={datosRendimiento}
-                        options={opcionesRendimiento}
-                    />
+                   
                     {/* Gráfico de barras */}
                     <DynamicHistory matricula={matricula} />
 
