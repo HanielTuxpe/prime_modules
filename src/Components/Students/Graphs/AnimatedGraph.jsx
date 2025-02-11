@@ -11,7 +11,7 @@ const AnimatedGraph = ({ matricula }) => {
 
     const fetchData = async () => {
         try {
-            const response = await axios.get('http://localhost:3000/fulHistorial', {
+            const response = await axios.get('http://localhost:3000/fullHistorial', {
                 params: { matricula: matricula }
             });
             if (response.status === 200 && response.data.data) {
