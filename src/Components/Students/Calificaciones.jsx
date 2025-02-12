@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import {
-    Card, CardContent, Typography, Table, TableBody, TableCell,
-    TableContainer, TableHead, TableRow, Paper, Select, MenuItem
-} from "@mui/material";
+import { Card, CardContent, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Select, MenuItem, Button } from "@mui/material";
+import { jsPDF } from "jspdf";  // Asegúrate de importar jsPDF correctamente
+import "jspdf-autotable"; // Importar jsPDF autoTable si no lo has hecho aún
 
 const StudentGrades = () => {
     const [student, setStudent] = useState(null);
@@ -106,13 +105,171 @@ const StudentGrades = () => {
             delete cuatrimestreData.promedioFinal;
         });
 
-        // Ahora tienes los promedios por cuatrimestre en la variable promedioCuatrimestre
-        console.log(promedioCuatrimestre); // Puedes usar esto para verificar los promedios
-
         setPromedioCuatrimestre(promedioCuatrimestre); // Actualiza el estado con los promedios calculados
 
         return formattedData;
     };
+    const generatePDF = () => {
+        // Verifica que haya datos del alumno y de los cuatrimestres
+        if (!student || Object.keys(cuatrimestresData).length === 0) {
+            alert("No hay datos para generar el PDF.");
+            return;
+        }
+
+        // Crear un nuevo documento PDF
+        const doc = new jsPDF();
+
+
+        // Establecer el tamaño de la fuente general para el texto
+        doc.setFontSize(12); // Tamaño de la fuente para los textos generales
+
+        // Datos del alumno - con colores, sombras y mayor tamaño de fuente
+        doc.setFontSize(14); // Mayor tamaño para los datos del alumno
+        doc.setFont("helvetica", "normal"); // Fuente normal para los datos del alumno
+        doc.setTextColor(0, 0, 0);  // Regresar a color negro para el texto real
+        doc.text(`ALUMNO: ${student.Nombre} ${student.APaterno} ${student.AMaterno}`, 10, 10);  // Título real
+        doc.setTextColor(0, 0, 0);  // Regresar a color negro para el texto real
+        doc.text(`CARRERA: ${student.NombreCarrera}`, 10, 20);  // Título real
+        doc.setTextColor(0, 0, 0);  // Regresar a color negro para el texto real
+        doc.text(`GRUPO: ${student.Grupo}`, 10, 30);  // Título real
+
+        // Agregar una línea decorativa después de los datos del alumno
+        doc.setDrawColor(0, 0, 0);  // Color negro para la línea
+        doc.setLineWidth(0.5);  // Grosor de la línea
+        doc.line(10, 35, 200, 35); // Línea desde el margen izquierdo hasta el derecho
+
+        // Variable para controlar la posición en el eje Y entre cada cuatrimestre
+        let yOffset = 40; // Ajustar posición inicial para el primer cuatrimestre
+        let tableCount = 0; // Contador para las tablas por página
+
+        // Agregar los datos de cada cuatrimestre
+        Object.keys(cuatrimestresData).forEach((cuatrimestre, index) => {
+            // Si ya hay 2 tablas, añadir una nueva página
+            if (tableCount === 2) {
+                doc.addPage(); // Añadir nueva página
+                tableCount = 0; // Resetear contador de tablas por página
+                yOffset = 20; // Reiniciar posición Y
+            }
+
+            // Establecer el título del cuatrimestre
+            doc.setFont("helvetica", "bold");
+            doc.text(`Cuatrimestre: ${cuatrimestre}`, 10, yOffset);
+
+            // Establecer el tamaño de la fuente para la tabla
+            doc.setFontSize(10); // Cambiar el tamaño de la fuente de la tabla
+
+            // Agregar la tabla de materias y calificaciones
+            doc.autoTable({
+                startY: yOffset + 10, // Establecer la posición de inicio para la tabla
+                head: [["Materia", "Parcial 1", "Parcial 2", "Parcial 3", "Promedio Final"]],
+                body: cuatrimestresData[cuatrimestre].materias.map((subject) => [
+                    subject.materia,
+                    `${subject.parcial1.calificacion} ${subject.parcial1.tipo}`,
+                    `${subject.parcial2.calificacion} ${subject.parcial2.tipo}`,
+                    `${subject.parcial3.calificacion} ${subject.parcial3.tipo}`,
+                    subject.promedioFinal
+                ]),
+                headStyles: {
+                    fillColor: "#921F45", // Establecer el color de fondo de la cabecera
+                    textColor: "#FFFFFF", // Establecer el color del texto en la cabecera
+                    fontSize: 12, // Tamaño de la fuente en la cabecera
+                    fontStyle: "bold", // Estilo de la fuente en la cabecera
+                },
+                styles: {
+                    fontSize: 10 // Tamaño de la fuente de la tabla
+                },
+            });
+
+            // Agregar el promedio final del cuatrimestre debajo de la tabla
+            const tableHeight = doc.lastAutoTable.finalY; // Obtener la altura de la última tabla
+            doc.text(`Promedio Final del ${cuatrimestre}: ${promedioCuatrimestre[cuatrimestre]?.toFixed(2) || "N/A"}`, 10, tableHeight + 10);
+
+            // Ajustar el espacio antes de la siguiente tabla
+            const spaceAfterTable = 20;  // Definir el espacio que se dejará entre las tablas
+            yOffset = tableHeight + spaceAfterTable; // Ajustar la posición Y para la siguiente tabla
+
+            // Incrementar el contador de tablas por página
+            tableCount++;
+        });
+
+        // Guardar el documento PDF
+        doc.save("Historial.pdf");
+    };
+
+    const generatePDFCuatrimestreActual = () => {
+        // Verifica que haya datos del alumno y de los cuatrimestres
+        if (!student || Object.keys(cuatrimestresData).length === 0) {
+            alert("No hay datos para generar el PDF.");
+            return;
+        }
+
+        // Crear un nuevo documento PDF
+        const doc = new jsPDF();
+
+        // Establecer el tamaño de la fuente general para el texto
+        doc.setFontSize(12); // Tamaño de la fuente para los textos generales
+
+        // Datos del alumno - con colores, sombras y mayor tamaño de fuente
+        doc.setFontSize(14); // Mayor tamaño para los datos del alumno
+        doc.setFont("helvetica", "normal"); // Fuente normal para los datos del alumno
+        doc.setTextColor(0, 0, 0);  // Regresar a color negro para el texto real
+        doc.text(`ALUMNO: ${student.Nombre} ${student.APaterno} ${student.AMaterno}`, 10, 10);  // Título real
+        doc.setTextColor(0, 0, 0);  // Regresar a color negro para el texto real
+        doc.text(`CARRERA: ${student.NombreCarrera}`, 10, 20);  // Título real
+        doc.setTextColor(0, 0, 0);  // Regresar a color negro para el texto real
+        doc.text(`GRUPO: ${student.Grupo}`, 10, 30);  // Título real
+
+        // Agregar una línea decorativa después de los datos del alumno
+        doc.setDrawColor(0, 0, 0);  // Color negro para la línea
+        doc.setLineWidth(0.5);  // Grosor de la línea
+        doc.line(10, 35, 200, 35); // Línea desde el margen izquierdo hasta el derecho
+
+        // Obtener el cuatrimestre más actual
+        const cuatrimestres = Object.keys(cuatrimestresData);
+        const cuatrimestreMasActual = cuatrimestres[cuatrimestres.length - 1]; // Suponiendo que los cuatrimestres están ordenados cronológicamente
+
+        // Si necesitas un orden específico, puedes ordenarlo de esta manera:
+        // const cuatrimestreMasActual = cuatrimestres.sort((a, b) => parseInt(b) - parseInt(a))[0];
+
+        // Establecer el título del cuatrimestre
+        let yOffset = 60; // Ajustar posición inicial para el cuatrimestre
+        doc.setFont("helvetica", "bold");
+        doc.text(`Cuatrimestre: ${cuatrimestreMasActual}`, 10, yOffset);
+
+        // Establecer el tamaño de la fuente para la tabla
+        doc.setFontSize(10); // Cambiar el tamaño de la fuente de la tabla
+
+        // Agregar la tabla de materias y calificaciones del cuatrimestre más actual
+        doc.autoTable({
+            startY: yOffset + 10, // Establecer la posición de inicio para la tabla
+            head: [["Materia", "Parcial 1", "Parcial 2", "Parcial 3", "Promedio Final"]],
+            body: cuatrimestresData[cuatrimestreMasActual].materias.map((subject) => [
+                subject.materia,
+                `${subject.parcial1.calificacion} ${subject.parcial1.tipo}`,
+                `${subject.parcial2.calificacion} ${subject.parcial2.tipo}`,
+                `${subject.parcial3.calificacion} ${subject.parcial3.tipo}`,
+                subject.promedioFinal
+            ]),
+            headStyles: {
+                fillColor: "#921F45", // Establecer el color de fondo de la cabecera
+                textColor: "#FFFFFF", // Establecer el color del texto en la cabecera
+                fontSize: 12, // Tamaño de la fuente en la cabecera
+                fontStyle: "bold", // Estilo de la fuente en la cabecera
+            },
+            styles: {
+                fontSize: 10 // Tamaño de la fuente de la tabla
+            },
+        });
+
+        // Agregar el promedio final del cuatrimestre debajo de la tabla
+        const tableHeight = doc.lastAutoTable.finalY; // Obtener la altura de la última tabla
+        doc.text(`Promedio Final del ${cuatrimestreMasActual}: ${promedioCuatrimestre[cuatrimestreMasActual]?.toFixed(2) || "N/A"}`, 10, tableHeight + 10);
+
+        // Guardar el documento PDF
+        doc.save("Boleta.pdf");
+    };
+
+
 
     if (!student) return <Typography align="center">Cargando datos...</Typography>;
 
@@ -141,20 +298,37 @@ const StudentGrades = () => {
                         ))}
                     </Select>
                 </Typography>
+                <div style={{ display: 'flex', justifyContent: 'space-around' }}>
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        sx={{ mt: 2 }}
+                        onClick={generatePDF}
+                    >
+                        Generar PDF De Historial
+                    </Button>
 
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        sx={{ mt: 2 }}
+                        onClick={generatePDFCuatrimestreActual}
+                    >
+                        Generar PDF Del Cuatrimestre Actual
+                    </Button>
+                </div>
 
-              
 
 
                 <TableContainer component={Paper} sx={{ mt: 3, border: "1px solid #921F45" }}>
                     <Table>
                         <TableHead>
                             <TableRow sx={{ backgroundColor: "#921F45" }}>
-                                <TableCell sx={{ color: "#000000", fontWeight: "bold", py: 0.5 }}>Materia</TableCell>
-                                <TableCell align="center" sx={{ color: "#000000", fontWeight: "bold", py: 0.5 }}>Parcial 1</TableCell>
-                                <TableCell align="center" sx={{ color: "#000000", fontWeight: "bold", py: 0.5 }}>Parcial 2</TableCell>
-                                <TableCell align="center" sx={{ color: "#000000", fontWeight: "bold", py: 0.5 }}>Parcial 3</TableCell>
-                                <TableCell align="center" sx={{ color: "#000000", fontWeight: "bold", py: 0.5 }}>Promedio Final</TableCell>
+                                <TableCell sx={{ color: "#ffffff", fontWeight: "bold", py: 0.5 }}>Materia</TableCell>
+                                <TableCell align="center" sx={{ color: "#ffffff", fontWeight: "bold", py: 0.5 }}>Parcial 1</TableCell>
+                                <TableCell align="center" sx={{ color: "#ffffff", fontWeight: "bold", py: 0.5 }}>Parcial 2</TableCell>
+                                <TableCell align="center" sx={{ color: "#ffffff", fontWeight: "bold", py: 0.5 }}>Parcial 3</TableCell>
+                                <TableCell align="center" sx={{ color: "#ffffff", fontWeight: "bold", py: 0.5 }}>Promedio Final</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
@@ -170,11 +344,6 @@ const StudentGrades = () => {
                         </TableBody>
                     </Table>
                 </TableContainer>
-
-                {/* Promedio Final por Cuatrimestre */}
-                <Typography variant="h6" sx={{ marginTop: 2, fontWeight: "bold" }}>
-                    Promedio del {selectedSemester}: {promedioCuatrimestre[selectedSemester]?.toFixed(2) || "N/A"}
-                </Typography>
             </CardContent>
         </Card>
     );
