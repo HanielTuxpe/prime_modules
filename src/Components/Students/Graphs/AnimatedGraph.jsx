@@ -84,11 +84,11 @@ const AnimatedGraph = ({ matricula }) => {
     }, [cuatrimestres, currentCuatrimestre]);
 
     return (
-        <Box sx={{ p: 4, minHeight: '100vh' }}>
+        <Box sx={{ p: 4, minHeight: '100%' }}>
             <Typography variant="h6" gutterBottom>
                 Calificaciones Por Cuatrimestre
             </Typography>
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' , minHeight: '100%'}}>
                 {loading ? (
                     <CircularProgress />
                 ) : (

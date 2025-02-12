@@ -150,21 +150,21 @@ const StudentGrades = () => {
                     <Table>
                         <TableHead>
                             <TableRow sx={{ backgroundColor: "#921F45" }}>
-                                <TableCell sx={{ color: "white", fontWeight: "bold" }}>Materia</TableCell>
-                                <TableCell align="center" sx={{ color: "white", fontWeight: "bold" }}>Parcial 1</TableCell>
-                                <TableCell align="center" sx={{ color: "white", fontWeight: "bold" }}>Parcial 2</TableCell>
-                                <TableCell align="center" sx={{ color: "white", fontWeight: "bold" }}>Parcial 3</TableCell>
-                                <TableCell align="center" sx={{ color: "white", fontWeight: "bold" }}>Promedio Final</TableCell>
+                                <TableCell sx={{ color: "#000000", fontWeight: "bold", py: 0.5 }}>Materia</TableCell>
+                                <TableCell align="center" sx={{ color: "#000000", fontWeight: "bold", py: 0.5 }}>Parcial 1</TableCell>
+                                <TableCell align="center" sx={{ color: "#000000", fontWeight: "bold", py: 0.5 }}>Parcial 2</TableCell>
+                                <TableCell align="center" sx={{ color: "#000000", fontWeight: "bold", py: 0.5 }}>Parcial 3</TableCell>
+                                <TableCell align="center" sx={{ color: "#000000", fontWeight: "bold", py: 0.5 }}>Promedio Final</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
                             {cuatrimestresData[selectedSemester]?.materias?.map((subject, index) => (
                                 <TableRow key={index} sx={{ backgroundColor: index % 2 === 0 ? "#D9D9D9" : "white" }}>
-                                    <TableCell sx={{ fontWeight: "bold" }}>{subject.materia}</TableCell>
-                                    <TableCell align="center">{subject.parcial1.calificacion}&nbsp;&nbsp;{subject.parcial1.tipo}</TableCell>
-                                    <TableCell align="center">{subject.parcial2.calificacion}&nbsp;&nbsp;{subject.parcial2.tipo}</TableCell>
-                                    <TableCell align="center">{subject.parcial3.calificacion}&nbsp;&nbsp;{subject.parcial3.tipo}</TableCell>
-                                    <TableCell align="center">{subject.promedioFinal}</TableCell>
+                                    <TableCell sx={{ color: "#000000", fontWeight: "bold", py: 0.5 }}>{subject.materia}</TableCell>
+                                    <TableCell sx={{ color: "#000000", fontWeight: "bold", py: 0.5 }} align="center">{subject.parcial1.calificacion}&nbsp;&nbsp;{subject.parcial1.tipo}</TableCell>
+                                    <TableCell sx={{ color: "#000000", fontWeight: "bold", py: 0.5 }} align="center">{subject.parcial2.calificacion}&nbsp;&nbsp;{subject.parcial2.tipo}</TableCell>
+                                    <TableCell sx={{ color: "#000000", fontWeight: "bold", py: 0.5 }} align="center">{subject.parcial3.calificacion}&nbsp;&nbsp;{subject.parcial3.tipo}</TableCell>
+                                    <TableCell sx={{ color: "#000000", fontWeight: "bold", py: 0.5 }} align="center">{subject.promedioFinal}</TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>

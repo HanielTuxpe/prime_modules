@@ -7,8 +7,104 @@ import AnimatedGraph from './Graphs/AnimatedGraph';
 export default function RendimientoAlumnos() {
 
     const theme = useTheme();
-    const matricula = '20221269';
+    const matricula = '20221038';
     const [data, setData] = useState([]);
+    const [promedioGeneral, setPromedioGeneral] = useState(0);
+
+    const fetchDataEStatus = async () => {
+        try {
+            const response = await axios.get('http://localhost:3000/historial', {
+                params: { matricula: matricula }
+            });
+            if (response.status === 200 && response.data.history) {
+                const processedData = processHistorialData(response.data.history);
+                setPromedioGeneral(processedData.promedioGeneral);
+            }
+        } catch (error) {
+            console.error("Error detected:", error);
+        }
+    };
+
+    const processHistorialData = (data) => {
+        const groupedData = {};
+        let totalGeneral = 0;
+        let totalMaterias = 0;
+        let ultimoCuatrimestre = null;
+
+        // Agrupar por cuatrimestre y calcular promedio
+        data.forEach(({ Cuatrimestre, PromedioFinal }) => {
+            if (Cuatrimestre && PromedioFinal != null) {
+                if (!groupedData[Cuatrimestre]) {
+                    groupedData[Cuatrimestre] = { total: 0, count: 0 };
+                }
+                groupedData[Cuatrimestre].total += PromedioFinal;
+                groupedData[Cuatrimestre].count += 1;
+            } else {
+                console.warn("Datos faltantes o incorrectos:", { Cuatrimestre, PromedioFinal });
+            }
+        });
+
+        // Identificar el último cuatrimestre
+        const cuatrimestres = Object.keys(groupedData).map(Number).sort((a, b) => a - b);
+        ultimoCuatrimestre = cuatrimestres[cuatrimestres.length - 1];
+
+        // Verificar si el último cuatrimestre está completo con 3 parciales
+        if (groupedData[ultimoCuatrimestre] && groupedData[ultimoCuatrimestre].count !== 3) {
+            console.warn(`El último cuatrimestre (${ultimoCuatrimestre}) no tiene los 3 parciales completos, se excluirá del promedio general.`);
+            delete groupedData[ultimoCuatrimestre];
+        }
+
+        // Crear array en formato para Google Charts
+        const result = [["Cuatrimestre", "Promedio"]];
+        Object.keys(groupedData).forEach((cuatri) => {
+            const promedio = groupedData[cuatri].total / groupedData[cuatri].count;
+            result.push([cuatri, parseFloat(promedio.toFixed(2))]);
+
+            // Acumular para el promedio general
+            totalGeneral += groupedData[cuatri].total;
+            totalMaterias += groupedData[cuatri].count;
+        });
+
+        // Calcular el promedio general
+        const promedioGeneral = totalMaterias > 0 ? parseFloat((totalGeneral / totalMaterias).toFixed(2)) : 0;
+
+        return {
+            chart: result,
+            promedioGeneral: promedioGeneral
+        };
+    };
+
+    // Función para determinar el estatus según el promedio
+const getEstatusImage = (promedioFinal) => {
+    if (promedioFinal >= 9) {
+        // Excelente
+        return {
+            src: "/src/assets/MEDALLA_PLATA.png", // Reemplaza con la URL de tu imagen
+            alt: "Excelente"
+        };
+    } else if (promedioFinal >= 8) {
+        // Bueno
+        return {
+            src: "/src/assets/MEDALLA_MORADO.png",
+            alt: "Bueno"
+        };
+    } else if (promedioFinal >= 7) {
+        // Regular
+        return {
+            src: "/src/assets/MEDALLA_VERDE.png",
+            alt: "Regular"
+        };
+    } else {
+        // Necesita mejorar /src/assets/MEDALLA_VERDE.png
+        return {
+            src: "/src/assets/MEDALLA_ROJA.png",
+            alt: "Necesita mejorar"
+        };
+    }
+};
+
+
+    const estatus = getEstatusImage(promedioGeneral);
 
 
     const fetchData = async () => {
@@ -26,6 +122,7 @@ export default function RendimientoAlumnos() {
 
     useEffect(() => {
         if (matricula) {
+            fetchDataEStatus();
             fetchData();
         }
     }, [matricula]);
@@ -77,8 +174,8 @@ export default function RendimientoAlumnos() {
                             </Grid>
                             <Grid item textAlign="center">
                                 <Typography variant="body1" sx={{ fontWeight: 'bold' }}>ESTATUS</Typography>
-                                <Box component="img" src="/src/assets/MEDALLA_VERDE.png" alt="Excelencia" sx={{ width: 50, height: 50, mx: 'auto' }} />
-                                <Typography variant="body1" sx={{ fontWeight: 'bold' }}>EXCELENCIA</Typography>
+                                <Box component="img" src={estatus.src} alt={estatus.alt} sx={{ width: 50, height: 50, mx: 'auto' }} />
+                                <Typography variant="body1" sx={{ fontWeight: 'bold' }}>{estatus.alt}</Typography>
                             </Grid>
                         </Grid>
                     </CardContent>
