@@ -8,34 +8,34 @@ import ForgotPassword from './Components/Access/PasswdRecovery';
 import Header from './Components/Public/Header';
 import Footer from './Components/Public/Footer';
 
-import {Error400, Error404, Error500} from './Components/Public/Error_Codigo';
+import { Error400, Error404, Error500 } from './Components/Public/Error_Codigo';
 
-// info de la empresa
+// Info de la empresa
 import Politicas from './Components/Public/InfoDeEmpresa/Politicas';
 import FAQS from './Components/Public/InfoDeEmpresa/FaQs';
 import AcercaDe from './Components/Public/InfoDeEmpresa/AcercaDe';
 
+// Estudiante
 import Calificaciones from './Components/Students/Calificaciones';
 import Historial from './Components/Students/Historial';
 import Rendimiento from './Components/Students/Rendimiento';
+import Profile from './Components/Students/Profile';
 
-import GrupoAccesorado from './Components/Asesor/GrupoAsesorado'; //';
-
-
+// Asesor / Docente
+import GrupoAccesorado from './Components/Asesor/GrupoAsesorado';
 
 import { obtenerTipoUsuario, cerrarSesion } from './Components/Access/SessionService';
 import getTheme from './Components/theme';
 
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import Profile from './Components/Students/Profile';
 
 const App = () => {
   const [usuario, setUsuario] = useState(null);
   const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
-    const savedUser = obtenerTipoUsuario();
+    const savedUser = obtenerTipoUsuario(); // Debe devolver "Estudiante", "Docente", "Director" o null
     const savedTheme = localStorage.getItem('darkMode') === 'true';
     if (savedUser) {
       setUsuario(savedUser);
@@ -57,7 +57,6 @@ const App = () => {
 
   const Layout = ({ children }) => (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', width: '100%' }}>
-
       <Header usuario={usuario} onLogout={handleLogout} toggleDarkMode={toggleDarkMode} darkMode={darkMode} />
       <Container component="main" sx={{ mt: 1, flexGrow: 1 }}>
         {children}
@@ -70,39 +69,78 @@ const App = () => {
     children: PropTypes.node.isRequired,
   };
 
+  const RutaPrivada = ({ children, tipoPermitido }) => {
+    if (!usuario) {
+      return <Navigate to="/Publico/login" replace />;
+    }
+    if (usuario !== tipoPermitido) {
+      return <Navigate to="/Publico/Error400" replace />;
+    }
+    return children;
+  };
+
+  RutaPrivada.propTypes = {
+    children: PropTypes.node.isRequired,
+    tipoPermitido: PropTypes.string.isRequired,
+  };
+
   return (
-    <ThemeProvider sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }} theme={theme}>
+    <ThemeProvider theme={theme}>
       <CssBaseline />
       <Router>
         <Layout key={usuario ? 'authenticated' : 'guest'}>
           <Routes>
 
+            {/* Rutas públicas */}
             <Route path="/" element={<IndexPublic />} />
             <Route path="/Publico/" element={<IndexPublic />} />
             <Route path="/Publico/login" element={usuario ? <Navigate to="/" /> : <Login />} />
             <Route path="/Publico/forgot-password" element={<ForgotPassword />} />
-
-            {/* Rutas públicas info de la empresa */}
             <Route path="/Publico/Politicas" element={<Politicas />} />
             <Route path="/Publico/FAQS" element={<FAQS />} />
             <Route path="/Publico/Acercade" element={<AcercaDe />} />
-
             <Route path="/Publico/Error404" element={<Error404 />} />
             <Route path="/Publico/Error400" element={<Error400 />} />
             <Route path="/Publico/Error500" element={<Error500 />} />
 
-            <Route path="/Estudiante/" element={<IndexPublic />} />
-            <Route path="/Estudiante/Calificaciones" element={<Calificaciones />} />
-            <Route path="/Estudiante/Historial" element={<Historial />} />
-            <Route path="/Estudiante/Rendimiento" element={<Rendimiento />} />
-            <Route path="/Estudiante/Perfil" element={<Profile />} />
+            {/* Rutas protegidas - Estudiante */}
+            <Route path="/Estudiante/" element={
+              <RutaPrivada tipoPermitido="Estudiante">
+                <IndexPublic />
+              </RutaPrivada>
+            } />
+            <Route path="/Estudiante/Calificaciones" element={
+              <RutaPrivada tipoPermitido="Estudiante">
+                <Calificaciones />
+              </RutaPrivada>
+            } />
+            <Route path="/Estudiante/Historial" element={
+              <RutaPrivada tipoPermitido="Estudiante">
+                <Historial />
+              </RutaPrivada>
+            } />
+            <Route path="/Estudiante/Rendimiento" element={
+              <RutaPrivada tipoPermitido="Estudiante">
+                <Rendimiento />
+              </RutaPrivada>
+            } />
+            <Route path="/Estudiante/Perfil" element={
+              <RutaPrivada tipoPermitido="Estudiante">
+                <Profile />
+              </RutaPrivada>
+            } />
 
-            <Route path="/Asesor/GrupoAsesorado/" element={<GrupoAccesorado />} />
+            {/* Rutas protegidas - Docente */}
+            <Route path="/Asesor/GrupoAsesorado/" element={
+              <RutaPrivada tipoPermitido="Docente">
+                <GrupoAccesorado />
+              </RutaPrivada>
+            } />
 
-           {/*<Route path="/Docente/MateriasImpartidas" element={<MateriasImpartidas />} />
-            <Route path="/Docente/Tutor/" element={<GrupoAccesorado />} />*/}
+            {/* Aquí puedes agregar rutas para Director, Admin, etc. */}
 
-
+            {/* Ruta por defecto a Error404 */}
+            <Route path="*" element={<Error404 />} />
           </Routes>
         </Layout>
         <ToastContainer />

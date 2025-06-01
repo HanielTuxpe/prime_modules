@@ -35,14 +35,12 @@ function SideMenu({ open, toggleMenu }) {
         switch (user) {
             //case 'Admin':
                 //return <AdminMenu />;
-            case 'Alumno':
+            case 'Estudiante':
                 return <AlumnoMenu />;
-            case 'Asesor':
+            case 'Docente':
                 return <AsesorMenu />;
             default:
-                return (
-                    <AlumnoMenu />
-                );
+                return null; // No retorna ningún menú si no hay tipo válido
         }
     };
 

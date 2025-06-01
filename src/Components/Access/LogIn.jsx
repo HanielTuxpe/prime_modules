@@ -84,7 +84,7 @@ const Login = () => {
                 code: Number(code),
             });
 
-             const TipodeUsuario = 'estudiante'; 
+             const TipodeUsuario = 'Estudiante'; 
 
             if (verifyResponse.status === 200) {
                 iniciarSesion(TipodeUsuario, matricula);
