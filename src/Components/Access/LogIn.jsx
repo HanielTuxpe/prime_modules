@@ -79,17 +79,19 @@ const Login = () => {
 
         try {
             // Verificar código
-            const verifyResponse = await axios.post('https://prj-server.onrender.com/code-login', {
+            const verifyResponse = await axios.post('http://localhost:3000/CodigoVerificacion', {
                 matricula,
                 code: Number(code),
             });
 
+             const TipodeUsuario = 'estudiante'; 
+
             if (verifyResponse.status === 200) {
-                iniciarSesion(verifyResponse.data.type);
+                iniciarSesion(TipodeUsuario, matricula);
 
                 // Aseguramos la redirección después de un tiempo breve para garantizar el flujo correcto.
                 toast.success(verifyResponse.data.message);
-                window.location.replace('/index');
+                window.location.replace('/Estudiante/');
             }
         } catch (error) {
             if (error.response) {

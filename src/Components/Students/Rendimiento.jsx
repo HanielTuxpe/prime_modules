@@ -3,11 +3,12 @@ import DynamicHistory from './Graphs/DynamicHistory';
 import axios from "axios";
 import { useState, useEffect } from "react";
 import AnimatedGraph from './Graphs/AnimatedGraph';
+import { obtenerMatricula } from '../Access/SessionService'; 
 
 export default function RendimientoAlumnos() {
 
     const theme = useTheme();
-    const matricula = '20221042';
+    const matricula = obtenerMatricula();
     const [data, setData] = useState([]);
     const [promedioGeneral, setPromedioGeneral] = useState(0);
 
