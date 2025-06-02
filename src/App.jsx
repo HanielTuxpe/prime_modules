@@ -131,7 +131,7 @@ const App = () => {
             } />
 
             {/* Rutas protegidas - Docente */}
-            <Route path="/Asesor/GrupoAsesorado/" element={
+            <Route path="/Docente/GrupoAsesorado/" element={
               <RutaPrivada tipoPermitido="Docente">
                 <GrupoAccesorado />
               </RutaPrivada>

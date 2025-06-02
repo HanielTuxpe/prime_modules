@@ -22,6 +22,8 @@ const ForgotPassword = () => {
 
     const isMobile = useMediaQuery('(max-width: 600px)');
 
+    const Url_base = 'http://localhost:3000/'
+
     // Función para calcular el progreso de la fortaleza de la contraseña
     const calculatePasswordProgress = () => {
         let progress = 0;
@@ -73,7 +75,7 @@ const ForgotPassword = () => {
         }
 
         try {
-            const response = await axios.post('https://prj-server.onrender.com/forgot-password', {
+            const response = await axios.post(`${Url_base}TokenEmail`, {
                 email: sanitizedEmail,
             });
 
@@ -96,16 +98,20 @@ const ForgotPassword = () => {
     const handleVerify = async (e) => {
         e.preventDefault();
 
+        const sanitizedEmail = DOMPurify.sanitize(email);
         const sanitizedCodigo = DOMPurify.sanitize(codigo);  // Sanitizamos el código para evitar inyecciones XSS
 
+        console.log(sanitizedCodigo);
+        console.log(sanitizedEmail);
         if (!sanitizedCodigo.trim()) {
             toast.warning('Por favor, ingrese el código de verificación.');
             return;
         }
 
         try {
-            const response = await axios.post('https://prj-server.onrender.com/verify-code', {
-                code: sanitizedCodigo,
+            const response = await axios.post(`${Url_base}VerifiTokenEmail`, {
+                email: sanitizedEmail,
+                token: sanitizedCodigo,
             });
 
             if (response.status === 200) {
@@ -117,13 +123,18 @@ const ForgotPassword = () => {
             }
         } catch (error) {
             toast.error('Error al verificar el código.');
+             console.log(error.response);
         }
     };
 
     const handleResetPassword = async (e) => {
         e.preventDefault();
 
+        const sanitizedEmail = DOMPurify.sanitize(email);
         const sanitizedNewPassword = DOMPurify.sanitize(newPassword);  // Sanitizamos la nueva contraseña
+
+         console.log(sanitizedNewPassword);
+        console.log(sanitizedEmail);
 
         if (!sanitizedNewPassword.trim()) {
             toast.warning('Por favor, ingrese su nueva contraseña.');
@@ -137,14 +148,14 @@ const ForgotPassword = () => {
         }
 
         try {
-            const response = await fetch('https://prj-server.onrender.com/reset-password', {
+            const response = await fetch(`${Url_base}EmailPassword`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    token,
-                    newPassword: sanitizedNewPassword,
+                    email: sanitizedEmail,
+                    nuevaPassword: sanitizedNewPassword,
                 }),
             });
 
