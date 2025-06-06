@@ -4,8 +4,9 @@ import { Home, Groups   } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 
 const menuItems = [
-    { text: 'Inicio', icon: <Home />, path: '/Asesor/' },
-    { text: 'Grupo Asesorado', icon: <Groups  />, path: '/Asesor/GrupoAsesorado' }
+    { text: 'Inicio', icon: <Home />, path: '/Docente/' },
+    { text: 'Grupo Asesorado', icon: <Groups  />, path: '/Docente/GrupoAsesorado' },
+    { text: 'Materias Impartidas', icon: <Groups  />, path: '/Docente/MateriasImpartidas' }
 
 ];
 

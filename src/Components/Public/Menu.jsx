@@ -40,7 +40,7 @@ function SideMenu({ open, toggleMenu }) {
             case 'Docente':
                 return <AsesorMenu />;
             default:
-                return null; // No retorna ningún menú si no hay tipo válido
+                return <AsesorMenu />; // No retorna ningún menú si no hay tipo válido
         }
     };
 

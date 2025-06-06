@@ -23,6 +23,9 @@ import Profile from './Components/Students/Profile';
 
 // Asesor / Docente
 import GrupoAccesorado from './Components/Asesor/GrupoAsesorado';
+import InicioDocente  from './Components/Asesor/Iniciodocente';
+import MateriasImpartidasView  from './Components/Asesor/MateriasImpartidasView';
+
 
 import { obtenerTipoUsuario, cerrarSesion } from './Components/Access/SessionService';
 import getTheme from './Components/theme';
@@ -103,6 +106,10 @@ const App = () => {
             <Route path="/Publico/Error400" element={<Error400 />} />
             <Route path="/Publico/Error500" element={<Error500 />} />
 
+            <Route path="/Docente/" element={<InicioDocente  />} />
+            <Route path="/Docente/GrupoAsesorado" element={<GrupoAccesorado  />} />
+            <Route path="/Docente/MateriasImpartidas" element={<MateriasImpartidasView  />} />
+
             {/* Rutas protegidas - Estudiante */}
             <Route path="/Estudiante/" element={
               <RutaPrivada tipoPermitido="Estudiante">
@@ -130,7 +137,7 @@ const App = () => {
               </RutaPrivada>
             } />
 
-            {/* Rutas protegidas - Docente */}
+            {/* Rutas protegidas - Docente }
             <Route path="/Docente/GrupoAsesorado/" element={
               <RutaPrivada tipoPermitido="Docente">
                 <GrupoAccesorado />
