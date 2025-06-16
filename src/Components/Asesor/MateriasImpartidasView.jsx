@@ -1,206 +1,814 @@
-import React, { useState } from 'react';
-import { Chart } from 'react-google-charts';
-import { Card, CardContent, Typography, FormControl, Select, MenuItem, Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import {
+  Card,
+  CardContent,
+  Typography,
+  FormControl,
+  Select,
+  MenuItem,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  CircularProgress,
+  Alert,
+  Grid,
+  Divider,
+} from '@mui/material';
+import axios from 'axios';
+import Chart from 'react-google-charts';
+
+const CLV_DOCENTE = '0432'; // ID del docente
+const URL_Base = 'http://localhost:3000';
 
 const MateriasImpartidasView = () => {
+  const [materias, setMaterias] = useState([]);
+  const [grupos, setGrupos] = useState([]);
+  const [estudiantes, setEstudiantes] = useState([]);
+  const [estudiantesAllGroups, setEstudiantesAllGroups] = useState([]);
   const [materia, setMateria] = useState('');
   const [grupo, setGrupo] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [loadingCharts, setLoadingCharts] = useState(false);
+  const [error, setError] = useState(null);
+  const [docenteInfo, setDocenteInfo] = useState({ Nombre: '', PeriodoMasReciente: '' });
 
-  // Sample data for subjects, groups, and student grades
-  const materiasData = [
-    {
-      nombre: 'Dirección de Equipos de Alto Rendimiento',
-      grupos: [
-        {
-          nombre: '9A',
-          estudiantes: [
-            { nombre: 'Ana López', m1: 8, m2: 9, m3: 8, finalGrade: 8 },
-            { nombre: 'Carlos Díaz', m1: 7, m2: 8, m3: 7, finalGrade: 7 },
-            { nombre: 'Sofía Martínez', m1: 9, m2: 9, m3: 10, finalGrade: 9 },
-          ],
-        },
-        {
-          nombre: '9B',
-          estudiantes: [
-            { nombre: 'Juan Pérez', m1: 8, m2: 8, m3: 9, finalGrade: 8 },
-            { nombre: 'María Gómez', m1: 7, m2: 7, m3: 8, finalGrade: 7 },
-            { nombre: 'Luis Hernández', m1: 10, m2: 9, m3: 10, finalGrade: 10 },
-          ],
-        },
-      ],
-    },
-    {
-      nombre: 'Administración de Proyectos de TI',
-      grupos: [
-        {
-          nombre: '9A',
-          estudiantes: [
-            { nombre: 'Ana López', m1: 9, m2: 8, m3: 9, finalGrade: 9 },
-            { nombre: 'Carlos Díaz', m1: 6, m2: 7, m3: 6, finalGrade: 6 },
-            { nombre: 'Sofía Martínez', m1: 8, m2: 8, m3: 9, finalGrade: 8 },
-          ],
-        },
-        {
-          nombre: '9B',
-          estudiantes: [
-            { nombre: 'Juan Pérez', m1: 9, m2: 9, m3: 8, finalGrade: 9 },
-            { nombre: 'María Gómez', m1: 8, m2: 7, m3: 8, finalGrade: 8 },
-            { nombre: 'Luis Hernández', m1: 10, m2: 10, m3: 10, finalGrade: 10 },
-          ],
-        },
-      ],
-    },
-  ];
+  // Obtener datos del docente
+  useEffect(() => {
+    const fetchDocenteInfo = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await axios.get(`${URL_Base}/DatosDocente?ClvDocente=${CLV_DOCENTE}`);
+        console.log('Docente Info:', response.data.data);
+        const docenteData = response.data.data[0] || { Nombre: 'Desconocido', PeriodoMasReciente: 'Desconocido' };
+        setDocenteInfo({
+          Nombre: docenteData.Nombre.trim(),
+          PeriodoMasReciente: formatPeriodo(docenteData.PeriodoMasReciente),
+        });
+      } catch (err) {
+        setError('No se pudieron cargar los datos del docente. Verifique la conexión con el servidor.');
+        setDocenteInfo({ Nombre: 'Desconocido', PeriodoMasReciente: 'Desconocido' });
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDocenteInfo();
+  }, []);
+
+  // Formatear el período para mostrarlo de forma legible
+  const formatPeriodo = (periodo) => {
+    if (!periodo || periodo === 'Desconocido') return 'Desconocido';
+    const year = periodo.slice(0, 4);
+    const term = periodo.slice(4);
+    const months = {
+      '1': 'Enero - Abril',
+      '2': 'Mayo - Agosto',
+      '3': 'Septiembre - Diciembre',
+    };
+    return `${months[term] || 'Desconocido'} ${year}`;
+  };
+
+  // Obtener materias del docente
+  useEffect(() => {
+    const fetchMaterias = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await axios.get(`${URL_Base}/materiasxDocente/?ClvDocente=${CLV_DOCENTE}`);
+        console.log('Materias:', response.data.data);
+        setMaterias(response.data.data);
+      } catch (err) {
+        setError('No se pudieron cargar las materias. Verifique la conexión con el servidor.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchMaterias();
+  }, []);
+
+  // Obtener grupos cuando se selecciona una materia
+  useEffect(() => {
+    if (materia) {
+      const fetchGrupos = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+          const response = await axios.get(
+            `${URL_Base}/gruposxMateria/?ClvMateria=${materia}&ClvDocente=${CLV_DOCENTE}`
+          );
+          console.log('Grupos:', response.data.data);
+          setGrupos(response.data.data);
+        } catch (err) {
+          setError('No se pudieron cargar los grupos. Verifique la materia seleccionada.');
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchGrupos();
+      setGrupo('');
+      setEstudiantes([]);
+      setEstudiantesAllGroups([]);
+    }
+  }, [materia]);
+
+  // Obtener estudiantes de todos los grupos
+  useEffect(() => {
+    if (materia && grupos.length > 0) {
+      const fetchEstudiantesAllGroups = async () => {
+        setLoadingCharts(true);
+        setError(null);
+        try {
+          const clvCuatrimestre = grupos[0].ClvCuatrimestre || '5';
+          console.log('Llamando API para estudiantesAllGroups:', {
+            ClvMateria: materia,
+            ClvCuatrimestre: clvCuatrimestre,
+            Periodo:
+              docenteInfo.PeriodoMasReciente.split(' ')[2] +
+              (docenteInfo.PeriodoMasReciente.includes('Enero')
+                ? '1'
+                : docenteInfo.PeriodoMasReciente.includes('Mayo')
+                ? '2'
+                : '3'),
+          });
+          const response = await axios.get(
+            `${URL_Base}/CalificacionesXMateriaGrupo?ClvMateria=${materia}&ClvCuatrimestre=${clvCuatrimestre}`
+          );
+          console.log('EstudiantesAllGroups:', response.data.data);
+          if (response.data.data.length === 0) {
+            setEstudiantesAllGroups([]);
+            setError('No hay calificaciones disponibles para esta materia.');
+          } else {
+            const estudiantesConEfectivas = response.data.data.map((estudiante) => ({
+              ...estudiante,
+              Parcial1Efectiva: Math.max(
+                estudiante.Parcial1 || 0,
+                estudiante.Parcial1E1 || 0,
+                estudiante.Parcial1E2 || 0,
+                estudiante.Parcial1E3 || 0
+              ),
+              Parcial2Efectiva: Math.max(
+                estudiante.Parcial2 || 0,
+                estudiante.Parcial2E1 || 0,
+                estudiante.Parcial2E2 || 0,
+                estudiante.Parcial2E3 || 0
+              ),
+              Parcial3Efectiva: Math.max(
+                estudiante.Parcial3 || 0,
+                estudiante.Parcial3E1 || 0,
+                estudiante.Parcial3E2 || 0,
+                estudiante.Parcial3E3 || 0
+              ),
+              PromedioFinal: estudiante.PromedioFinal || 0,
+            }));
+            setEstudiantesAllGroups(estudiantesConEfectivas);
+          }
+        } catch (err) {
+          console.error('Error en fetchEstudiantesAllGroups:', err);
+          setError(
+            err.response?.status === 404
+              ? 'No se encontraron calificaciones para esta materia. Verifique los datos.'
+              : 'Error al cargar las calificaciones de todos los grupos.'
+          );
+          setEstudiantesAllGroups([]);
+        } finally {
+          setLoadingCharts(false);
+        }
+      };
+      fetchEstudiantesAllGroups();
+    }
+  }, [materia, grupos, docenteInfo.PeriodoMasReciente]);
+
+  // Obtener estudiantes cuando se selecciona un grupo
+  useEffect(() => {
+    if (materia && grupo) {
+      const fetchEstudiantes = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+          const grupoData = grupos.find((g) => g.Grupo === grupo);
+          const clvCuatrimestre = grupoData ? grupoData.ClvCuatrimestre : '5';
+          const response = await axios.get(
+            `${URL_Base}/CalificacionesXMateriaGrupo?ClvMateria=${materia}&ClvCuatrimestre=${clvCuatrimestre}&Grupo=${grupo}`
+          );
+          console.log('Estudiantes:', response.data.data);
+          if (response.data.data.length === 0) {
+            setError('No hay calificaciones disponibles para este grupo y materia.');
+            setEstudiantes([]);
+          } else {
+            const estudiantesConEfectivas = response.data.data.map((estudiante) => ({
+              ...estudiante,
+              Parcial1Efectiva: Math.max(
+                estudiante.Parcial1 || 0,
+                estudiante.Parcial1E1 || 0,
+                estudiante.Parcial1E2 || 0,
+                estudiante.Parcial1E3 || 0
+              ),
+              Parcial2Efectiva: Math.max(
+                estudiante.Parcial2 || 0,
+                estudiante.Parcial2E1 || 0,
+                estudiante.Parcial2E2 || 0,
+                estudiante.Parcial2E3 || 0
+              ),
+              Parcial3Efectiva: Math.max(
+                estudiante.Parcial3 || 0,
+                estudiante.Parcial3E1 || 0,
+                estudiante.Parcial3E2 || 0,
+                estudiante.Parcial3E3 || 0
+              ),
+              PromedioFinal: estudiante.PromedioFinal || 0,
+            }));
+            setEstudiantes(estudiantesConEfectivas);
+          }
+        } catch (err) {
+          console.error('Error en fetchEstudiantes:', err);
+          setError(
+            err.response?.status === 404
+              ? 'No se encontraron calificaciones para esta materia y grupo. Verifique los datos.'
+              : 'Error al cargar las calificaciones. Intente de nuevo.'
+          );
+          setEstudiantes([]);
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchEstudiantes();
+    }
+  }, [materia, grupo, grupos]);
 
   const handleMateriaChange = (event) => {
     setMateria(event.target.value);
-    setGrupo(''); // Reset group when subject changes
   };
 
   const handleGrupoChange = (event) => {
     setGrupo(event.target.value);
   };
 
-  const materiaSeleccionada = materiasData.find((m) => m.nombre === materia);
-  const grupoSeleccionado = materiaSeleccionada?.grupos.find((g) => g.nombre === grupo);
+  // Función auxiliar para determinar la fuente de la calificación parcial efectiva
+  const getParcialSource = (estudiante, parcial) => {
+    const effectiveGrade = estudiante[`Parcial${parcial}Efectiva`];
+    if (effectiveGrade === 0) return 'N/A';
+    const sources = [
+      { key: `Parcial${parcial}`, source: 'OR' },
+      { key: `Parcial${parcial}E1`, source: 'E1' },
+      { key: `Parcial${parcial}E2`, source: 'E2' },
+      { key: `Parcial${parcial}E3`, source: 'E3' },
+    ];
+    for (const { key, source } of sources) {
+      if (estudiante[key] === effectiveGrade && estudiante[key] !== undefined && estudiante[key] !== null) {
+        return source;
+      }
+    }
+    return 'N/A';
+  };
 
-  // Data for the overall group performance chart (grade distribution per group)
-  const overallGroupData = materiaSeleccionada
+  // Datos para la gráfica de desempeño del grupo específico
+  const groupPerformanceData = estudiantes.length
+    ? [
+        ['Evaluación', 'Promedio'],
+        ...[
+          ['Parcial 1', estudiantes.filter((e) => e.Parcial1Efectiva > 0).length
+            ? estudiantes
+                .filter((e) => e.Parcial1Efectiva > 0)
+                .reduce((sum, e) => sum + e.Parcial1Efectiva, 0) /
+              estudiantes.filter((e) => e.Parcial1Efectiva > 0).length
+            : 0],
+          ['Parcial 2', estudiantes.filter((e) => e.Parcial2Efectiva > 0).length
+            ? estudiantes
+                .filter((e) => e.Parcial2Efectiva > 0)
+                .reduce((sum, e) => sum + e.Parcial2Efectiva, 0) /
+              estudiantes.filter((e) => e.Parcial2Efectiva > 0).length
+            : 0],
+          ['Parcial 3', estudiantes.filter((e) => e.Parcial3Efectiva > 0).length
+            ? estudiantes
+                .filter((e) => e.Parcial3Efectiva > 0)
+                .reduce((sum, e) => sum + e.Parcial3Efectiva, 0) /
+              estudiantes.filter((e) => e.Parcial3Efectiva > 0).length
+            : 0],
+          ['Final', estudiantes.filter((e) => typeof e.PromedioFinal === 'number' && e.PromedioFinal > 0).length
+            ? estudiantes
+                .filter((e) => typeof e.PromedioFinal === 'number' && e.PromedioFinal > 0)
+                .reduce((sum, e) => sum + e.PromedioFinal, 0) /
+              estudiantes.filter((e) => typeof e.PromedioFinal === 'number' && e.PromedioFinal > 0).length
+            : 0],
+        ].map(([label, value]) => [label, parseFloat(value.toFixed(2))]),
+      ]
+    : [
+        ['Evaluación', 'Promedio'],
+        ['Parcial 1', 0],
+        ['Parcial 2', 0],
+        ['Parcial 3', 0],
+        ['Final', 0],
+      ];
+
+  // Datos para la gráfica de tasa de reprobación por grupo
+  const reprobacionData = estudiantesAllGroups.length
+    ? [
+        ['Grupo', 'Tasa de Reprobación (%)'],
+        ...[...new Set(estudiantesAllGroups.map((e) => e.Grupo))].map((group) => {
+          const validStudents = estudiantesAllGroups.filter(
+            (e) => e.Grupo === group && typeof e.PromedioFinal === 'number' && e.PromedioFinal > 0
+          );
+          const tasa = validStudents.length
+            ? (validStudents.filter((e) => e.PromedioFinal < 7).length / validStudents.length) * 100
+            : 0;
+          return [group, parseFloat(tasa.toFixed(1))];
+        }),
+      ]
+    : [['Grupo', 'Tasa de Reprobación (%)'], ['', 0]];
+
+  // Datos para la gráfica de distribución de calificaciones por grupo
+  const distribucionData = estudiantesAllGroups.length
     ? (() => {
-        const groups = materiaSeleccionada.grupos;
+        const uniqueGroups = [...new Set(estudiantesAllGroups.map((e) => e.Grupo))];
         const gradeRanges = [
           { range: '0-6', min: 0, max: 6 },
           { range: '7-8', min: 7, max: 8 },
           { range: '9-10', min: 9, max: 10 },
         ];
-
-        const data = [['Grupo', ...gradeRanges.map(r => r.range)]];
-        groups.forEach(group => {
-          const counts = gradeRanges.map(range => {
-            return group.estudiantes.filter(e => e.finalGrade >= range.min && e.finalGrade <= range.max).length;
-          });
-          data.push([group.nombre, ...counts]);
-        });
-
-        return data;
+        return [
+          ['Grupo', ...gradeRanges.map((r) => r.range)],
+          ...uniqueGroups.map((group) => [
+            group,
+            ...gradeRanges.map((range) => {
+              const validStudents = estudiantesAllGroups.filter(
+                (e) => e.Grupo === group && typeof e.PromedioFinal === 'number' && e.PromedioFinal > 0
+              );
+              return validStudents.filter((e) => e.PromedioFinal >= range.min && e.PromedioFinal <= range.max).length;
+            }),
+          ]),
+        ];
       })()
     : [['Grupo', '0-6', '7-8', '9-10'], ['', 0, 0, 0]];
 
-  // Data for the group-specific performance chart (average M1, M2, M3, Final Grade)
-  const groupPerformanceData = grupoSeleccionado
+  // Datos para la gráfica de promedio general por grupo
+  const promedioGeneralData = estudiantesAllGroups.length
     ? (() => {
-        const averages = {
-          m1: (grupoSeleccionado.estudiantes.reduce((sum, e) => sum + e.m1, 0) / grupoSeleccionado.estudiantes.length).toFixed(1),
-          m2: (grupoSeleccionado.estudiantes.reduce((sum, e) => sum + e.m2, 0) / grupoSeleccionado.estudiantes.length).toFixed(1),
-          m3: (grupoSeleccionado.estudiantes.reduce((sum, e) => sum + e.m3, 0) / grupoSeleccionado.estudiantes.length).toFixed(1),
-          finalGrade: (grupoSeleccionado.estudiantes.reduce((sum, e) => sum + e.finalGrade, 0) / grupoSeleccionado.estudiantes.length).toFixed(1),
-        };
-
+        const uniqueGroups = [...new Set(estudiantesAllGroups.map((e) => e.Grupo))];
+        const validStudents = estudiantesAllGroups.filter(
+          (e) => typeof e.PromedioFinal === 'number' && e.PromedioFinal > 0
+        );
+        const promedioMateria = validStudents.length
+          ? validStudents.reduce((sum, e) => sum + e.PromedioFinal, 0) / validStudents.length
+          : 0;
         return [
-          ['Parcial', 'Promedio'],
-          ['M1', parseFloat(averages.m1)],
-          ['M2', parseFloat(averages.m2)],
-          ['M3', parseFloat(averages.m3)],
-          ['Final', parseFloat(averages.finalGrade)],
+          ['Grupo', 'Promedio'],
+          ...uniqueGroups.map((group) => {
+            const groupStudents = validStudents.filter((e) => e.Grupo === group);
+            const promedio = groupStudents.length
+              ? groupStudents.reduce((sum, e) => sum + e.PromedioFinal, 0) / groupStudents.length
+              : 0;
+            return [group, parseFloat(promedio.toFixed(1))];
+          }),
+          ['Promedio Materia', parseFloat(promedioMateria.toFixed(2))],
         ];
       })()
-    : [['Parcial', 'Promedio'], ['M1', 0], ['M2', 0], ['M3', 0], ['Final', 0]];
+    : [['Grupo', 'Promedio'], ['', 0], ['Promedio Materia', 0]];
 
-  const overallChartOptions = {
-    chart: {
-      title: 'Distribución de Calificaciones por Grupo',
-      subtitle: 'Número de Estudiantes por Rango de Calificación Final',
-    },
-    isStacked: true,
-    colors: ['#f44336', '#ffca28', '#4caf50'], // Red for 0-6, Yellow for 7-8, Green for 9-10
+  // Datos para la gráfica de promedio por parcial
+  const promedioParcialesData = estudiantesAllGroups.length
+    ? (() => {
+        const uniqueGroups = [...new Set(estudiantesAllGroups.map((e) => e.Grupo))];
+        return [
+          ['Grupo', 'Parcial 1', 'Parcial 2', 'Parcial 3'],
+          ...uniqueGroups.map((group) => {
+            const groupStudents = estudiantesAllGroups.filter((e) => e.Grupo === group);
+            const validParcial1 = groupStudents.filter((e) => e.Parcial1Efectiva > 0);
+            const validParcial2 = groupStudents.filter((e) => e.Parcial2Efectiva > 0);
+            const validParcial3 = groupStudents.filter((e) => e.Parcial3Efectiva > 0);
+            return [
+              group,
+              validParcial1.length
+                ? parseFloat(
+                    (validParcial1.reduce((sum, e) => sum + e.Parcial1Efectiva, 0) / validParcial1.length).toFixed(1)
+                  )
+                : 0,
+              validParcial2.length
+                ? parseFloat(
+                    (validParcial2.reduce((sum, e) => sum + e.Parcial2Efectiva, 0) / validParcial2.length).toFixed(1)
+                  )
+                : 0,
+              validParcial3.length
+                ? parseFloat(
+                    (validParcial3.reduce((sum, e) => sum + e.Parcial3Efectiva, 0) / validParcial3.length).toFixed(1)
+                  )
+                : 0,
+            ];
+          }),
+        ];
+      })()
+    : [['Grupo', 'Parcial 1', 'Parcial 2', 'Parcial 3'], ['', 0, 0, 0]];
+
+  // Datos para la gráfica de tasa de reprobación por parcial (grupo seleccionado)
+  const reprobacionParcialesData = estudiantes.length
+    ? (() => {
+        const validParcial1 = estudiantes.filter((e) => e.Parcial1Efectiva > 0);
+        const validParcial2 = estudiantes.filter((e) => e.Parcial2Efectiva > 0);
+        const validParcial3 = estudiantes.filter((e) => e.Parcial3Efectiva > 0);
+
+        const reprobadosParcial1 = validParcial1.filter((e) => e.Parcial1Efectiva < 7).length;
+        const reprobadosParcial2 = validParcial2.filter((e) => e.Parcial2Efectiva < 7).length;
+        const reprobadosParcial3 = validParcial3.filter((e) => e.Parcial3Efectiva < 7).length;
+
+        const tasaParcial1 = validParcial1.length
+          ? ((reprobadosParcial1 / validParcial1.length) * 100).toFixed(1)
+          : 0;
+        const tasaParcial2 = validParcial2.length
+          ? ((reprobadosParcial2 / validParcial2.length) * 100).toFixed(1)
+          : 0;
+        const tasaParcial3 = validParcial3.length
+          ? ((reprobadosParcial3 / validParcial3.length) * 100).toFixed(1)
+          : 0;
+
+        return [
+          ['Parcial', 'Tasa de Reprobación (%)'],
+          ['Parcial 1', parseFloat(tasaParcial1)],
+          ['Parcial 2', parseFloat(tasaParcial2)],
+          ['Parcial 3', parseFloat(tasaParcial3)],
+        ];
+      })()
+    : [['Parcial', 'Tasa de Reprobación (%)'], ['Parcial 1', 0], ['Parcial 2', 0], ['Parcial 3', 0]];
+
+  // Datos para la gráfica de distribución de calificaciones por parcial (grupo seleccionado)
+  const distribucionParcialesData = estudiantes.length
+    ? (() => {
+        const gradeRanges = [
+          { range: '0-6', min: 0, max: 6 },
+          { range: '7-8', min: 7, max: 8 },
+          { range: '9-10', min: 9, max: 10 },
+        ];
+        const parciales = [
+          { name: 'Parcial 1', key: 'Parcial1Efectiva' },
+          { name: 'Parcial 2', key: 'Parcial2Efectiva' },
+          { name: 'Parcial 3', key: 'Parcial3Efectiva' },
+        ];
+        return [
+          ['Parcial', ...gradeRanges.map((r) => r.range)],
+          ...parciales.map((parcial) => [
+            parcial.name,
+            ...gradeRanges.map((range) => {
+              const validStudents = estudiantes.filter((e) => e[parcial.key] > 0);
+              return validStudents.filter((e) => e[parcial.key] >= range.min && e[parcial.key] <= range.max).length;
+            }),
+          ]),
+        ];
+      })()
+    : [['Parcial', '0-6', '7-8', '9-10'], ['Parcial 1', 0, 0, 0], ['Parcial 2', 0, 0, 0], ['Parcial 3', 0, 0, 0]];
+
+  // Datos para la gráfica de tasa de reprobación por parcial (todos los grupos)
+  const reprobacionParcialesAllGroupsData = estudiantesAllGroups.length
+    ? (() => {
+        const validParcial1 = estudiantesAllGroups.filter((e) => e.Parcial1Efectiva > 0);
+        const validParcial2 = estudiantesAllGroups.filter((e) => e.Parcial2Efectiva > 0);
+        const validParcial3 = estudiantesAllGroups.filter((e) => e.Parcial3Efectiva > 0);
+
+        const reprobadosParcial1 = validParcial1.filter((e) => e.Parcial1Efectiva < 7).length;
+        const reprobadosParcial2 = validParcial2.filter((e) => e.Parcial2Efectiva < 7).length;
+        const reprobadosParcial3 = validParcial3.filter((e) => e.Parcial3Efectiva < 7).length;
+
+        const tasaParcial1 = validParcial1.length
+          ? ((reprobadosParcial1 / validParcial1.length) * 100).toFixed(1)
+          : 0;
+        const tasaParcial2 = validParcial2.length
+          ? ((reprobadosParcial2 / validParcial2.length) * 100).toFixed(1)
+          : 0;
+        const tasaParcial3 = validParcial3.length
+          ? ((reprobadosParcial3 / validParcial3.length) * 100).toFixed(1)
+          : 0;
+
+        return [
+          ['Parcial', 'Tasa de Reprobación (%)'],
+          ['Parcial 1', parseFloat(tasaParcial1)],
+          ['Parcial 2', parseFloat(tasaParcial2)],
+          ['Parcial 3', parseFloat(tasaParcial3)],
+        ];
+      })()
+    : [['Parcial', 'Tasa de Reprobación (%)'], ['Parcial 1', 0], ['Parcial 2', 0], ['Parcial 3', 0]];
+
+  // Datos para la gráfica de distribución de calificaciones por parcial (todos los grupos)
+  const distribucionParcialesAllGroupsData = estudiantesAllGroups.length
+    ? (() => {
+        const gradeRanges = [
+          { range: '0-6', min: 0, max: 6 },
+          { range: '7-8', min: 7, max: 8 },
+          { range: '9-10', min: 9, max: 10 },
+        ];
+        const parciales = [
+          { name: 'Parcial 1', key: 'Parcial1Efectiva' },
+          { name: 'Parcial 2', key: 'Parcial2Efectiva' },
+          { name: 'Parcial 3', key: 'Parcial3Efectiva' },
+        ];
+        return [
+          ['Parcial', ...gradeRanges.map((r) => r.range)],
+          ...parciales.map((parcial) => [
+            parcial.name,
+            ...gradeRanges.map((range) => {
+              const validStudents = estudiantesAllGroups.filter((e) => e[parcial.key] > 0);
+              return validStudents.filter((e) => e[parcial.key] >= range.min && e[parcial.key] <= range.max).length;
+            }),
+          ]),
+        ];
+      })()
+    : [['Parcial', '0-6', '7-8', '9-10'], ['Parcial 1', 0, 0, 0], ['Parcial 2', 0, 0, 0], ['Parcial 3', 0, 0, 0]];
+
+  // Opciones para las gráficas
+  const groupChartOptions = {
+    title: `Tendencia de Desempeño del Grupo ${grupo} en ${
+      materias.find((m) => m.ClvMateria === materia)?.NomMateria || ''
+    }`,
+    subtitle: 'Promedio de Calificaciones por Parcial y Final',
+    hAxis: { title: 'Evaluación', textStyle: { color: '#333' } },
+    vAxis: { title: 'Promedio', minValue: 0, maxValue: 10, textStyle: { color: '#333' } },
+    legend: { position: 'top' },
+    colors: ['#921F45'],
+    height: 400,
   };
 
-  const groupChartOptions = {
-    chart: {
-      title: `Tendencia de Desempeño del Grupo ${grupo || ''} en ${materia || ''}`,
-      subtitle: 'Promedio de Calificaciones por Parcial y Final',
-    },
-    colors: ['#921F45'], // Use the theme color for the line
+  const reprobacionChartOptions = {
+    title: 'Tasa de Reprobación por Grupo',
+    subtitle: 'Porcentaje de Estudiantes con Promedio Final < 7',
+    hAxis: { title: 'Grupo', textStyle: { color: '#333' } },
+    vAxis: { title: 'Tasa de Reprobación (%)', minValue: 0, maxValue: 100, format: '#.#' },
+    legend: { position: 'none' },
+    colors: ['#f44336'],
+    height: 300,
+  };
+
+  const distribucionChartOptions = {
+    title: 'Distribución de Calificaciones por Grupo',
+    subtitle: 'Número de Estudiantes por Rango de Calificación Final',
+    hAxis: { title: 'Grupo', textStyle: { color: '#333' } },
+    vAxis: { title: 'Número de Estudiantes', minValue: 0, textStyle: { color: '#333' } },
+    legend: { position: 'top' },
+    colors: ['#f44336', '#ffca28', '#4caf50'],
+    isStacked: true,
+    height: 300,
+  };
+
+  const promedioGeneralChartOptions = {
+    title: 'Promedio General por Grupo',
+    subtitle: 'Comparación con el Promedio de la Materia',
+    hAxis: { title: 'Grupo', textStyle: { color: '#333' } },
+    vAxis: { title: 'Promedio', minValue: 0, maxValue: 10, textStyle: { color: '#333' } },
+    legend: { position: 'none' },
+    colors: ['#921F45'],
+    height: 300,
+  };
+
+  const promedioParcialesChartOptions = {
+    title: 'Promedio por Parcial en Cada Grupo',
+    subtitle: 'Desempeño en Parciales Efectivos',
+    hAxis: { title: 'Grupo', textStyle: { color: '#333' } },
+    vAxis: { title: 'Promedio', minValue: 0, maxValue: 10, textStyle: { color: '#333' } },
+    legend: { position: 'top' },
+    colors: ['#921F45', '#ffca28', '#4caf50'],
+    height: 300,
+  };
+
+  const reprobacionParcialesChartOptions = {
+    title: `Tasa de Reprobación por Parcial (Grupo ${grupo})`,
+    subtitle: 'Porcentaje de Estudiantes con Calificación < 7',
+    hAxis: { title: 'Parcial', textStyle: { color: '#333' } },
+    vAxis: { title: 'Tasa de Reprobación (%)', minValue: 0, maxValue: 100, format: '#.#' },
+    legend: { position: 'none' },
+    colors: ['#d81b60'],
+    height: 300,
+  };
+
+  const distribucionParcialesChartOptions = {
+    title: `Distribución de Calificaciones por Parcial (Grupo ${grupo})`,
+    subtitle: 'Número de Estudiantes por Rango de Calificación',
+    hAxis: { title: 'Parcial', textStyle: { color: '#333' } },
+    vAxis: { title: 'Número de Estudiantes', minValue: 0, textStyle: { color: '#333' } },
+    legend: { position: 'top' },
+    colors: ['#ef5350', '#ff9800', '#4caf50'],
+    isStacked: true,
+    height: 300,
+  };
+
+  const reprobacionParcialesAllGroupsChartOptions = {
+    title: 'Tasa de Reprobación por Parcial (Todos los Grupos)',
+    subtitle: 'Porcentaje de Estudiantes con Calificación < 7',
+    hAxis: { title: 'Parcial', textStyle: { color: '#333' } },
+    vAxis: { title: 'Tasa de Reprobación (%)', minValue: 0, maxValue: 100, format: '#.#' },
+    legend: { position: 'none' },
+    colors: ['#d81b60'],
+    height: 300,
+  };
+
+  const distribucionParcialesAllGroupsChartOptions = {
+    title: 'Distribución de Calificaciones por Parcial (Todos los Grupos)',
+    subtitle: 'Número de Estudiantes por Rango de Calificación',
+    hAxis: { title: 'Parcial', textStyle: { color: '#333' } },
+    vAxis: { title: 'Número de Estudiantes', minValue: 0, textStyle: { color: '#333' } },
+    legend: { position: 'top' },
+    colors: ['#ef5350', '#ff9800', '#4caf50'],
+    isStacked: true,
+    height: 300,
   };
 
   return (
-    <Card sx={{ maxWidth: '100%', margin: 'auto', mt: 4, p: 2, boxShadow: 3 }}>
+    <Card sx={{ maxWidth: '1200px', margin: 'auto', mt: 4, p: 3, boxShadow: 5, borderRadius: 3 }}>
       <CardContent>
-        <Typography display="flex" variant="h4" fontWeight="bold" justifyContent="center" gutterBottom>
+        <Typography variant="h4" fontWeight="bold" align="center" color="#921F45" gutterBottom>
           Materias Impartidas
         </Typography>
 
-        <Box display="flex" justifyContent="space-between" mb={2}>
-          <Typography variant="body2">Docente: Lic. Beatriz Hernández</Typography>
-          <Typography variant="body2">Período: Mayo - Agosto 2025</Typography>
-        </Box>
-
-        <Box display="flex" gap={2} mb={3}>
-          <FormControl fullWidth>
-            <Typography variant="body2" fontWeight="bold" gutterBottom>
-              Seleccionar Materia
+        <Grid container spacing={2} sx={{ mb: 3 }}>
+          <Grid item xs={12} sm={6}>
+            <Typography variant="body2" color="text.secondary">
+              Docente: {docenteInfo.Nombre}
             </Typography>
-            <Select value={materia} onChange={handleMateriaChange}>
-              <MenuItem sx={{ color: "text.primary" }} value="">-- Seleccionar --</MenuItem>
-              {materiasData.map((m, index) => (
-                <MenuItem sx={{ color: "text.primary" }} key={index} value={m.nombre}>
-                  {m.nombre}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-
-          <FormControl fullWidth disabled={!materia}>
-            <Typography variant="body2" fontWeight="bold" gutterBottom>
-              Seleccionar Grupo
+          </Grid>
+          <Grid item xs={12} sm={6} sx={{ textAlign: { xs: 'left', sm: 'right' } }}>
+            <Typography variant="body2" color="text.secondary">
+              Período: {docenteInfo.PeriodoMasReciente}
             </Typography>
-            <Select value={grupo} onChange={handleGrupoChange}>
-              <MenuItem sx={{ color: "text.primary" }} value="">-- Seleccionar --</MenuItem>
-              {materiaSeleccionada?.grupos.map((g, index) => (
-                <MenuItem sx={{ color: "text.primary" }} key={index} value={g.nombre}>
-                  {g.nombre}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Box>
+          </Grid>
+        </Grid>
 
-        {grupoSeleccionado && (
+        <Divider sx={{ mb: 3, borderColor: '#921F45' }} />
+
+        {loading && <CircularProgress sx={{ display: 'block', mx: 'auto', my: 2 }} />}
+        {error && (
+          <Alert severity="error" sx={{ mb: 3 }}>
+            {error}
+          </Alert>
+        )}
+
+        <Grid container spacing={2} sx={{ mb: 4 }}>
+          <Grid item xs={12} sm={6}>
+            <FormControl fullWidth>
+              <Typography variant="body2" fontWeight="bold" gutterBottom color="#921F45">
+                Seleccionar Materia
+              </Typography>
+              <Select value={materia} onChange={handleMateriaChange} displayEmpty sx={{ color: 'text.primary' }}>
+                <MenuItem sx={{ color: 'text.primary' }} value="" disabled>
+                  -- Seleccionar --
+                </MenuItem>
+                {materias.map((m) => (
+                  <MenuItem sx={{ color: 'text.primary' }} key={m.ClvMateria} value={m.ClvMateria}>
+                    {m.NomMateria}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <FormControl fullWidth disabled={!materia}>
+              <Typography variant="body2" fontWeight="bold" gutterBottom color="#921F45">
+                Seleccionar Grupo
+              </Typography>
+              <Select value={grupo} onChange={handleGrupoChange} displayEmpty sx={{ color: 'text.primary' }}>
+                <MenuItem sx={{ color: 'text.primary' }} value="" disabled>
+                  -- Seleccionar --
+                </MenuItem>
+                {grupos.map((g) => (
+                  <MenuItem sx={{ color: 'text.primary' }} key={`${g.ClvCuatrimestre}-${g.Grupo}`} value={g.Grupo}>
+                    {g.Grupo}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+        </Grid>
+
+        {materia && (
           <>
-            <TableContainer component={Paper} sx={{ mt: 3 }}>
+            <Typography variant="h5" sx={{ mt: 4, fontWeight: 'bold', color: '#921F45' }}>
+              Análisis de {materias.find((m) => m.ClvMateria === materia)?.NomMateria}
+            </Typography>
+            {loadingCharts && <CircularProgress sx={{ display: 'block', mx: 'auto', my: 2 }} />}
+            {!loadingCharts && estudiantesAllGroups.length === 0 && (
+              <Alert severity="info" sx={{ mt: 2 }}>
+                No hay datos disponibles para generar las gráficas de esta materia.
+              </Alert>
+            )}
+            {estudiantesAllGroups.length > 0 && (
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={6}>
+                  <Typography variant="h6" sx={{ mt: 2, fontWeight: 'bold', color: '#921F45' }}>
+                    Tasa de Reprobación por Grupo
+                  </Typography>
+                  <Chart
+                    chartType="Bar"
+                    width="100%"
+                    height="300px"
+                    data={reprobacionData}
+                    options={reprobacionChartOptions}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <Typography variant="h6" sx={{ mt: 2, fontWeight: 'bold', color: '#921F45' }}>
+                    Distribución de Calificaciones por Grupo
+                  </Typography>
+                  <Chart
+                    chartType="Bar"
+                    width="100%"
+                    height="300px"
+                    data={distribucionData}
+                    options={distribucionChartOptions}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <Typography variant="h6" sx={{ mt: 2, fontWeight: 'bold', color: '#921F45' }}>
+                    Promedio General por Grupo
+                  </Typography>
+                  <Chart
+                    chartType="ColumnChart"
+                    width="100%"
+                    height="300px"
+                    data={promedioGeneralData}
+                    options={promedioGeneralChartOptions}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <Typography variant="h6" sx={{ mt: 2, fontWeight: 'bold', color: '#921F45' }}>
+                    Promedio por Parcial
+                  </Typography>
+                  <Chart
+                    chartType="LineChart"
+                    width="100%"
+                    height="300px"
+                    data={promedioParcialesData}
+                    options={promedioParcialesChartOptions}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <Typography variant="h6" sx={{ mt: 2, fontWeight: 'bold', color: '#921F45' }}>
+                    Tasa de Reprobación por Parcial (Todos los Grupos)
+                  </Typography>
+                  <Chart
+                    chartType="Bar"
+                    width="100%"
+                    height="300px"
+                    data={reprobacionParcialesAllGroupsData}
+                    options={reprobacionParcialesAllGroupsChartOptions}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <Typography variant="h6" sx={{ mt: 2, fontWeight: 'bold', color: '#921F45' }}>
+                    Distribución de Calificaciones por Parcial (Todos los Grupos)
+                  </Typography>
+                  <Chart
+                    chartType="Bar"
+                    width="100%"
+                    height="300px"
+                    data={distribucionParcialesAllGroupsData}
+                    options={distribucionParcialesAllGroupsChartOptions}
+                  />
+                </Grid>
+              </Grid>
+            )}
+          </>
+        )}
+
+        {estudiantes.length > 0 && (
+          <>
+            <TableContainer component={Paper} sx={{ mt: 3, borderRadius: 2, boxShadow: 3 }}>
               <Table>
                 <TableHead>
-                  <TableRow sx={{ backgroundColor: '#921F45', height: '30px' }}>
-                    <TableCell sx={{ color: 'white', fontWeight: 'bold', py: 0.5 }}>Nombre del Estudiante</TableCell>
-                    <TableCell align="center" sx={{ color: 'white', fontWeight: 'bold', py: 0.5 }}>
-                      M1
+                  <TableRow sx={{ backgroundColor: '#921F45' }}>
+                    <TableCell sx={{ color: 'white', fontWeight: 'bold', py: 1.5 }}>Matrícula</TableCell>
+                    <TableCell sx={{ color: 'white', fontWeight: 'bold', py: 1.5 }}>Nombre del Estudiante</TableCell>
+                    <TableCell align="center" sx={{ color: 'white', fontWeight: 'bold', py: 1.5 }}>
+                      Parcial 1
                     </TableCell>
-                    <TableCell align="center" sx={{ color: 'white', fontWeight: 'bold', py: 0.5 }}>
-                      M2
+                    <TableCell align="center" sx={{ color: 'white', fontWeight: 'bold', py: 1.5 }}>
+                      Parcial 2
                     </TableCell>
-                    <TableCell align="center" sx={{ color: 'white', fontWeight: 'bold', py: 0.5 }}>
-                      M3
+                    <TableCell align="center" sx={{ color: 'white', fontWeight: 'bold', py: 1.5 }}>
+                      Parcial 3
                     </TableCell>
-                    <TableCell align="center" sx={{ color: 'white', fontWeight: 'bold', py: 0.5 }}>
+                    <TableCell align="center" sx={{ color: 'white', fontWeight: 'bold', py: 1.5 }}>
                       Promedio Final
                     </TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {grupoSeleccionado.estudiantes.map((e, index) => (
-                    <TableRow key={index} sx={{ backgroundColor: index % 2 === 0 ? '#D9D9D9' : 'white', height: '30px' }}>
-                      <TableCell sx={{ color: '#000000', fontWeight: 'bold', py: 0.5 }}>{e.nombre}</TableCell>
-                      <TableCell align="center" sx={{ color: '#000000', fontWeight: 'bold', py: 0.5 }}>
-                        {e.m1}
+                  {estudiantes.map((e, index) => (
+                    <TableRow key={e.Matricula} sx={{ backgroundColor: index % 2 === 0 ? '#D9D9D9' : 'white' }}>
+                      <TableCell sx={{ fontWeight: 'medium', py: 1.5 }}>{e.Matricula}</TableCell>
+                      <TableCell sx={{ fontWeight: 'medium', py: 1.5 }}>
+                        {`${e.Nombre} ${e.APaterno} ${e.AMaterno}`}
                       </TableCell>
-                      <TableCell align="center" sx={{ color: '#000000', fontWeight: 'bold', py: 0.5 }}>
-                        {e.m2}
+                      <TableCell align="center" sx={{ py: 1.5 }}>
+                        {e.Parcial1Efectiva === 0 ? 'N/A' : `${e.Parcial1Efectiva} ${getParcialSource(e, 1)}`}
                       </TableCell>
-                      <TableCell align="center" sx={{ color: '#000000', fontWeight: 'bold', py: 0.5 }}>
-                        {e.m3}
+                      <TableCell align="center" sx={{ py: 1.5 }}>
+                        {e.Parcial2Efectiva === 0 ? 'N/A' : `${e.Parcial2Efectiva} ${getParcialSource(e, 2)}`}
                       </TableCell>
-                      <TableCell align="center" sx={{ fontWeight: 'bold', color: e.finalGrade < 7 ? 'red' : 'green', py: 0.5 }}>
-                        {e.finalGrade}
+                      <TableCell align="center" sx={{ py: 1.5 }}>
+                        {e.Parcial3Efectiva === 0 ? 'N/A' : `${e.Parcial3Efectiva} ${getParcialSource(e, 3)}`}
+                      </TableCell>
+                      <TableCell
+                        align="center"
+                        sx={{ fontWeight: 'bold', color: e.PromedioFinal < 7 ? 'red' : 'green', py: 1.5 }}
+                      >
+                        {e.PromedioFinal=== 0 ? 'N/A' : `${e.PromedioFinal}`}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -208,28 +816,56 @@ const MateriasImpartidasView = () => {
               </Table>
             </TableContainer>
 
-            <Typography variant="h5" align="right" sx={{ mt: 3, fontWeight: 'bold', color: '#921F45' }}>
+            <Typography variant="h6" align="right" sx={{ mt: 3, fontWeight: 'bold', color: '#921F45' }}>
               PROMEDIO DEL GRUPO:{' '}
-              {(grupoSeleccionado.estudiantes.reduce((sum, e) => sum + e.finalGrade, 0) / grupoSeleccionado.estudiantes.length).toFixed(1)}
+              {estudiantes.filter((e) => typeof e.PromedioFinal === 'number' && e.PromedioFinal > 0).length
+                ? (
+                    estudiantes
+                      .filter((e) => typeof e.PromedioFinal === 'number' && e.PromedioFinal > 0)
+                      .reduce((sum, e) => sum + e.PromedioFinal, 0) /
+                    estudiantes.filter((e) => typeof e.PromedioFinal === 'number' && e.PromedioFinal > 0).length
+                  ).toFixed(1)
+                : 'N/A'}
             </Typography>
-          </>
-        )}
 
-        {materiaSeleccionada && (
-          <>
             <Typography variant="h5" sx={{ mt: 4, fontWeight: 'bold', color: '#921F45' }}>
-              Distribución de Calificaciones por Grupo
+              Tendencia de Desempeño del Grupo {grupo} en{' '}
+              {materias.find((m) => m.ClvMateria === materia)?.NomMateria}
             </Typography>
-            <Chart chartType="Bar" width="100%" height="300px" data={overallGroupData} options={overallChartOptions} />
-          </>
-        )}
+            <Chart
+              chartType="LineChart"
+              width="100%"
+              height="400px"
+              data={groupPerformanceData}
+              options={groupChartOptions}
+            />
 
-        {grupoSeleccionado && (
-          <>
-            <Typography variant="h5" sx={{ mt: 4, fontWeight: 'bold', color: '#921F45' }}>
-              Tendencia de Desempeño del Grupo {grupo} en {materia}
-            </Typography>
-            <Chart chartType="LineChart" width="100%" height="400px" data={groupPerformanceData} options={groupChartOptions} />
+            <Grid container spacing={2} sx={{ mt: 2 }}>
+              <Grid item xs={12} md={6}>
+                <Typography variant="h6" sx={{ mt: 2, fontWeight: 'bold', color: '#921F45' }}>
+                  Tasa de Reprobación por Parcial (Grupo {grupo})
+                </Typography>
+                <Chart
+                  chartType="Bar"
+                  width="100%"
+                  height="300px"
+                  data={reprobacionParcialesData}
+                  options={reprobacionParcialesChartOptions}
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Typography variant="h6" sx={{ mt: 2, fontWeight: 'bold', color: '#921F45' }}>
+                  Distribución de Calificaciones por Parcial (Grupo {grupo})
+                </Typography>
+                <Chart
+                  chartType="Bar"
+                  width="100%"
+                  height="300px"
+                  data={distribucionParcialesData}
+                  options={distribucionParcialesChartOptions}
+                />
+              </Grid>
+            </Grid>
           </>
         )}
       </CardContent>
