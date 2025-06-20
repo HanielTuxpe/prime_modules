@@ -32,6 +32,7 @@ import getTheme from './Components/theme';
 
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import Payments from './Components/Students/Paymets';
 
 const App = () => {
   const [usuario, setUsuario] = useState(null);
@@ -134,6 +135,12 @@ const App = () => {
             <Route path="/Estudiante/Perfil" element={
               <RutaPrivada tipoPermitido="Estudiante">
                 <Profile />
+              </RutaPrivada>
+            } />
+
+            <Route path="/Estudiante/Pagos" element={
+              <RutaPrivada tipoPermitido="Estudiante">
+                <Payments />
               </RutaPrivada>
             } />
 

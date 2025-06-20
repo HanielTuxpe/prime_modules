@@ -3,10 +3,12 @@ import { Container, Box, Typography, Card, CardContent, CircularProgress, Fade }
 import QRCode from 'react-qr-code';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import axios from 'axios';
+import { obtenerMatricula } from '../Access/SessionService'; 
 
 const Profile = () => {
+    const matricula = obtenerMatricula();
     const [studentData, setStudentData] = useState({
-        matricula: '20221038',
+        matricula: '',
         nombre: '',
         apaterno: '',
         amaterno: '',
@@ -24,18 +26,18 @@ const Profile = () => {
             try {
                 setLoading(true);
                 setError(null);
-                const response = await axios.get(`http://localhost:3000/Fulldata/?matricula=${studentData.matricula}`);
+                const response = await axios.get(`http://localhost:3000/Fulldata/?matricula=${matricula}`);
                 const data = response.data.data[0];
                 setStudentData({
-                    matricula: data.Matricula || studentData.matricula,
-                    nombre: data.Nombre || studentData.nombre,
-                    apaterno: data.APaterno || studentData.apaterno,
-                    amaterno: data.AMaterno || studentData.amaterno,
-                    cuatrimestre: data.Cuatrimestre || studentData.cuatrimestre,
-                    grupo: data.Grupo || studentData.grupo,
-                    nombreCarrera: data.NombreCarrera || studentData.nombreCarrera,
-                    email: data.Email || studentData.email,
-                    periodo: data.Periodo || studentData.periodo,
+                    matricula: data.Matricula,
+                    nombre: data.Nombre ,
+                    apaterno: data.APaterno,
+                    amaterno: data.AMaterno,
+                    cuatrimestre: data.Cuatrimestre,
+                    grupo: data.Grupo,
+                    nombreCarrera: data.NombreCarrera,
+                    email: data.Email,
+                    periodo: data.Periodo,
                 });
             } catch (error) {
                 console.error('Error fetching student data:', error);

@@ -3,6 +3,7 @@ import { Container, Box, Typography } from '@mui/material';
 import banner from '../../assets/banner.png';
 import StudentCalendar from './Calendar';
 import { keyframes } from '@emotion/react';
+import { obtenerMatricula } from '../Access/SessionService';
 
 // Animación de aparición
 const fadeIn = keyframes`
@@ -17,6 +18,7 @@ const fadeIn = keyframes`
 `;
 
 const Index = () => {
+    const matricula = obtenerMatricula(); // Obtener la matrícula del estudiante desde el servicio de sesión
     const [selectedEvent, setSelectedEvent] = useState(null); // Estado para la actividad seleccionada
 
     return (
@@ -27,7 +29,7 @@ const Index = () => {
                 marginTop: '1%',
                 width: '100%',
                 alignItems: 'top',
-              
+
             }}
         >
             {/* Contenedor de la imagen */}
@@ -38,7 +40,7 @@ const Index = () => {
                     alignItems: 'center',
                     width: '100%',
                     gap: 6,
-                   
+
                 }}
             >
                 <img
@@ -74,7 +76,7 @@ const Index = () => {
                     }}
                 >
                     {/* Calendario con la función para manejar el clic en eventos */}
-                    <StudentCalendar onSelectEvent={setSelectedEvent} />
+                    <StudentCalendar onSelectEvent={setSelectedEvent} matricula={matricula}/>
                 </Box>
 
                 {/* Box donde se muestra la actividad seleccionada */}
