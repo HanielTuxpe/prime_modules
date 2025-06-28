@@ -20,11 +20,13 @@ import Calificaciones from './Components/Students/Calificaciones';
 import Historial from './Components/Students/Historial';
 import Rendimiento from './Components/Students/Rendimiento';
 import Profile from './Components/Students/Profile';
+import Payments from './Components/Students/Paymets';
 
 // Asesor / Docente
 import GrupoAccesorado from './Components/Asesor/GrupoAsesorado';
 import InicioDocente  from './Components/Asesor/Iniciodocente';
 import MateriasImpartidasView  from './Components/Asesor/MateriasImpartidasView';
+import HorarioDocente from './Components/Asesor/Horario';
 
 
 import { obtenerTipoUsuario, cerrarSesion } from './Components/Access/SessionService';
@@ -32,7 +34,7 @@ import getTheme from './Components/theme';
 
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import Payments from './Components/Students/Paymets';
+
 
 const App = () => {
   const [usuario, setUsuario] = useState(null);
@@ -107,7 +109,7 @@ const App = () => {
             <Route path="/Publico/Error400" element={<Error400 />} />
             <Route path="/Publico/Error500" element={<Error500 />} />
 
-            <Route path="/Docente/" element={<InicioDocente  />} />
+            <Route path="/Docente/" element={<HorarioDocente  />} />
             <Route path="/Docente/GrupoAsesorado" element={<GrupoAccesorado  />} />
             <Route path="/Docente/MateriasImpartidas" element={<MateriasImpartidasView  />} />
 

@@ -52,7 +52,7 @@ function SideMenu({ open, toggleMenu }) {
             open={open}
             onClose={toggleMenu}
         >
-           {getMenuComponent(user)}
+            {getMenuComponent(user)}
         </StyledDrawer>
     );
 
