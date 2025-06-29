@@ -52,11 +52,10 @@ const HorarioDocente = () => {
         }
         // Extraer solo el nombre sin el prefijo (Ing., Mtro., etc.)
         const nombreCorto = docenteData.Nombre.split(' ')
-          .filter((word) => !['Ing.', 'Mtro.', 'Dr.', 'Dra.'].includes(word))
           .join(' ')
           .split(' ')[0]; // Tomar solo el primer nombre
         setNombreDocente(nombreCorto); // Ejemplo: 'Gadiel'
-        setDocenteCompleto(`Ing. ${docenteData.Nombre}`); // Ejemplo: 'Ing. Gadiel Ramos Hernández'
+        setDocenteCompleto(`${docenteData.Nombre}`); // Ejemplo: 'Ing. Gadiel Ramos Hernández'
       } catch (err) {
         console.error('Error al obtener datos del docente:', err.message);
         setError(err.message);
