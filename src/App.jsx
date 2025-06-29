@@ -109,10 +109,6 @@ const App = () => {
             <Route path="/Publico/Error400" element={<Error400 />} />
             <Route path="/Publico/Error500" element={<Error500 />} />
 
-            <Route path="/Docente/" element={<HorarioDocente  />} />
-            <Route path="/Docente/GrupoAsesorado" element={<GrupoAccesorado  />} />
-            <Route path="/Docente/MateriasImpartidas" element={<MateriasImpartidasView  />} />
-
             {/* Rutas protegidas - Estudiante */}
             <Route path="/Estudiante/" element={
               <RutaPrivada tipoPermitido="Estudiante">
@@ -146,10 +142,22 @@ const App = () => {
               </RutaPrivada>
             } />
 
-            {/* Rutas protegidas - Docente }
-            <Route path="/Docente/GrupoAsesorado/" element={
+            {/* Rutas protegidas - Docente  */}
+            <Route path="/Docente/" element={
+              <RutaPrivada tipoPermitido="Docente">
+                <HorarioDocente />
+              </RutaPrivada>
+            } />
+
+            <Route path="/Docente/GrupoAsesorado" element={
               <RutaPrivada tipoPermitido="Docente">
                 <GrupoAccesorado />
+              </RutaPrivada>
+            } />
+
+            <Route path="/Docente/MateriasImpartidas" element={
+              <RutaPrivada tipoPermitido="Docente">
+                <MateriasImpartidasView />
               </RutaPrivada>
             } />
 

@@ -20,8 +20,9 @@ import {
 } from '@mui/material';
 import axios from 'axios';
 import Chart from 'react-google-charts';
+import { obtenerMatricula } from '../Access/SessionService'; 
 
-const CLV_DOCENTE = '0432'; // ID del docente
+const CLV_DOCENTE = obtenerMatricula(); // ID del docente
 const URL_Base = 'http://localhost:3000';
 
 const MateriasImpartidasView = () => {

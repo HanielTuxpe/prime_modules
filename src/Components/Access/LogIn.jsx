@@ -24,13 +24,11 @@ const Login = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // Validación de campos
         if (!matricula.trim() || !password.trim() || !userType.trim()) {
             toast.warning('Por favor, complete todos los campos.');
             return;
         }
 
-        // Sanitización de campos
         const sanitizedMatricula = DOMPurify.sanitize(matricula.trim());
         const sanitizedPassword = DOMPurify.sanitize(password.trim());
         const sanitizedUserType = DOMPurify.sanitize(userType.trim());
@@ -41,12 +39,10 @@ const Login = () => {
         }
 
         try {
-            // Validar reCAPTCHA
             await axios.post('https://prj-server.onrender.com/validate-recaptcha', {
                 recaptchaToken,
             });
 
-            // Si el reCAPTCHA es exitoso, proceder a validar las credenciales de usuario
             const loginResponse = await axios.post('http://localhost:3000/access', {
                 matricula: sanitizedMatricula,
                 password: sanitizedPassword,
@@ -55,9 +51,18 @@ const Login = () => {
 
             if (loginResponse.status === 200) {
                 toast.success(loginResponse.data.message);
-                setIsCodeRequired(true); // Mostrar el campo de código
-                setRecaptchaToken(null);
-            } 
+
+                if (sanitizedUserType === 'estudiante') {
+                    // Solo para estudiantes: solicitar código de verificación
+                    setIsCodeRequired(true);
+                    setRecaptchaToken(null);
+                } else if (sanitizedUserType === 'docente') {
+                    // Para docentes: iniciar sesión directo sin código
+                    iniciarSesion('Docente', sanitizedMatricula);
+                    toast.success('Bienvenido docente');
+                    window.location.replace('/Docente/');
+                }
+            }
         } catch (error) {
             if (error.response) {
                 const errorMessage = error.response.data.message || 'Error en el proceso de inicio de sesión.';
@@ -84,7 +89,7 @@ const Login = () => {
                 code: Number(code),
             });
 
-             const TipodeUsuario = 'Estudiante'; 
+            const TipodeUsuario = 'Estudiante';
 
             if (verifyResponse.status === 200) {
                 iniciarSesion(TipodeUsuario, matricula);
@@ -207,13 +212,14 @@ const Login = () => {
                                     required
                                     fullWidth
                                     id="matricula"
-                                    label="Matricula"
+                                    label={userType === 'docente' ? 'Clave Docente' : 'Matrícula'}
                                     name="matricula"
                                     autoComplete="matricula"
                                     autoFocus
                                     value={matricula}
                                     onChange={(e) => setMatricula(e.target.value)}
                                 />
+
                                 <Box sx={{ position: 'relative' }}>
                                     <TextField
                                         variant="outlined"

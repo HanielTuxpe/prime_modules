@@ -23,9 +23,12 @@ const Header = ({ usuario, onLogout, toggleDarkMode, darkMode }) => {
     const tituloLargo = "Plataforma de Rendimiento Integral y Monitoreo Educativo de la UTHH";
     const tituloCorto = "PRIME UTHH";
 
+    const userType = obtenerTipoUsuario();
+
     // Cargar usuario inicial al montar el componente
     useEffect(() => {
         const savedUser = obtenerTipoUsuario();
+        
         if (savedUser) {
             setUser(savedUser);
         }
@@ -42,11 +45,15 @@ const Header = ({ usuario, onLogout, toggleDarkMode, darkMode }) => {
 
     const handleGoIndex = () => {
         // Verifica si hay un usuario almacenado
-        if (user) {
-            navigate('/Publico/index'); // Si hay usuario, navega a /index
-        } else {
-            navigate('/Publico/'); // Si no hay usuario, navega a /
-        }
+
+            if (userType === 'Docente') {
+                navigate('/Docente/');  // Redirige a la vista de docente
+            } else if (userType === 'Estudiante') {
+                navigate('/Estudiante/');  // Redirige a la vista de alumno
+            } else {
+                navigate('/Publico/'); // Fallback si no coincide
+            }
+        
     };
 
     const toggleMenu = () => {
@@ -100,7 +107,7 @@ const Header = ({ usuario, onLogout, toggleDarkMode, darkMode }) => {
                     {/* Contenedor de Título */}
                     <Typography
                         variant="h5"
-                      
+
                         sx={{
                             fontWeight: "bold",
                             display: isSmallScreen ? 'none' : 'block',
@@ -111,7 +118,7 @@ const Header = ({ usuario, onLogout, toggleDarkMode, darkMode }) => {
                     </Typography>
                     <Typography
                         variant="h5"
-                      
+
                         sx={{
                             fontWeight: "bold",
                             display: isSmallScreen ? 'block' : 'none',
@@ -178,11 +185,11 @@ const Header = ({ usuario, onLogout, toggleDarkMode, darkMode }) => {
 };
 
 Header.propTypes = {
-    usuario: PropTypes.bool.isRequired, 
+    usuario: PropTypes.bool.isRequired,
     toggleMenu: PropTypes.func.isRequired,
     onLogout: PropTypes.func.isRequired,
     toggleDarkMode: PropTypes.func.isRequired,
     darkMode: PropTypes.bool.isRequired,
-  };
+};
 
 export default Header;

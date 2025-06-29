@@ -4,8 +4,11 @@ import { motion } from 'framer-motion';
 import { Chart } from 'react-google-charts';
 
 // Componentes propios
-import PerfilAlumno from './PerfilAlumno';
-import HistorialAlumno from './HistorialAlumno';
+import PerfilAlumno from './PerfilAlumosAsesorados/PerfilAlumno';
+import HistorialAlumno from './PerfilAlumosAsesorados/HistorialAlumno';
+import RendimientoAlumno from './PerfilAlumosAsesorados/RendimientoAlumno';
+
+import { obtenerMatricula } from '../Access/SessionService'; 
 
 // Material UI
 import {
@@ -21,16 +24,8 @@ import {
   TableRow,
   Paper,
   IconButton,
-  Menu,
-  MenuItem,
   Button,
   Divider,
-  Drawer,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemText,
-  Tooltip,
 } from '@mui/material';
 
 // Íconos Material UI
@@ -38,13 +33,11 @@ import {
   ArrowBack,
   AccountCircle,
   AddCircle,
-  MoreVert,
   BarChart,
   History,
 } from '@mui/icons-material';
 
-
-const CLV_DOCENTE = '0432'; // ID del docente
+const CLV_DOCENTE = obtenerMatricula(); // ID del docente
 const URL_Base = 'http://localhost:3000';
 
 const ModuloAsesor = () => {
@@ -52,9 +45,8 @@ const ModuloAsesor = () => {
   const [estudiante, setEstudiante] = useState('');
   const [showGrades, setShowGrades] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
-  const [showMore, setShowMore] = useState(false); // New state for "More" view
+  const [showMore, setShowMore] = useState(false);
   const [selectedMatricula, setSelectedMatricula] = useState('');
-  const [anchorEl, setAnchorEl] = useState(null);
   const [selectedOption, setSelectedOption] = useState('perfil');
   const [tutorInfo, setTutorInfo] = useState({
     nombreTutor: '',
@@ -163,12 +155,8 @@ const ModuloAsesor = () => {
     fetchData();
   }, []);
 
-
-
-
   const handleOptionClick = (opcion) => {
     setSelectedOption(opcion);
-    setAnchorEl(null);
   };
 
   const handleStudentClick = (nombre) => {
@@ -226,7 +214,7 @@ const ModuloAsesor = () => {
       title: 'Calificaciones por Materia',
       subtitle: 'Comparación de M1, M2 y M3',
     },
-    colors: ['#921F45', '#4caf50', '#ffca28'],
+    colors: ['#921F45', '#4cafolj50', '#ffca28'],
     vAxis: { format: '#' },
     hAxis: { slantedText: true, slantedTextAngle: 45 },
     legend: { position: 'top' },
@@ -290,10 +278,67 @@ const ModuloAsesor = () => {
         passed,
         failed,
         `<div style="padding: 8px; font-size: 14px;"><b>Materia:</b> ${subject}<br/><b>Aprobados:</b> ${passed}<br/><b>Reprobados:</b> ${failed}</div>`,
+
       ]);
     });
     return data;
   })();
+
+  const groupAverageData = (() => {
+    const subjects = estudiantes[0]?.calificaciones.map((c) => c.materia) || [];
+    const validSubjects = subjects.filter((subject) =>
+      estudiantes.every((student) => {
+        const calificacion = student.calificaciones.find((c) => c.materia === subject);
+        return calificacion && calificacion.finalGrade > 0;
+      })
+    );
+
+    const data = [['Materia', 'Promedio Final', { role: 'tooltip', type: 'string', p: { html: true } }]];
+    validSubjects.forEach((subject) => {
+      const average = estudiantes.reduce((sum, student) => {
+        const grade = student.calificaciones.find((c) => c.materia === subject)?.finalGrade || 0;
+        return sum + (grade > 0 ? grade : 0);
+      }, 0) / estudiantes.filter((student) => {
+        const grade = student.calificaciones.find((c) => c.materia === subject)?.finalGrade || 0;
+        return grade > 0;
+      }).length;
+      data.push([
+        subject,
+        parseFloat(average.toFixed(1)),
+        `<div style="padding: 8px; font-size: 14px;"><b>Materia:</b> ${subject}<br/><b>Promedio Final:</b> ${average.toFixed(1)}</div>`,
+      ]);
+    });
+
+    return data;
+  })();
+
+  const groupAverageDataByParcial = (parcial) => {
+    const subjects = estudiantes[0]?.calificaciones.map((c) => c.materia) || [];
+    const validSubjects = subjects.filter((subject) =>
+      estudiantes.some((student) => {
+        const calificacion = student.calificaciones.find((c) => c.materia === subject);
+        return calificacion && calificacion[parcial].nota > 0;
+      })
+    );
+
+    const data = [['Materia', `Promedio ${parcial.toUpperCase()}`, { role: 'tooltip', type: 'string', p: { html: true } }]];
+    validSubjects.forEach((subject) => {
+      const average = estudiantes.reduce((sum, student) => {
+        const grade = student.calificaciones.find((c) => c.materia === subject)?.[parcial].nota || 0;
+        return sum + (grade > 0 ? grade : 0);
+      }, 0) / estudiantes.filter((student) => {
+        const grade = student.calificaciones.find((c) => c.materia === subject)?.[parcial].nota || 0;
+        return grade > 0;
+      }).length;
+      data.push([
+        subject,
+        parseFloat(average.toFixed(1)),
+        `<div style="padding: 8px; font-size: 14px;"><b>Materia:</b> ${subject}<br/><b>Promedio ${parcial.toUpperCase()}:</b> ${average.toFixed(1)}</div>`,
+      ]);
+    });
+
+    return data;
+  };
 
   const groupGradeDistributionDataByParcial = (parcial) => {
     const subjects = estudiantes[0]?.calificaciones.map((c) => c.materia) || [];
@@ -382,6 +427,18 @@ const ModuloAsesor = () => {
     tooltip: { isHtml: true, trigger: 'focus' },
   };
 
+  const groupAverageOptions = {
+    chart: {
+      title: 'Promedio Final por Materia (Grupo)',
+      subtitle: 'Promedio de Calificaciones Finales por Materia',
+    },
+    colors: ['#921F45'],
+    vAxis: { format: '#.#', minValue: 0, maxValue: 10 },
+    hAxis: { slantedText: true, slantedTextAngle: 45 },
+    legend: { position: 'none' },
+    tooltip: { isHtml: true, trigger: 'focus' },
+  };
+
   const groupGradeDistributionOptionsByParcial = (parcial) => ({
     chart: {
       title: `Distribución de Calificaciones por Materia (${parcial.toUpperCase()})`,
@@ -404,6 +461,18 @@ const ModuloAsesor = () => {
     vAxis: { format: '#' },
     hAxis: { slantedText: true, slantedTextAngle: 45 },
     legend: { position: 'top' },
+    tooltip: { isHtml: true, trigger: 'focus' },
+  });
+
+  const groupAverageOptionsByParcial = (parcial) => ({
+    chart: {
+      title: `Promedio por Materia (${parcial.toUpperCase()})`,
+      subtitle: `Promedio de Calificaciones en ${parcial.toUpperCase()} por Materia`,
+    },
+    colors: ['#921F45'],
+    vAxis: { format: '#.#', minValue: 0, maxValue: 10 },
+    hAxis: { slantedText: true, slantedTextAngle: 45 },
+    legend: { position: 'none' },
     tooltip: { isHtml: true, trigger: 'focus' },
   });
 
@@ -436,7 +505,8 @@ const ModuloAsesor = () => {
               <Table>
                 <TableHead>
                   <TableRow sx={{ backgroundColor: '#921F45', height: '30px' }}>
-                    <TableCell sx={{ color: 'white', fontWeight: 'bold', py: 0.5 }}>Matricula</TableCell>
+                    <TableCell sx={{ color: 'white', fontWeight: 'bold', py: 0.5 }}>Nº</TableCell>
+                    <TableCell sx={{ color: 'white', fontWeight: 'bold', py: 0.5 }}>Matrícula</TableCell>
                     <TableCell sx={{ color: 'white', fontWeight: 'bold', py: 0.5 }}>Nombre</TableCell>
                     <TableCell sx={{ color: 'white', fontWeight: 'bold', py: 0.5 }}>Apellido Paterno</TableCell>
                     <TableCell sx={{ color: 'white', fontWeight: 'bold', py: 0.5 }}>Apellido Materno</TableCell>
@@ -455,18 +525,21 @@ const ModuloAsesor = () => {
                         },
                       }}
                     >
-                      <TableCell sx={{ color: '#000000', fontWeight: 'bold', py: 0.5 }}
-                        onClick={() => handleStudentClick(e.nombre)}>{e.matricula}</TableCell>
-                      <TableCell
-                        sx={{ color: '#000000', fontWeight: 'bold', py: 0.5 }}
-                        onClick={() => handleStudentClick(e.nombre)}
-                      >
+                      <TableCell sx={{ color: '#000000', fontWeight: 'bold', py: 0.5 }} onClick={() => handleStudentClick(e.nombre)}>
+                        {index + 1} {/* Contador incremental */}
+                      </TableCell>
+                      <TableCell sx={{ color: '#000000', fontWeight: 'bold', py: 0.5 }} onClick={() => handleStudentClick(e.nombre)}>
+                        {e.matricula}
+                      </TableCell>
+                      <TableCell sx={{ color: '#000000', fontWeight: 'bold', py: 0.5 }} onClick={() => handleStudentClick(e.nombre)}>
                         {e.nombres}
                       </TableCell>
-                      <TableCell sx={{ color: '#000000', fontWeight: 'bold', py: 0.5 }}
-                        onClick={() => handleStudentClick(e.nombre)} >{e.Apaterno}</TableCell>
-                      <TableCell sx={{ color: '#000000', fontWeight: 'bold', py: 0.5 }}
-                        onClick={() => handleStudentClick(e.nombre)}>{e.Amaterno}</TableCell>
+                      <TableCell sx={{ color: '#000000', fontWeight: 'bold', py: 0.5 }} onClick={() => handleStudentClick(e.nombre)}>
+                        {e.Apaterno}
+                      </TableCell>
+                      <TableCell sx={{ color: '#000000', fontWeight: 'bold', py: 0.5 }} onClick={() => handleStudentClick(e.nombre)}>
+                        {e.Amaterno}
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -491,6 +564,15 @@ const ModuloAsesor = () => {
               </>
             )}
 
+            {groupAverageData.length > 1 && (
+              <>
+                <Typography variant="h5" sx={{ mt: 4, fontWeight: 'bold', color: '#921F45' }}>
+                  Promedio Final por Materia (Grupo)
+                </Typography>
+                <Chart chartType="Bar" width="100%" height="400px" data={groupAverageData} options={groupAverageOptions} />
+              </>
+            )}
+
             {groupGradeDistributionDataByParcial('m1').length > 1 && (
               <>
                 <Typography variant="h5" sx={{ mt: 4, fontWeight: 'bold', color: '#921F45' }}>
@@ -506,6 +588,15 @@ const ModuloAsesor = () => {
                   Tasa de Aprobados y Reprobados por Materia (M1)
                 </Typography>
                 <Chart chartType="Bar" width="100%" height="400px" data={passFailDataByParcial('m1')} options={passFailChartOptionsByParcial('m1')} />
+              </>
+            )}
+
+            {groupAverageDataByParcial('m1').length > 1 && (
+              <>
+                <Typography variant="h5" sx={{ mt: 4, fontWeight: 'bold', color: '#921F45' }}>
+                  Promedio por Materia (M1)
+                </Typography>
+                <Chart chartType="Bar" width="100%" height="400px" data={groupAverageDataByParcial('m1')} options={groupAverageOptionsByParcial('m1')} />
               </>
             )}
 
@@ -527,6 +618,15 @@ const ModuloAsesor = () => {
               </>
             )}
 
+            {groupAverageDataByParcial('m2').length > 1 && (
+              <>
+                <Typography variant="h5" sx={{ mt: 4, fontWeight: 'bold', color: '#921F45' }}>
+                  Promedio por Materia (M2)
+                </Typography>
+                <Chart chartType="Bar" width="100%" height="400px" data={groupAverageDataByParcial('m2')} options={groupAverageOptionsByParcial('m2')} />
+              </>
+            )}
+
             {groupGradeDistributionDataByParcial('m3').length > 1 && (
               <>
                 <Typography variant="h5" sx={{ mt: 4, fontWeight: 'bold', color: '#921F45' }}>
@@ -544,6 +644,15 @@ const ModuloAsesor = () => {
                 <Chart chartType="Bar" width="100%" height="400px" data={passFailDataByParcial('m3')} options={passFailChartOptionsByParcial('m3')} />
               </>
             )}
+
+            {groupAverageDataByParcial('m3').length > 1 && (
+              <>
+                <Typography variant="h5" sx={{ mt: 4, fontWeight: 'bold', color: '#921F45' }}>
+                  Promedio por Materia (M3)
+                </Typography>
+                <Chart chartType="Bar" width="100%" height="400px" data={groupAverageDataByParcial('m3')} options={groupAverageOptionsByParcial('m3')} />
+              </>
+            )}
           </motion.div>
 
           {estudianteSeleccionado && showGrades && (
@@ -557,12 +666,11 @@ const ModuloAsesor = () => {
                 sx={{
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'space-between', // Empuja los extremos
-                  width: '100%', // Asegura que ocupe todo el contenedor padre
-                  px: 2, // Padding horizontal opcional
+                  justifyContent: 'space-between',
+                  width: '100%',
+                  px: 2,
                 }}
               >
-                {/* Sección izquierda: volver + texto */}
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                   <IconButton
                     onClick={handleBackClick}
@@ -571,36 +679,21 @@ const ModuloAsesor = () => {
                   >
                     <ArrowBack />
                   </IconButton>
-
-                  <Typography
-                    variant="h5"
-                    sx={{ fontWeight: 'bold', color: '#921F45', mt: 2 }}
-                  >
+                  <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#921F45', mt: 2 }}>
                     Desempeño del Estudiante: {estudianteSeleccionado.nombre}
                   </Typography>
                 </Box>
-
-                {/* Botón de Perfil alineado a la derecha */}
                 <IconButton
-                  onClick={() =>
-                    handleMoreClick(
-                      estudianteSeleccionado.matricula,
-                      estudianteSeleccionado.nombre
-                    )
-                  }
+                  onClick={() => handleMoreClick(estudianteSeleccionado.matricula, estudianteSeleccionado.nombre)}
                   sx={{ color: '#921F45', mt: 2 }}
                   aria-label="Ver más"
                 >
-                  <Typography
-                    variant="h6"
-                    sx={{ fontWeight: 'bold', color: '#921F45', mr: 1 }}
-                  >
+                  <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#921F45', mr: 1 }}>
                     Perfil
                   </Typography>
                   <AccountCircle />
                 </IconButton>
               </Box>
-
 
               <TableContainer component={Paper} sx={{ mt: 3 }}>
                 <Table>
@@ -712,21 +805,19 @@ const ModuloAsesor = () => {
                 width: '100%',
                 height: '100%',
                 display: 'flex',
-                flexDirection: 'column', // Columna para apilar menú y contenido
+                flexDirection: 'column',
               }}
             >
-              {/* Menú Horizontal */}
               <Box
                 sx={{
                   width: '100%',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'space-between', // Espacia los elementos
-                  p: { xs: 1, sm: 2 }, // Padding responsivo
-                  flexWrap: 'wrap', // Permite que los elementos se ajusten en pantallas pequeñas
+                  justifyContent: 'space-between',
+                  p: { xs: 1, sm: 2 },
+                  flexWrap: 'wrap',
                 }}
               >
-                {/* Botón Volver y Título */}
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <IconButton
                     onClick={handleBackClick}
@@ -737,13 +828,12 @@ const ModuloAsesor = () => {
                   </IconButton>
                   <Typography
                     variant="h6"
-                    sx={{ fontWeight: 'bold', color: '#921F45', display: { xs: 'none', sm: 'block' } }} // Oculta en móvil
+                    sx={{ fontWeight: 'bold', color: '#921F45', display: { xs: 'none', sm: 'block' } }}
                   >
                     {estudianteSeleccionado.nombre}
                   </Typography>
                 </Box>
 
-                {/* Pestañas del Menú */}
                 <Box sx={{ display: 'flex', gap: { xs: 1, sm: 2 } }}>
                   {[
                     { key: 'perfil', label: 'Perfil', icon: <AccountCircle /> },
@@ -754,12 +844,12 @@ const ModuloAsesor = () => {
                       key={option.key}
                       onClick={() => handleOptionClick(option.key)}
                       sx={{
-                        color: selectedOption === option.key ? '#fff' : '#000', // Blanco si seleccionado, negro si no
+                        color: selectedOption === option.key ? '#fff' : '#000',
                         backgroundColor: selectedOption === option.key ? '#921F45' : 'transparent',
-                        border: selectedOption === option.key ? 'none' : '2px solid #921F45', // Contorno para no seleccionados
+                        border: selectedOption === option.key ? 'none' : '2px solid #921F45',
                         '&:hover': {
                           backgroundColor: selectedOption === option.key ? '#7a1b38' : '#e0e0e0',
-                          border: selectedOption === option.key ? 'none' : '2px solid #921F45', // Mantener contorno en hover
+                          border: selectedOption === option.key ? 'none' : '2px solid #921F45',
                         },
                         borderRadius: 1,
                         textTransform: 'none',
@@ -776,7 +866,7 @@ const ModuloAsesor = () => {
                       <Typography
                         sx={{
                           display: { xs: 'none', sm: 'inline' },
-                          color: selectedOption === option.key ? '#fff' : '#000', // Blanco si seleccionado, negro si no
+                          color: selectedOption === option.key ? '#fff' : '#000',
                         }}
                       >
                         {option.label}
@@ -786,28 +876,19 @@ const ModuloAsesor = () => {
                 </Box>
               </Box>
 
-              {/* Área de Contenido */}
               <Box
                 sx={{
                   flexGrow: 1,
                   p: { xs: 2, sm: 3 },
-                  overflowY: 'auto', // Permite desplazamiento para contenido largo
+                  overflowY: 'auto',
                 }}
               >
                 {selectedOption === 'perfil' && <PerfilAlumno matricula={selectedMatricula} />}
-                {selectedOption === 'rendimiento' && (
-                  <Box>
-                    <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#921F45', mb: 2 }}>
-                      Rendimiento de {estudianteSeleccionado.nombre}
-                    </Typography>
-                    <Typography>El componente RendimientoAlumno no está implementado. Por favor, proporcione o cree el componente RendimientoAlumno.</Typography>
-                  </Box>
-                )}
+                {selectedOption === 'rendimiento' && <RendimientoAlumno matricula={selectedMatricula} />}
                 {selectedOption === 'historial' && <HistorialAlumno matricula={selectedMatricula} />}
               </Box>
             </motion.div>
           )}
-
         </Box>
       </CardContent>
     </Card>

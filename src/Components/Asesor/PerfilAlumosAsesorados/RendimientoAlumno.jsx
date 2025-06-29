@@ -1,8 +1,8 @@
 import { CircularProgress, Card, CardContent, Typography, Box, Grid, useTheme, } from '@mui/material';
-import DynamicHistory from '../Students/Graphs/DynamicHistory';
+import DynamicHistory from '../../Students/Graphs/DynamicHistory';
 import axios from "axios";
 import { useState, useEffect } from "react";
-import AnimatedGraph from '../Students/Graphs/AnimatedGraph';
+import AnimatedGraph from '../../Students/Graphs/AnimatedGraph';
 
 
 export default function RendimientoAlumnos({ matricula }) {
