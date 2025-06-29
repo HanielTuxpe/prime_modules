@@ -1,9 +1,48 @@
 import React, { useState, useEffect } from 'react';
-import { Chart } from 'react-google-charts';
-import { Card, CardContent, Typography, Box, Table, TableContainer, TableCell, TableBody, TableHead, TableRow, Paper, IconButton } from '@mui/material';
-import { ArrowBack } from '@mui/icons-material';
-import { motion } from 'framer-motion';
 import axios from 'axios';
+import { motion } from 'framer-motion';
+import { Chart } from 'react-google-charts';
+
+// Componentes propios
+import PerfilAlumno from './PerfilAlumno';
+import HistorialAlumno from './HistorialAlumno';
+
+// Material UI
+import {
+  Card,
+  CardContent,
+  Typography,
+  Box,
+  Table,
+  TableContainer,
+  TableCell,
+  TableBody,
+  TableHead,
+  TableRow,
+  Paper,
+  IconButton,
+  Menu,
+  MenuItem,
+  Button,
+  Divider,
+  Drawer,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemText,
+  Tooltip,
+} from '@mui/material';
+
+// Íconos Material UI
+import {
+  ArrowBack,
+  AccountCircle,
+  AddCircle,
+  MoreVert,
+  BarChart,
+  History,
+} from '@mui/icons-material';
+
 
 const CLV_DOCENTE = '0432'; // ID del docente
 const URL_Base = 'http://localhost:3000';
@@ -12,6 +51,11 @@ const ModuloAsesor = () => {
   const [estudiantes, setEstudiantes] = useState([]);
   const [estudiante, setEstudiante] = useState('');
   const [showGrades, setShowGrades] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
+  const [showMore, setShowMore] = useState(false); // New state for "More" view
+  const [selectedMatricula, setSelectedMatricula] = useState('');
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [selectedOption, setSelectedOption] = useState('perfil');
   const [tutorInfo, setTutorInfo] = useState({
     nombreTutor: '',
     grupo: '',
@@ -22,16 +66,14 @@ const ModuloAsesor = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // First, fetch the student list to get tutor info
         const studentsResponse = await axios.get(`${URL_Base}/studentsList?ClvTutor=${CLV_DOCENTE}`);
         const studentsData = studentsResponse.data.data;
 
-        // Set tutor info from the first student
         let tutorData = {
           nombreTutor: '',
           grupo: '',
           cuatrimestre: '',
-          periodo: ''
+          periodo: '',
         };
 
         if (studentsData.length > 0) {
@@ -45,7 +87,6 @@ const ModuloAsesor = () => {
           setTutorInfo(tutorData);
         }
 
-        // Then, fetch grades using tutor info
         const gradesResponse = await axios.get(
           `${URL_Base}/getCalificacionesPorGrupo/?grupo=${tutorData.grupo}&cuatrimestre=${tutorData.cuatrimestre}&periodo=${tutorData.periodo}`
         );
@@ -96,6 +137,9 @@ const ModuloAsesor = () => {
           return {
             matricula: student.Matricula,
             nombre: `${student.NomAlumno} ${student.APaterno} ${student.AMaterno}`,
+            nombres: student.NomAlumno,
+            Apaterno: student.APaterno,
+            Amaterno: student.AMaterno,
             calificaciones,
             average: parseFloat(average.toFixed(1)),
           };
@@ -119,35 +163,62 @@ const ModuloAsesor = () => {
     fetchData();
   }, []);
 
+
+
+
+  const handleOptionClick = (opcion) => {
+    setSelectedOption(opcion);
+    setAnchorEl(null);
+  };
+
   const handleStudentClick = (nombre) => {
     setEstudiante(nombre);
     setShowGrades(true);
+    setShowProfile(false);
+    setShowMore(false);
+  };
+
+  const handleViewProfile = (matricula, nombre) => {
+    setSelectedMatricula(matricula);
+    setEstudiante(nombre);
+    setShowProfile(true);
+    setShowGrades(false);
+    setShowMore(false);
+  };
+
+  const handleMoreClick = (matricula, nombre) => {
+    setSelectedMatricula(matricula);
+    setEstudiante(nombre);
+    setShowMore(true);
+    setShowGrades(false);
+    setShowProfile(false);
   };
 
   const handleBackClick = () => {
     setShowGrades(false);
+    setShowProfile(false);
+    setShowMore(false);
     setEstudiante('');
+    setSelectedMatricula('');
   };
 
   const estudianteSeleccionado = estudiantes.find((e) => e.nombre === estudiante);
 
   const studentData = estudianteSeleccionado
     ? [
-        ['Materia', 'M1', 'M2', 'M3', { role: 'tooltip', type: 'string', p: { html: true } }],
-        ...estudianteSeleccionado.calificaciones
-          .map((c) => [
-            c.materia,
-            c.m1.nota > 0 ? c.m1.nota : null,
-            c.m2.nota > 0 ? c.m2.nota : null,
-            c.m3.nota > 0 ? c.m3.nota : null,
-            `<div style="padding: 8px; font-size: 14px;"><b>Materia:</b> ${c.materia}<br/><b>M1:</b> ${
-              c.m1.nota > 0 ? c.m1.nota : 'N/A'
-            }<br/><b>M2:</b> ${c.m2.nota > 0 ? c.m2.nota : 'N/A'}<br/><b>M3:</b> ${
-              c.m3.nota > 0 ? c.m3.nota : 'N/A'
-            }</div>`,
-          ])
-          .filter((row) => row.slice(1, 4).some((grade) => grade !== null)),
-      ]
+      ['Materia', 'M1', 'M2', 'M3', { role: 'tooltip', type: 'string', p: { html: true } }],
+      ...estudianteSeleccionado.calificaciones
+        .map((c) => [
+          c.materia,
+          c.m1.nota > 0 ? c.m1.nota : null,
+          c.m2.nota > 0 ? c.m2.nota : null,
+          c.m3.nota > 0 ? c.m3.nota : null,
+          `<div style="padding: 8px; font-size: 14px;"><b>Materia:</b> ${c.materia}<br/><b>M1:</b> ${c.m1.nota > 0 ? c.m1.nota : 'N/A'
+          }<br/><b>M2:</b> ${c.m2.nota > 0 ? c.m2.nota : 'N/A'}<br/><b>M3:</b> ${c.m3.nota > 0 ? c.m3.nota : 'N/A'
+          }</div>`,
+        ])
+        .filter((row) => row.slice(1, 4).some((grade) => grade !== null)),
+    ]
     : [['Materia', 'M1', 'M2', 'M3', { role: 'tooltip', type: 'string', p: { html: true } }], ['', 0, 0, 0, '']];
 
   const studentChartOptions = {
@@ -353,9 +424,11 @@ const ModuloAsesor = () => {
           <Typography variant="body2" gutterBottom>Periodo: {tutorInfo.periodo}</Typography>
         </Box>
 
+        <Divider sx={{ mb: 3, borderColor: '#921F45' }} />
+
         <Box sx={{ position: 'relative', width: '100%', overflow: 'hidden' }}>
           <motion.div
-            animate={{ x: showGrades ? '-120%' : 0 }}
+            animate={{ x: showGrades || showProfile || showMore ? '-120%' : 0 }}
             transition={{ duration: 0.5 }}
             style={{ width: '100%' }}
           >
@@ -381,12 +454,19 @@ const ModuloAsesor = () => {
                           backgroundColor: e.nombre === estudiante ? '#4caf50' : '#4caf50',
                         },
                       }}
-                      onClick={() => handleStudentClick(e.nombre)}
                     >
-                      <TableCell sx={{ color: '#000000', fontWeight: 'bold', py: 0.5 }}>{e.matricula}</TableCell>
-                      <TableCell sx={{ color: '#000000', fontWeight: 'bold', py: 0.5 }}>{e.nombre.split(' ')[0]}</TableCell>
-                      <TableCell sx={{ color: '#000000', fontWeight: 'bold', py: 0.5 }}>{e.nombre.split(' ')[1]}</TableCell>
-                      <TableCell sx={{ color: '#000000', fontWeight: 'bold', py: 0.5 }}>{e.nombre.split(' ')[2]}</TableCell>
+                      <TableCell sx={{ color: '#000000', fontWeight: 'bold', py: 0.5 }}
+                        onClick={() => handleStudentClick(e.nombre)}>{e.matricula}</TableCell>
+                      <TableCell
+                        sx={{ color: '#000000', fontWeight: 'bold', py: 0.5 }}
+                        onClick={() => handleStudentClick(e.nombre)}
+                      >
+                        {e.nombres}
+                      </TableCell>
+                      <TableCell sx={{ color: '#000000', fontWeight: 'bold', py: 0.5 }}
+                        onClick={() => handleStudentClick(e.nombre)} >{e.Apaterno}</TableCell>
+                      <TableCell sx={{ color: '#000000', fontWeight: 'bold', py: 0.5 }}
+                        onClick={() => handleStudentClick(e.nombre)}>{e.Amaterno}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -469,16 +549,58 @@ const ModuloAsesor = () => {
           {estudianteSeleccionado && showGrades && (
             <motion.div
               initial={{ x: '100%' }}
-              animate={{ x: 0 }}
+              animate={{ x: showMore ? '-120%' : 0 }}
               transition={{ duration: 0.5 }}
               style={{ position: 'absolute', top: 0, left: 0, width: '100%' }}
             >
-              <IconButton onClick={handleBackClick} sx={{ mt: 2, color: '#921F45' }}>
-                <ArrowBack />
-              </IconButton>
-              <Typography variant="h5" sx={{ mt: 4, fontWeight: 'bold', color: '#921F45' }}>
-                Desempeño del Estudiante: {estudianteSeleccionado.nombre}
-              </Typography>
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between', // Empuja los extremos
+                  width: '100%', // Asegura que ocupe todo el contenedor padre
+                  px: 2, // Padding horizontal opcional
+                }}
+              >
+                {/* Sección izquierda: volver + texto */}
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <IconButton
+                    onClick={handleBackClick}
+                    sx={{ color: '#921F45', mt: 2 }}
+                    aria-label="Volver"
+                  >
+                    <ArrowBack />
+                  </IconButton>
+
+                  <Typography
+                    variant="h5"
+                    sx={{ fontWeight: 'bold', color: '#921F45', mt: 2 }}
+                  >
+                    Desempeño del Estudiante: {estudianteSeleccionado.nombre}
+                  </Typography>
+                </Box>
+
+                {/* Botón de Perfil alineado a la derecha */}
+                <IconButton
+                  onClick={() =>
+                    handleMoreClick(
+                      estudianteSeleccionado.matricula,
+                      estudianteSeleccionado.nombre
+                    )
+                  }
+                  sx={{ color: '#921F45', mt: 2 }}
+                  aria-label="Ver más"
+                >
+                  <Typography
+                    variant="h6"
+                    sx={{ fontWeight: 'bold', color: '#921F45', mr: 1 }}
+                  >
+                    Perfil
+                  </Typography>
+                  <AccountCircle />
+                </IconButton>
+              </Box>
+
 
               <TableContainer component={Paper} sx={{ mt: 3 }}>
                 <Table>
@@ -551,6 +673,141 @@ const ModuloAsesor = () => {
               <Chart chartType="Bar" width="100%" height="400px" data={studentData} options={studentChartOptions} />
             </motion.div>
           )}
+
+          {showProfile && estudianteSeleccionado && (
+            <motion.div
+              initial={{ x: '100%' }}
+              animate={{ x: showMore ? '-120%' : 0 }}
+              transition={{ duration: 0.5 }}
+              style={{ position: 'absolute', top: 0, left: 0, width: '100%' }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <IconButton onClick={handleBackClick} sx={{ mt: 2, color: '#921F45' }} aria-label="Volver">
+                  <ArrowBack />
+                </IconButton>
+                <IconButton
+                  onClick={() => handleMoreClick(estudianteSeleccionado.matricula, estudianteSeleccionado.nombre)}
+                  sx={{ mt: 2, color: '#921F45' }}
+                  aria-label="Ver más"
+                >
+                  <AddCircle />
+                </IconButton>
+              </Box>
+              <Typography variant="h5" sx={{ mt: 4, fontWeight: 'bold', color: '#921F45' }}>
+                Perfil del Estudiante: {estudianteSeleccionado.nombre}
+              </Typography>
+              <PerfilAlumno matricula={selectedMatricula} />
+            </motion.div>
+          )}
+
+          {showMore && estudianteSeleccionado && (
+            <motion.div
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              transition={{ duration: 0.5 }}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column', // Columna para apilar menú y contenido
+              }}
+            >
+              {/* Menú Horizontal */}
+              <Box
+                sx={{
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between', // Espacia los elementos
+                  p: { xs: 1, sm: 2 }, // Padding responsivo
+                  flexWrap: 'wrap', // Permite que los elementos se ajusten en pantallas pequeñas
+                }}
+              >
+                {/* Botón Volver y Título */}
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <IconButton
+                    onClick={handleBackClick}
+                    sx={{ color: '#921F45' }}
+                    aria-label="Volver a la lista de estudiantes"
+                  >
+                    <ArrowBack />
+                  </IconButton>
+                  <Typography
+                    variant="h6"
+                    sx={{ fontWeight: 'bold', color: '#921F45', display: { xs: 'none', sm: 'block' } }} // Oculta en móvil
+                  >
+                    {estudianteSeleccionado.nombre}
+                  </Typography>
+                </Box>
+
+                {/* Pestañas del Menú */}
+                <Box sx={{ display: 'flex', gap: { xs: 1, sm: 2 } }}>
+                  {[
+                    { key: 'perfil', label: 'Perfil', icon: <AccountCircle /> },
+                    { key: 'rendimiento', label: 'Rendimiento', icon: <BarChart /> },
+                    { key: 'historial', label: 'Historial', icon: <History /> },
+                  ].map((option) => (
+                    <Button
+                      key={option.key}
+                      onClick={() => handleOptionClick(option.key)}
+                      sx={{
+                        color: selectedOption === option.key ? '#fff' : '#000', // Blanco si seleccionado, negro si no
+                        backgroundColor: selectedOption === option.key ? '#921F45' : 'transparent',
+                        border: selectedOption === option.key ? 'none' : '2px solid #921F45', // Contorno para no seleccionados
+                        '&:hover': {
+                          backgroundColor: selectedOption === option.key ? '#7a1b38' : '#e0e0e0',
+                          border: selectedOption === option.key ? 'none' : '2px solid #921F45', // Mantener contorno en hover
+                        },
+                        borderRadius: 1,
+                        textTransform: 'none',
+                        fontWeight: 'bold',
+                        px: { xs: 1, sm: 2 },
+                        py: 1,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1,
+                      }}
+                      aria-label={`Ver ${option.label} de ${estudianteSeleccionado.nombre}`}
+                    >
+                      {option.icon}
+                      <Typography
+                        sx={{
+                          display: { xs: 'none', sm: 'inline' },
+                          color: selectedOption === option.key ? '#fff' : '#000', // Blanco si seleccionado, negro si no
+                        }}
+                      >
+                        {option.label}
+                      </Typography>
+                    </Button>
+                  ))}
+                </Box>
+              </Box>
+
+              {/* Área de Contenido */}
+              <Box
+                sx={{
+                  flexGrow: 1,
+                  p: { xs: 2, sm: 3 },
+                  overflowY: 'auto', // Permite desplazamiento para contenido largo
+                }}
+              >
+                {selectedOption === 'perfil' && <PerfilAlumno matricula={selectedMatricula} />}
+                {selectedOption === 'rendimiento' && (
+                  <Box>
+                    <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#921F45', mb: 2 }}>
+                      Rendimiento de {estudianteSeleccionado.nombre}
+                    </Typography>
+                    <Typography>El componente RendimientoAlumno no está implementado. Por favor, proporcione o cree el componente RendimientoAlumno.</Typography>
+                  </Box>
+                )}
+                {selectedOption === 'historial' && <HistorialAlumno matricula={selectedMatricula} />}
+              </Box>
+            </motion.div>
+          )}
+
         </Box>
       </CardContent>
     </Card>

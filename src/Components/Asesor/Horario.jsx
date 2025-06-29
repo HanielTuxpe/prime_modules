@@ -21,8 +21,8 @@ const HorarioDocente = () => {
   const [carrera, setCarrera] = useState('');
   const [currentDay, setCurrentDay] = useState('');
 
-  const nombreDocente = 'Ricardo'; // Usar nombre exacto de la hoja
-  const docenteCompleto = 'MA. Ricardo García Morales';
+  const nombreDocente = 'Gadiel'; // Usar nombre exacto de la hoja
+  const docenteCompleto = 'Ing. Gadiel Ramos Hernández';
   const URL_HORARIOS = 'http://localhost:3000/horarios';
 
   // Obtener el día actual de la semana

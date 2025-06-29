@@ -1,14 +1,13 @@
 import { CircularProgress, Card, CardContent, Typography, Box, Grid, useTheme, } from '@mui/material';
-import DynamicHistory from './Graphs/DynamicHistory';
+import DynamicHistory from '../Students/Graphs/DynamicHistory';
 import axios from "axios";
 import { useState, useEffect } from "react";
-import AnimatedGraph from './Graphs/AnimatedGraph';
+import AnimatedGraph from '../Students/Graphs/AnimatedGraph';
 
 
-export default function RendimientoAlumnos() {
+export default function RendimientoAlumnos({ matricula }) {
 
     const theme = useTheme();
-    const matricula = '';
     const [data, setData] = useState([]);
     const [promedioGeneral, setPromedioGeneral] = useState(0);
 
@@ -153,7 +152,7 @@ const getEstatusImage = (promedioFinal) => {
     }
 
     return (
-        <Box sx={{ p: 4, minHeight: '100vh' }}>
+
             <Card sx={{
                 borderRadius: '16px',
                 boxShadow: '0 6px 18px rgba(0, 0, 0, 0.1)',
@@ -193,6 +192,6 @@ const getEstatusImage = (promedioFinal) => {
 
                 </center>
             </Card>
-        </Box>
+
     );
 }
