@@ -130,6 +130,7 @@ const Header = ({ usuario, onLogout, toggleDarkMode, darkMode }) => {
 
                 {/* Contenedor de Funciones (Botones e Iconos) */}
                 <Box display="flex" alignItems="center" gap={2} sx={{ flexGrow: 0, marginRight: "2%", marginTop: isSmallScreen ? '10px' : '0' }}>
+                    {/*}
                     <Tooltip title="Modo" arrow>
                         <IconButton color="inherit" onClick={toggleDarkMode}
                             sx={{
@@ -138,7 +139,8 @@ const Header = ({ usuario, onLogout, toggleDarkMode, darkMode }) => {
                         >
                             {darkMode ? <Brightness7Icon /> : <Brightness4Icon />}
                         </IconButton>
-                    </Tooltip>
+                    </Tooltip> {*/}
+
                     {usuario ? (
                         <Tooltip title="Exit" arrow>
                             <IconButton color="inherit" onClick={handleLogoutClick}

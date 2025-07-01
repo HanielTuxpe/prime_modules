@@ -612,7 +612,7 @@ const MateriasImpartidasView = () => {
   };
 
   return (
-    <Card sx={{ maxWidth: '1200px', margin: 'auto', mt: 4, p: 3, boxShadow: 5, borderRadius: 3 }}>
+    <Card sx={{ maxWidth: '95%', margin: 'auto', mt: 4, p: 3, boxShadow: 5, borderRadius: 3 }}>
       <CardContent>
         <Typography variant="h4" fontWeight="bold" align="center" color="#921F45" gutterBottom>
           Materias Impartidas

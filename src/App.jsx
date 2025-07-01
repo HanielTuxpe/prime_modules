@@ -24,8 +24,8 @@ import Payments from './Components/Students/Paymets';
 
 // Asesor / Docente
 import GrupoAccesorado from './Components/Asesor/GrupoAsesorado';
-import InicioDocente  from './Components/Asesor/Iniciodocente';
-import MateriasImpartidasView  from './Components/Asesor/MateriasImpartidasView';
+import InicioDocente from './Components/Asesor/Iniciodocente';
+import MateriasImpartidasView from './Components/Asesor/MateriasImpartidasView';
 import HorarioDocente from './Components/Asesor/Horario';
 
 
@@ -61,15 +61,21 @@ const App = () => {
 
   const theme = getTheme(darkMode);
 
-  const Layout = ({ children }) => (
-    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', width: '100%' }}>
-      <Header usuario={usuario} onLogout={handleLogout} toggleDarkMode={toggleDarkMode} darkMode={darkMode} />
-      <Container component="main" sx={{ mt: 1, flexGrow: 1 }}>
-        {children}
-      </Container>
-      <Footer />
-    </Box>
-  );
+const Layout = ({ children }) => (
+  <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', width: '100%' }}>
+    <Header usuario={usuario} onLogout={handleLogout} toggleDarkMode={toggleDarkMode} darkMode={darkMode} />
+    <Container
+      disableGutters
+      maxWidth={false} 
+      sx={{ mt: 1, flexGrow: 1, width: '100%' }}
+    >
+      {children}
+    </Container>
+    <Footer />
+  </Box>
+);
+
+
 
   Layout.propTypes = {
     children: PropTypes.node.isRequired,

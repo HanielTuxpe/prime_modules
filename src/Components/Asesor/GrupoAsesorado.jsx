@@ -477,7 +477,7 @@ const ModuloAsesor = () => {
   });
 
   return (
-    <Card sx={{ maxWidth: '100%', margin: 'auto', mt: 4, p: 2, boxShadow: 3 }}>
+    <Card sx={{ maxWidth: '95%', margin: 'auto', mt: 4, p: 2, boxShadow: 3 }}>
       <CardContent>
         <Typography display="flex" variant="h6" fontWeight="bold" justifyContent="center" gutterBottom>
           Tutor: {tutorInfo.nombreTutor}

@@ -1,16 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import {
-  Box,
-  Card,
-  CardContent,
-  CardMedia,
-  Typography,
-  Grid,
-  Link,
-} from '@mui/material';
-import { styled } from '@mui/system';
-
-// Import PNG icons
+import React from 'react';
+import { Container, Typography, Box, List, ListItem, ListItemText, Divider, Link } from '@mui/material';
+import { motion } from 'framer-motion';
+import uthh from '../../../assets/uthh.png';
 import FacebookIcon from '../../../assets/facebook.png';
 import TwitterIcon from '../../../assets/twitter.png';
 import InstagramIcon from '../../../assets/instagram.png';
@@ -18,218 +9,256 @@ import LinkedInIcon from '../../../assets/linkedin.png';
 import WhatsAppIcon from '../../../assets/whatsapp.png';
 import YouTubeIcon from '../../../assets/youtube.png';
 
-const colors = {
-  primary: '#921F45',
-  secondary: '#914F65',
-  accent: '#BC955B',
-  white: '#FFFFFF',
-  lightBlue: '#E1EDFF',
-  black: '#000000',
-};
+const About = () => {
+  // Animaciones para las secciones
+  const sectionVariants = {
+    hidden: { opacity: 0, y: 50 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' } },
+  };
 
-// Styles for the ProfileCard
-const ProfileCard = styled(Card)(({ theme }) => ({
-
-  borderRadius: '12px',
-  boxShadow: '0 8px 16px rgba(0, 0, 0, 0.2)',
-  transition: 'transform 0.3s, box-shadow 0.3s',
-  '&:hover': {
-    transform: 'scale(1.05)',
-    boxShadow: '0 16px 32px rgba(0, 0, 0, 0.4)',
-  },
-}));
-
-// Icon mapping for social media links (using images)
-const iconMapping = {
-  facebook: <img src={FacebookIcon} alt="Facebook" style={{ width: 24, height: 24 }} />,
-  twitter: <img src={TwitterIcon} alt="Twitter" style={{ width: 24, height: 24 }} />,
-  instagram: <img src={InstagramIcon} alt="Instagram" style={{ width: 24, height: 24 }} />,
-  linkedin: <img src={LinkedInIcon} alt="LinkedIn" style={{ width: 24, height: 24 }} />,
-  whatsapp: <img src={WhatsAppIcon} alt="WhatsApp" style={{ width: 24, height: 24 }} />,
-  youtube: <img src={YouTubeIcon} alt="YouTube" style={{ width: 24, height: 24 }} />,
-};
-
-const Profile = () => {
-  const [nombreEmpresa, setNombreEmpresa] = useState('');
-  const [descripcion, setDescripcion] = useState('');
-  const [mision, setMision] = useState('');
-  const [vision, setVision] = useState('');
-  const [objetivo, setObjetivo] = useState('');
-  const [direccion, setDireccion] = useState('');
-  const [imagen, setImagen] = useState('');
-  const [redesSociales, setRedesSociales] = useState([]);
-
-  useEffect(() => {
-    const fetchCompanyData = async () => {
-      try {
-        const response = await fetch('https://prj-server.onrender.com/InformacionEmpresa');
-        const data = await response.json();
-
-        if (data.length > 0) {
-          const companyInfo = data[0];
-          setNombreEmpresa(companyInfo.nombreEmpresa);
-          setDescripcion(companyInfo.descripcion);
-          setMision(companyInfo.mision);
-          setVision(companyInfo.vision);
-          setObjetivo(companyInfo.objetivo);
-          setDireccion(companyInfo.direccion);
-          setImagen(companyInfo.imagen);
-          setRedesSociales(companyInfo.redesSociales || []);
-        }
-      } catch (error) {
-        console.error('Error fetching company data:', error);
-      }
-    };
-
-    fetchCompanyData();
-  }, []);
-
-  if (!nombreEmpresa) {
-    return <Typography variant="h6" color={colors.black}>Cargando...</Typography>;
-  }
+  // Animación para el título principal
+  const titleVariants = {
+    hidden: { opacity: 0, scale: 0.8 },
+    visible: { opacity: 1, scale: 1, transition: { duration: 0.8, ease: 'easeOut' } },
+  };
 
   return (
-    <Box sx={{ padding: 2 }}>
-      <Grid container spacing={2} justifyContent="center">
-        <Grid item xs={12} sm={6}>
-          <ProfileCard >
-            <Typography variant="h4"
+    <Box
+      sx={{
+        minHeight: '100vh',
+        bgcolor: 'linear-gradient(180deg, #f5f5f5 0%, #e0e0e0 100%)',
+        py: { xs: 6, md: 10 },
+        px: { xs: 2, sm: 4 },
+      }}
+    >
+      <Container maxWidth="lg">
+        <motion.div
+          variants={titleVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          <Box
+            sx={{
+              bgcolor: 'white',
+              borderRadius: 3,
+              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)',
+              p: { xs: 4, md: 8 },
+              position: 'relative',
+              overflow: 'hidden',
+              '&:before': {
+                content: '""',
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '4px',
+                bgcolor: '#921F45',
+              },
+            }}
+          >
+            {/* Título principal y logo */}
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 4 }}>
+              <img
+                src={uthh}
+                alt="UTHH12 Logo"
+                style={{ maxWidth: '150px', marginBottom: '16px' }}
+              />
+              <Typography
+                variant="h3"
+                component="h1"
+                sx={{
+                  color: '#921F45',
+                  fontWeight: 'bold',
+                  textAlign: 'center',
+                  fontSize: { xs: '2rem', md: '3rem' },
+                }}
+              >
+                Universidad Tecnológica de la Huasteca Hidalguense
+              </Typography>
+            </Box>
+            <Typography
+              variant="body1"
               sx={{
-                marginTop: '2px',
-                marginBottom: '15px',
+                color: 'text.secondary',
+                mb: 6,
                 textAlign: 'center',
-                overflowWrap: 'break-word', // Ajusta palabras largas
-                wordWrap: 'break-word',
-                whiteSpace: 'pre-wrap', // Preserva los saltos de línea
+                maxWidth: '800px',
+                mx: 'auto',
+                fontSize: { xs: '1rem', md: '1.1rem' },
               }}
             >
-              {nombreEmpresa}
+              La Universidad Tecnológica de la Huasteca Hidalguense es una institución educativa de prestigio que se destaca por su enfoque integral en la formación académica y su compromiso con la investigación de vanguardia. A lo largo de los años, ha establecido programas de formación en diversas áreas, brindando a los estudiantes las herramientas necesarias para enfrentar los desafíos globales con un enfoque ético y profesional.
             </Typography>
+          </Box>
+        </motion.div>
 
-            <CardMedia
-              component="img"
-              image={imagen}
-              alt={`${nombreEmpresa} logo`}
+        <Box sx={{ mt: 4 }}>
+          {/* Misión */}
+          <motion.div variants={sectionVariants} initial="hidden" animate="visible">
+            <Box
               sx={{
-                height: 200,
-                objectFit: 'contain',
-               
-                filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4))', // Filtro de sombra más natural
-               // Opcional: redondea bordes
+                bgcolor: 'white',
+                borderRadius: 2,
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                p: 4,
+                mb: 4,
+                transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                '&:hover': {
+                  transform: 'translateY(-4px)',
+                  boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)',
+                },
               }}
-            />
-            <CardContent>
-
-              <Typography variant="body2" 
-                sx={{
-                  marginBottom: '15px',
-                  textAlign: 'center',
-                  overflowWrap: 'break-word', // Ajusta palabras largas
-                  wordWrap: 'break-word',
-                  whiteSpace: 'pre-wrap', // Preserva los saltos de línea
-                }}
-              >
-                {descripcion}
-              </Typography>
-
-              <Typography variant="h6" >
+            >
+              <Typography variant="h5" sx={{ color: '#921F45', fontWeight: 'medium', mb: 2 }}>
                 Misión
               </Typography>
-              <Typography variant="body2"
-                sx={{
-                  marginTop: '2px',
-                  marginBottom: '15px',
-                  overflowWrap: 'break-word', // Ajusta palabras largas
-                  wordWrap: 'break-word',
-                  whiteSpace: 'pre-wrap', // Preserva los saltos de línea
-                }}
-              >
-                {mision}
+              <Typography variant="body1" sx={{ color: 'text.secondary' }}>
+                Formar profesionales competentes, con una sólida formación académica, habilidades interpersonales y un fuerte compromiso con la innovación, la ética y el desarrollo social. La universidad promueve la educación superior de calidad, la investigación aplicada y la interacción con la sociedad para generar soluciones a los problemas globales.
               </Typography>
-              <Typography variant="h6" >
+            </Box>
+          </motion.div>
+
+          {/* Visión */}
+          <motion.div variants={sectionVariants} initial="hidden" animate="visible">
+            <Box
+              sx={{
+                bgcolor: 'white',
+                borderRadius: 2,
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                p: 4,
+                mb: 4,
+                transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                '&:hover': {
+                  transform: 'translateY(-4px)',
+                  boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)',
+                },
+              }}
+            >
+              <Typography variant="h5" sx={{ color: '#921F45', fontWeight: 'medium', mb: 2 }}>
                 Visión
               </Typography>
-              <Typography variant="body2" 
-                sx={{
-                  marginTop: '2px',
-                  marginBottom: '15px',
-                  overflowWrap: 'break-word', // Ajusta palabras largas
-                  wordWrap: 'break-word',
-                  whiteSpace: 'pre-wrap', // Preserva los saltos de línea
-                }}
-              >
-                {vision}
+              <Typography variant="body1" sx={{ color: 'text.secondary' }}>
+                Ser reconocida internacionalmente por su excelencia educativa, su capacidad de innovación en investigación y el impacto positivo de sus egresados en la sociedad. La universidad se proyecta como un referente global en la educación superior de alto rendimiento, contribuyendo a la formación de líderes comprometidos con el desarrollo sostenible.
               </Typography>
-              <Typography variant="h6" >
+            </Box>
+          </motion.div>
+
+          {/* Objetivo */}
+          <motion.div variants={sectionVariants} initial="hidden" animate="visible">
+            <Box
+              sx={{
+                bgcolor: 'white',
+                borderRadius: 2,
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                p: 4,
+                mb: 4,
+                transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                '&:hover': {
+                  transform: 'translateY(-4px)',
+                  boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)',
+                },
+              }}
+            >
+              <Typography variant="h5" sx={{ color: '#921F45', fontWeight: 'medium', mb: 2 }}>
                 Objetivo
               </Typography>
-              <Typography variant="body2"
-                sx={{
-                  marginTop: '2px',
-                  marginBottom: '15px',
-                  overflowWrap: 'break-word', // Ajusta palabras largas
-                  wordWrap: 'break-word',
-                  whiteSpace: 'pre-wrap', // Preserva los saltos de línea
-                }}
-              >
-                {objetivo}
+              <Typography variant="body1" sx={{ color: 'text.secondary' }}>
+                El objetivo principal de la universidad es formar profesionales altamente capacitados en diversas disciplinas, con habilidades que les permitan generar cambios significativos en sus respectivas áreas de trabajo. Además, busca fomentar una cultura de investigación avanzada y colaboración interinstitucional que impulse el progreso académico, científico y social.
               </Typography>
-              <Typography variant="h6" >
+            </Box>
+          </motion.div>
+
+          {/* Dirección */}
+          <motion.div variants={sectionVariants} initial="hidden" animate="visible">
+            <Box
+              sx={{
+                bgcolor: 'white',
+                borderRadius: 2,
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                p: 4,
+                mb: 4,
+                transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                '&:hover': {
+                  transform: 'translateY(-4px)',
+                  boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)',
+                },
+              }}
+            >
+              <Typography variant="h5" sx={{ color: '#921F45', fontWeight: 'medium', mb: 2 }}>
                 Dirección
               </Typography>
-              <Typography variant="body2" 
+              <Typography variant="body1" sx={{ color: 'text.secondary' }}>
+                Carretera Huejutla - Chalahuiyapa S/N, C.P. 43000, Huejutla de Reyes, Hidalgo, México
+              </Typography>
+            </Box>
+          </motion.div>
+
+        </Box>
+
+        {/* Footer */}
+       <Divider sx={{ mb: 4, borderColor: '#921F45' }} />
+        <Box sx={{ textAlign: 'center', mb: 4 }}>
+          <img
+            src={uthh}
+            alt="UTHH Logo"
+            style={{ maxWidth: '100px', marginBottom: '16px' }}
+          />
+          <Typography
+            variant="body2"
+            sx={{ color: 'text.secondary', mb: 2 }}
+          >
+            © {new Date().getFullYear()} Universidad Tecnológica de la Huasteca Hidalguense. Todos los derechos reservados.
+          </Typography>
+          <List sx={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', p: 0 }}>
+            {[
+              { name: 'WhatsApp', icon: WhatsAppIcon, url: '#' },
+              { name: 'Facebook', icon: FacebookIcon, url: '#' },
+              { name: 'Instagram', icon: InstagramIcon, url: '#' },
+              { name: 'YouTube', icon: YouTubeIcon, url: '#' },
+              { name: 'Twitter', icon: TwitterIcon, url: '#' },
+              { name: 'LinkedIn', icon: LinkedInIcon, url: '#' },
+            ].map((social, index) => (
+              <ListItem
+                key={index}
                 sx={{
-                  marginTop: '2px',
-                  marginBottom: '15px',
-                  overflowWrap: 'break-word', // Ajusta palabras largas
-                  wordWrap: 'break-word',
-                  whiteSpace: 'pre-wrap', // Preserva los saltos de línea
+                  width: 'auto',
+                  display: 'inline-flex',
+                  listStyleType: 'none',
+                  px: 1,
+                  '&:before': {
+                    content: '"➤"',
+                    color: 'text.secondary',
+                    fontSize: '1.2rem',
+                    mr: 1,
+                  },
                 }}
               >
-                {direccion}
-              </Typography>
-              <Box mt={2}>
-                <Typography variant="h6"  sx={{  textAlign: 'center'}}>
-                  Redes Sociales
-                </Typography>
-                <Box display="flex" flexWrap="wrap" mt={1}>
-                  {Array.isArray(redesSociales) && redesSociales.length > 0 ? (
-                    redesSociales.map((red, index) => (
-                      <Link
-                        href={red.link}
-                        target="_blank"
-                        rel="noopener"
-                        key={index}
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          marginRight: 2,
-                          marginTop: '15px',
-                          textDecoration: 'none',
-                          '&:hover': {
-                            color: colors.primary, // Change color on hover
-                          },
-                        }}
-                      >
-                        {iconMapping[red.nombre.toLowerCase()] || <span>{red.nombre}</span>}
-                        <Typography variant="body2" sx={{ marginLeft: 0.5 }}>
-                          {red.nombre}
-                        </Typography>
-                      </Link>
-                    ))
-                  ) : (
-                    <Typography variant="body2" >
-                      No hay redes sociales disponibles.
-                    </Typography>
-                  )}
-                </Box>
-              </Box>
-            </CardContent>
-          </ProfileCard>
-        </Grid>
-      </Grid>
+                <Link
+                  href={social.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    color: 'text.secondary',
+                    textDecoration: 'none',
+                    '&:hover': { color: '#921F45', textDecoration: 'underline' },
+                  }}
+                >
+                  <img
+                    src={social.icon}
+                    alt={`${social.name} icon`}
+                    style={{ width: '20px', height: '20px', marginRight: '8px' }}
+                  />
+                  <ListItemText primary={social.name} sx={{ '& .MuiListItemText-primary': { color: 'text.secondary', fontSize: '0.9rem' } }} />
+                </Link>
+              </ListItem>
+            ))}
+          </List>
+        </Box>
+      </Container>
     </Box>
   );
 };
 
-export default Profile;
+export default About;
