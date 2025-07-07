@@ -98,6 +98,7 @@ const Header = ({ usuario, onLogout, toggleDarkMode, darkMode }) => {
                             maxWidth: "80px", height: "auto",
                             marginRight: "10%", marginLeft: isSmallScreen ? '0' : '40%',
                             filter: theme.custom.dropShadow,
+                            borderRadius: '50%',
                         }}
                     />
                 </Box>
