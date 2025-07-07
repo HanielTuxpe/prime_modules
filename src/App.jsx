@@ -23,9 +23,11 @@ import Profile from './Components/Students/Profile';
 import Payments from './Components/Students/Paymets';
 
 // Asesor / Docente
-import GrupoAccesorado from './Components/Asesor/GrupoAsesoradoRiesgo';
+import GrupoAccesorado from './Components/Asesor/GrupoAsesorado';
+import GrupoAsesoradoRiesgo from './Components/Asesor/GrupoAsesoradoRiesgo';
 import InicioDocente from './Components/Asesor/Iniciodocente';
-import MateriasImpartidasView from './Components/Asesor/MateriasImpartidasAlumRiesgo';
+import MateriasImpartidasView from './Components/Asesor/MateriasImpartidasView';
+import MateriasImpartidasAlumRiesgo from './Components/Asesor/MateriasImpartidasAlumRiesgo';
 import HorarioDocente from './Components/Asesor/Horario';
 
 
@@ -161,9 +163,21 @@ const Layout = ({ children }) => (
               </RutaPrivada>
             } />
 
+            <Route path="/Docente/GrupoAsesorado/Riesgo" element={
+              <RutaPrivada tipoPermitido="Docente">
+                <GrupoAsesoradoRiesgo />
+              </RutaPrivada>
+            } />
+
             <Route path="/Docente/MateriasImpartidas" element={
               <RutaPrivada tipoPermitido="Docente">
                 <MateriasImpartidasView />
+              </RutaPrivada>
+            } />
+
+            <Route path="/Docente/MateriasImpartidas/Riesgo" element={
+              <RutaPrivada tipoPermitido="Docente">
+                <MateriasImpartidasAlumRiesgo />
               </RutaPrivada>
             } />
 
