@@ -2,13 +2,11 @@ import { useState, useEffect } from 'react';
 import Typography from '@mui/material/Typography';
 import { Box, IconButton, useMediaQuery, Container, useTheme, Tooltip } from '@mui/material';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
-import Brightness4Icon from '@mui/icons-material/Brightness4';
-import Brightness7Icon from '@mui/icons-material/Brightness7';
 import LoginIcon from '@mui/icons-material/Login';
 import Home from '@mui/icons-material/Home';
 import MenuIcon from '@mui/icons-material/Menu'; // Icono para el menú
 import { useNavigate } from 'react-router-dom';
-import logo from '../../assets/uthh.png';
+import logo from '../../assets/PRIME V2.gif';
 import MenuPrincipal from '../Public/Menu'; // Importa tu menú
 import { obtenerTipoUsuario } from '../Access/SessionService';
 import PropTypes from 'prop-types';
