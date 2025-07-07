@@ -23,9 +23,9 @@ import Profile from './Components/Students/Profile';
 import Payments from './Components/Students/Paymets';
 
 // Asesor / Docente
-import GrupoAccesorado from './Components/Asesor/GrupoAsesorado';
+import GrupoAccesorado from './Components/Asesor/GrupoAsesoradoRiesgo';
 import InicioDocente from './Components/Asesor/Iniciodocente';
-import MateriasImpartidasView from './Components/Asesor/MateriasImpartidasView';
+import MateriasImpartidasView from './Components/Asesor/MateriasImpartidasAlumRiesgo';
 import HorarioDocente from './Components/Asesor/Horario';
 
 

@@ -17,10 +17,12 @@ import {
   Alert,
   Grid,
   Divider,
+  Modal,
+  Box,
 } from '@mui/material';
 import axios from 'axios';
 import Chart from 'react-google-charts';
-import { obtenerMatricula } from '../Access/SessionService'; 
+import { obtenerMatricula } from '../Access/SessionService';
 
 const CLV_DOCENTE = obtenerMatricula(); // ID del docente
 const URL_Base = 'http://localhost:3000';
@@ -36,6 +38,58 @@ const MateriasImpartidasView = () => {
   const [loadingCharts, setLoadingCharts] = useState(false);
   const [error, setError] = useState(null);
   const [docenteInfo, setDocenteInfo] = useState({ Nombre: '', PeriodoMasReciente: '' });
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalData, setModalData] = useState([]);
+  const [modalTitle, setModalTitle] = useState('');
+
+  // Función para cerrar el modal
+  const handleCloseModal = () => {
+    setModalOpen(false);
+    setModalData([]);
+    setModalTitle('');
+  };
+
+  // Función para manejar el clic en las barras
+  const handleChartClick = (chartData, category, range, type, isAllGroups = false) => {
+    let filteredStudents = [];
+    const sourceData = isAllGroups ? estudiantesAllGroups : estudiantes;
+
+    if (type === 'reprobacion') {
+      if (category.includes('Parcial')) {
+        const parcialKey = `Parcial${category.split(' ')[1]}Efectiva`;
+        filteredStudents = sourceData.filter(
+          (e) => e[parcialKey] < 7 && e[parcialKey] > 0 && (isAllGroups || e.Grupo === grupo)
+        );
+        setModalTitle(`Estudiantes Reprobados - ${category} ${isAllGroups ? '' : `(Grupo ${grupo})`}`);
+      } else if (category === 'Grupo') {
+        filteredStudents = sourceData.filter(
+          (e) => e.Grupo === range && e.PromedioFinal < 7 && e.PromedioFinal > 0
+        );
+        setModalTitle(`Estudiantes Reprobados - Grupo ${range}`);
+      }
+    } else if (type === 'distribucion') {
+      const [min, max] = range.split('-').map(Number);
+      if (category.includes('Parcial')) {
+        const parcialKey = `Parcial${category.split(' ')[1]}Efectiva`;
+        filteredStudents = sourceData.filter(
+          (e) =>
+            e[parcialKey] >= min &&
+            e[parcialKey] <= max &&
+            e[parcialKey] > 0 &&
+            (isAllGroups || e.Grupo === grupo)
+        );
+        setModalTitle(`Estudiantes en Rango ${range} - ${category} ${isAllGroups ? '' : `(Grupo ${grupo})`}`);
+      } else {
+        filteredStudents = sourceData.filter(
+          (e) => e.Grupo === category && e.PromedioFinal >= min && e.PromedioFinal <= max && e.PromedioFinal > 0
+        );
+        setModalTitle(`Estudiantes en Rango ${range} - Grupo ${category}`);
+      }
+    }
+
+    setModalData(filteredStudents);
+    setModalOpen(true);
+  };
 
   // Obtener datos del docente
   useEffect(() => {
@@ -44,7 +98,6 @@ const MateriasImpartidasView = () => {
       setError(null);
       try {
         const response = await axios.get(`${URL_Base}/DatosDocente?ClvDocente=${CLV_DOCENTE}`);
-        console.log('Docente Info:', response.data.data);
         const docenteData = response.data.data[0] || { Nombre: 'Desconocido', PeriodoMasReciente: 'Desconocido' };
         setDocenteInfo({
           Nombre: docenteData.Nombre.trim(),
@@ -80,7 +133,6 @@ const MateriasImpartidasView = () => {
       setError(null);
       try {
         const response = await axios.get(`${URL_Base}/materiasxDocente/?ClvDocente=${CLV_DOCENTE}`);
-        console.log('Materias:', response.data.data);
         setMaterias(response.data.data);
       } catch (err) {
         setError('No se pudieron cargar las materias. Verifique la conexión con el servidor.');
@@ -101,10 +153,10 @@ const MateriasImpartidasView = () => {
           const response = await axios.get(
             `${URL_Base}/gruposxMateria/?ClvMateria=${materia}&ClvDocente=${CLV_DOCENTE}`
           );
-          console.log('Grupos:', response.data.data);
           setGrupos(response.data.data);
         } catch (err) {
           setError('No se pudieron cargar los grupos. Verifique la materia seleccionada.');
+          setGrupos([]);
         } finally {
           setLoading(false);
         }
@@ -113,32 +165,38 @@ const MateriasImpartidasView = () => {
       setGrupo('');
       setEstudiantes([]);
       setEstudiantesAllGroups([]);
+    } else {
+      setGrupos([]);
+      setEstudiantes([]);
+      setEstudiantesAllGroups([]);
     }
   }, [materia]);
 
   // Obtener estudiantes de todos los grupos
   useEffect(() => {
-    if (materia && grupos.length > 0) {
+    if (materia && grupos.length > 0 && docenteInfo.PeriodoMasReciente) {
       const fetchEstudiantesAllGroups = async () => {
         setLoadingCharts(true);
         setError(null);
         try {
-          const clvCuatrimestre = grupos[0].ClvCuatrimestre || '5';
-          console.log('Llamando API para estudiantesAllGroups:', {
-            ClvMateria: materia,
-            ClvCuatrimestre: clvCuatrimestre,
-            Periodo:
-              docenteInfo.PeriodoMasReciente.split(' ')[2] +
+          const clvCuatrimestre = grupos[0]?.ClvCuatrimestre || '5';
+          const periodo = docenteInfo.PeriodoMasReciente
+            ? docenteInfo.PeriodoMasReciente.split(' ')[2] +
               (docenteInfo.PeriodoMasReciente.includes('Enero')
                 ? '1'
                 : docenteInfo.PeriodoMasReciente.includes('Mayo')
-                ? '2'
-                : '3'),
-          });
+                  ? '2'
+                  : '3')
+            : '';
+          if (!periodo) {
+            setError('Período no disponible. Seleccione una materia válida.');
+            setEstudiantesAllGroups([]);
+            setLoadingCharts(false);
+            return;
+          }
           const response = await axios.get(
             `${URL_Base}/CalificacionesXMateriaGrupo?ClvMateria=${materia}&ClvCuatrimestre=${clvCuatrimestre}`
           );
-          console.log('EstudiantesAllGroups:', response.data.data);
           if (response.data.data.length === 0) {
             setEstudiantesAllGroups([]);
             setError('No hay calificaciones disponibles para esta materia.');
@@ -180,6 +238,8 @@ const MateriasImpartidasView = () => {
         }
       };
       fetchEstudiantesAllGroups();
+    } else {
+      setEstudiantesAllGroups([]);
     }
   }, [materia, grupos, docenteInfo.PeriodoMasReciente]);
 
@@ -195,7 +255,6 @@ const MateriasImpartidasView = () => {
           const response = await axios.get(
             `${URL_Base}/CalificacionesXMateriaGrupo?ClvMateria=${materia}&ClvCuatrimestre=${clvCuatrimestre}&Grupo=${grupo}`
           );
-          console.log('Estudiantes:', response.data.data);
           if (response.data.data.length === 0) {
             setError('No hay calificaciones disponibles para este grupo y materia.');
             setEstudiantes([]);
@@ -237,6 +296,8 @@ const MateriasImpartidasView = () => {
         }
       };
       fetchEstudiantes();
+    } else {
+      setEstudiantes([]);
     }
   }, [materia, grupo, grupos]);
 
@@ -517,9 +578,7 @@ const MateriasImpartidasView = () => {
 
   // Opciones para las gráficas
   const groupChartOptions = {
-    title: `Tendencia de Desempeño del Grupo ${grupo} en ${
-      materias.find((m) => m.ClvMateria === materia)?.NomMateria || ''
-    }`,
+    title: `Tendencia de Desempeño del Grupo ${grupo} en ${materias.find((m) => m.ClvMateria === materia)?.NomMateria || ''}`,
     subtitle: 'Promedio de Calificaciones por Parcial y Final',
     hAxis: { title: 'Evaluación', textStyle: { color: '#333' } },
     vAxis: { title: 'Promedio', minValue: 0, maxValue: 10, textStyle: { color: '#333' } },
@@ -677,93 +736,210 @@ const MateriasImpartidasView = () => {
           </Grid>
         </Grid>
 
+        {/* Modal para mostrar estudiantes */}
+        <Modal open={modalOpen} onClose={handleCloseModal}>
+          <Box
+            sx={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              width: { xs: '90%', sm: '80%', md: '60%' },
+              maxHeight: '80vh',
+              overflowY: 'auto',
+              bgcolor: 'background.paper',
+              boxShadow: 24,
+              p: 4,
+              borderRadius: 2,
+            }}
+          >
+            <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold', color: '#921F45' }}>
+              {modalTitle}
+            </Typography>
+            {modalData.length > 0 ? (
+              <TableContainer component={Paper}>
+                <Table>
+                  <TableHead>
+                    <TableRow sx={{ backgroundColor: '#921F45' }}>
+                      <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Nombre</TableCell>
+                      <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Apellido Paterno</TableCell>
+                      <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Apellido Materno</TableCell>
+                      <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Grupo</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {modalData.map((estudiante, index) => (
+                      <TableRow key={estudiante.Matricula} sx={{ backgroundColor: index % 2 === 0 ? '#D9D9D9' : 'white' }}>
+                        <TableCell>{estudiante.Nombre}</TableCell>
+                        <TableCell>{estudiante.APaterno}</TableCell>
+                        <TableCell>{estudiante.AMaterno}</TableCell>
+                        <TableCell>{estudiante.Grupo}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            ) : (
+              <Typography>No hay estudiantes en esta categoría.</Typography>
+            )}
+          </Box>
+        </Modal>
+
         {materia && (
           <>
             <Typography variant="h5" sx={{ mt: 4, fontWeight: 'bold', color: '#921F45' }}>
               Análisis de {materias.find((m) => m.ClvMateria === materia)?.NomMateria}
             </Typography>
             {loadingCharts && <CircularProgress sx={{ display: 'block', mx: 'auto', my: 2 }} />}
-            {!loadingCharts && estudiantesAllGroups.length === 0 && (
+            {!loadingCharts && estudiantesAllGroups.length === 0 && !loadingCharts && (
               <Alert severity="info" sx={{ mt: 2 }}>
                 No hay datos disponibles para generar las gráficas de esta materia.
               </Alert>
             )}
-            {estudiantesAllGroups.length > 0 && (
-              <Grid container spacing={2}>
-                <Grid item xs={12} md={6}>
-                  <Typography variant="h6" sx={{ mt: 2, fontWeight: 'bold', color: '#921F45' }}>
-                    Tasa de Reprobación por Grupo
-                  </Typography>
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={6}>
+                <Typography variant="h6" sx={{ mt: 2, fontWeight: 'bold', color: '#921F45' }}>
+                  Distribución de Calificaciones por Parcial (Todos los Grupos)
+                </Typography>
+                {loadingCharts ? (
+                  <CircularProgress sx={{ display: 'block', mx: 'auto', my: 2 }} />
+                ) : (
                   <Chart
                     chartType="Bar"
                     width="100%"
-                    height="300px"
-                    data={reprobacionData}
-                    options={reprobacionChartOptions}
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <Typography variant="h6" sx={{ mt: 2, fontWeight: 'bold', color: '#921F45' }}>
-                    Distribución de Calificaciones por Grupo
-                  </Typography>
-                  <Chart
-                    chartType="Bar"
-                    width="100%"
-                    height="300px"
-                    data={distribucionData}
-                    options={distribucionChartOptions}
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <Typography variant="h6" sx={{ mt: 2, fontWeight: 'bold', color: '#921F45' }}>
-                    Promedio General por Grupo
-                  </Typography>
-                  <Chart
-                    chartType="ColumnChart"
-                    width="100%"
-                    height="300px"
-                    data={promedioGeneralData}
-                    options={promedioGeneralChartOptions}
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <Typography variant="h6" sx={{ mt: 2, fontWeight: 'bold', color: '#921F45' }}>
-                    Promedio por Parcial
-                  </Typography>
-                  <Chart
-                    chartType="LineChart"
-                    width="100%"
-                    height="300px"
-                    data={promedioParcialesData}
-                    options={promedioParcialesChartOptions}
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <Typography variant="h6" sx={{ mt: 2, fontWeight: 'bold', color: '#921F45' }}>
-                    Tasa de Reprobación por Parcial (Todos los Grupos)
-                  </Typography>
-                  <Chart
-                    chartType="Bar"
-                    width="100%"
-                    height="300px"
-                    data={reprobacionParcialesAllGroupsData}
-                    options={reprobacionParcialesAllGroupsChartOptions}
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <Typography variant="h6" sx={{ mt: 2, fontWeight: 'bold', color: '#921F45' }}>
-                    Distribución de Calificaciones por Parcial (Todos los Grupos)
-                  </Typography>
-                  <Chart
-                    chartType="Bar"
-                    width="100%"
-                    height="300px"
+                    height={{ xs: '250px', sm: '300px', md: '350px' }}
                     data={distribucionParcialesAllGroupsData}
                     options={distribucionParcialesAllGroupsChartOptions}
+                    chartEvents={[
+                      {
+                        eventName: 'select',
+                        callback: ({ chartWrapper }) => {
+                          const chart = chartWrapper.getChart();
+                          const selection = chart.getSelection();
+                          if (selection.length > 0) {
+                            const { row, column } = selection[0];
+                            const parcial = distribucionParcialesAllGroupsData[row + 1][0];
+                            const range = distribucionParcialesAllGroupsData[0][column];
+                            handleChartClick(distribucionParcialesAllGroupsData, parcial, range, 'distribucion', true);
+                          }
+                        },
+                      },
+                    ]}
                   />
-                </Grid>
+                )}
               </Grid>
-            )}
+              <Grid item xs={12} md={6}>
+                <Typography variant="h6" sx={{ mt: 2, fontWeight: 'bold', color: '#921F45' }}>
+                  Tasa de Reprobación por Parcial (Todos los Grupos)
+                </Typography>
+                {loadingCharts ? (
+                  <CircularProgress sx={{ display: 'block', mx: 'auto', my: 2 }} />
+                ) : (
+                  <Chart
+                    chartType="Bar"
+                    width="100%"
+                    height={{ xs: '250px', sm: '300px', md: '350px' }}
+                    data={reprobacionParcialesAllGroupsData}
+                    options={reprobacionParcialesAllGroupsChartOptions}
+                    chartEvents={[
+                      {
+                        eventName: 'select',
+                        callback: ({ chartWrapper }) => {
+                          const chart = chartWrapper.getChart();
+                          const selection = chart.getSelection();
+                          if (selection.length > 0) {
+                            const { row } = selection[0];
+                            const parcial = reprobacionParcialesAllGroupsData[row + 1][0];
+                            handleChartClick(reprobacionParcialesAllGroupsData, parcial, '', 'reprobacion', true);
+                          }
+                        },
+                      },
+                    ]}
+                  />
+                )}
+              </Grid>
+              {estudiantesAllGroups.length > 0 && (
+                <>
+                  <Grid item xs={12} md={6}>
+                    <Typography variant="h6" sx={{ mt: 2, fontWeight: 'bold', color: '#921F45' }}>
+                      Tasa de Reprobación por Grupo
+                    </Typography>
+                    <Chart
+                      chartType="Bar"
+                      width="100%"
+                      height={{ xs: '250px', sm: '300px', md: '350px' }}
+                      data={reprobacionData}
+                      options={reprobacionChartOptions}
+                      chartEvents={[
+                        {
+                          eventName: 'select',
+                          callback: ({ chartWrapper }) => {
+                            const chart = chartWrapper.getChart();
+                            const selection = chart.getSelection();
+                            if (selection.length > 0) {
+                              const { row } = selection[0];
+                              const grupo = reprobacionData[row + 1][0];
+                              handleChartClick(reprobacionData, 'Grupo', grupo, 'reprobacion', true);
+                            }
+                          },
+                        },
+                      ]}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Typography variant="h6" sx={{ mt: 2, fontWeight: 'bold', color: '#921F45' }}>
+                      Distribución de Calificaciones por Grupo
+                    </Typography>
+                    <Chart
+                      chartType="Bar"
+                      width="100%"
+                      height={{ xs: '250px', sm: '300px', md: '350px' }}
+                      data={distribucionData}
+                      options={distribucionChartOptions}
+                      chartEvents={[
+                        {
+                          eventName: 'select',
+                          callback: ({ chartWrapper }) => {
+                            const chart = chartWrapper.getChart();
+                            const selection = chart.getSelection();
+                            if (selection.length > 0) {
+                              const { row, column } = selection[0];
+                              const grupo = distribucionData[row + 1][0];
+                              const range = distribucionData[0][column];
+                              handleChartClick(distribucionData, grupo, range, 'distribucion', true);
+                            }
+                          },
+                        },
+                      ]}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Typography variant="h6" sx={{ mt: 2, fontWeight: 'bold', color: '#921F45' }}>
+                      Promedio General por Grupo
+                    </Typography>
+                    <Chart
+                      chartType="ColumnChart"
+                      width="100%"
+                      height={{ xs: '250px', sm: '300px', md: '350px' }}
+                      data={promedioGeneralData}
+                      options={promedioGeneralChartOptions}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Typography variant="h6" sx={{ mt: 2, fontWeight: 'bold', color: '#921F45' }}>
+                      Promedio por Parcial
+                    </Typography>
+                    <Chart
+                      chartType="LineChart"
+                      width="100%"
+                      height={{ xs: '250px', sm: '300px', md: '350px' }}
+                      data={promedioParcialesData}
+                      options={promedioParcialesChartOptions}
+                    />
+                  </Grid>
+                </>
+              )}
+            </Grid>
           </>
         )}
 
@@ -809,7 +985,7 @@ const MateriasImpartidasView = () => {
                         align="center"
                         sx={{ fontWeight: 'bold', color: e.PromedioFinal < 7 ? 'red' : 'green', py: 1.5 }}
                       >
-                        {e.PromedioFinal=== 0 ? 'N/A' : `${e.PromedioFinal}`}
+                        {e.PromedioFinal === 0 ? 'N/A' : `${e.PromedioFinal}`}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -836,7 +1012,7 @@ const MateriasImpartidasView = () => {
             <Chart
               chartType="LineChart"
               width="100%"
-              height="400px"
+              height={{ xs: '300px', sm: '350px', md: '400px' }}
               data={groupPerformanceData}
               options={groupChartOptions}
             />
@@ -849,9 +1025,23 @@ const MateriasImpartidasView = () => {
                 <Chart
                   chartType="Bar"
                   width="100%"
-                  height="300px"
+                  height={{ xs: '250px', sm: '300px', md: '350px' }}
                   data={reprobacionParcialesData}
                   options={reprobacionParcialesChartOptions}
+                  chartEvents={[
+                    {
+                      eventName: 'select',
+                      callback: ({ chartWrapper }) => {
+                        const chart = chartWrapper.getChart();
+                        const selection = chart.getSelection();
+                        if (selection.length > 0) {
+                          const { row } = selection[0];
+                          const parcial = reprobacionParcialesData[row + 1][0];
+                          handleChartClick(reprobacionParcialesData, parcial, grupo, 'reprobacion');
+                        }
+                      },
+                    },
+                  ]}
                 />
               </Grid>
               <Grid item xs={12} md={6}>
@@ -861,9 +1051,24 @@ const MateriasImpartidasView = () => {
                 <Chart
                   chartType="Bar"
                   width="100%"
-                  height="300px"
+                  height={{ xs: '250px', sm: '300px', md: '350px' }}
                   data={distribucionParcialesData}
                   options={distribucionParcialesChartOptions}
+                  chartEvents={[
+                    {
+                      eventName: 'select',
+                      callback: ({ chartWrapper }) => {
+                        const chart = chartWrapper.getChart();
+                        const selection = chart.getSelection();
+                        if (selection.length > 0) {
+                          const { row, column } = selection[0];
+                          const parcial = distribucionParcialesData[row + 1][0];
+                          const range = distribucionParcialesData[0][column];
+                          handleChartClick(distribucionParcialesData, parcial, range, 'distribucion');
+                        }
+                      },
+                    },
+                  ]}
                 />
               </Grid>
             </Grid>

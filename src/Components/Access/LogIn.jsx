@@ -4,7 +4,6 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import banner from '../../assets/banner-login.png';
 import { useMediaQuery } from '@mui/material';
-import ReCAPTCHA from 'react-google-recaptcha';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import { iniciarSesion } from './SessionService';
@@ -16,7 +15,6 @@ const Login = () => {
     const [password, setPassword] = useState('');
     const [userType, setUserType] = useState('');
     const [code, setCode] = useState('');
-    const [recaptchaToken, setRecaptchaToken] = useState(null);
     const [showPassword, setShowPassword] = useState(false);
     const [isCodeRequired, setIsCodeRequired] = useState(false);
     const isMobile = useMediaQuery('(max-width: 600px)');
@@ -33,16 +31,8 @@ const Login = () => {
         const sanitizedPassword = DOMPurify.sanitize(password.trim());
         const sanitizedUserType = DOMPurify.sanitize(userType.trim());
 
-        if (!recaptchaToken) {
-            toast.warning('La validación de reCAPTCHA es necesaria.');
-            return;
-        }
-
+    
         try {
-            await axios.post('https://prj-server.onrender.com/validate-recaptcha', {
-                recaptchaToken,
-            });
-
             const loginResponse = await axios.post('http://localhost:3000/access', {
                 matricula: sanitizedMatricula,
                 password: sanitizedPassword,
@@ -55,7 +45,7 @@ const Login = () => {
                 if (sanitizedUserType === 'estudiante') {
                     // Solo para estudiantes: solicitar código de verificación
                     setIsCodeRequired(true);
-                    setRecaptchaToken(null);
+               
                 } else if (sanitizedUserType === 'docente') {
                     // Para docentes: iniciar sesión directo sin código
                     iniciarSesion('Docente', sanitizedMatricula);
@@ -113,9 +103,6 @@ const Login = () => {
         setShowPassword(!showPassword);
     };
 
-    const onRecaptchaChange = (token) => {
-        setRecaptchaToken(token);
-    };
 
     return (
         <Container
@@ -242,10 +229,7 @@ const Login = () => {
                                         {showPassword ? <VisibilityIcon /> : <VisibilityOffIcon />}
                                     </IconButton>
                                 </Box>
-                                <ReCAPTCHA
-                                    sitekey="6Le3YWUqAAAAAAsmFo9W0iT84R3qyVKtLuPJ9hhr"
-                                    onChange={onRecaptchaChange}
-                                />
+                               
                             </>
                         )}
 
