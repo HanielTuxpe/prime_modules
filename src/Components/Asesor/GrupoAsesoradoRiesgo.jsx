@@ -53,6 +53,7 @@ const AlumnosRiesgoAsesorView = () => {
   });
   const [modalOpen, setModalOpen] = useState(false);
   const [modalData, setModalData] = useState({ matricula: '', nombre: '', parcial: '', failedSubjects: [] });
+  const [failedSubjectsRanking, setFailedSubjectsRanking] = useState([]);
 
   // Formatear el período para mostrarlo de forma legible
   const formatPeriodo = (periodo) => {
@@ -73,7 +74,7 @@ const AlumnosRiesgoAsesorView = () => {
 
     const year = parseInt(periodo.slice(0, 4), 10);
     const term = periodo.slice(4);
-    const currentDate = new Date(); // Obtener la fecha actual del sistema
+    const currentDate = new Date(2025, 0, 31); // Obtener la fecha actual del sistema
 
     // Definir fechas de fin para los parciales (último día del mes)
     const parcialDates = {
@@ -235,6 +236,27 @@ const AlumnosRiesgoAsesorView = () => {
         console.log('Estudiantes procesados:', estudiantesProcesados); // Depuración
         setEstudiantes(estudiantesProcesados);
 
+        // Calcular ranking de materias reprobadas
+        const subjectCounts = {};
+        estudiantesProcesados.forEach((student) => {
+          const allFailedSubjects = [
+            ...student.failedSubjectsP1,
+            ...student.failedSubjectsP2,
+            ...student.failedSubjectsP3,
+          ];
+          allFailedSubjects.forEach((subject) => {
+            if (subject && subject !== 'Sin materia') {
+              subjectCounts[subject] = (subjectCounts[subject] || 0) + 1;
+            }
+          });
+        });
+
+        const ranking = Object.entries(subjectCounts)
+          .map(([subject, count]) => ({ subject, count }))
+          .sort((a, b) => b.count - a.count || a.subject.localeCompare(b.subject));
+
+        setFailedSubjectsRanking(ranking);
+
         if (estudiantesProcesados.length === 0) {
           setError('No se encontraron estudiantes para mostrar.');
         }
@@ -365,6 +387,41 @@ const AlumnosRiesgoAsesorView = () => {
         ) : (
           <Alert severity="info" sx={{ mt: 3 }}>
             No hay estudiantes para mostrar en este grupo.
+          </Alert>
+        )}
+
+        {/* Tabla de ranking de materias reprobadas */}
+        <Typography variant="h5" sx={{ mt: 4, fontWeight: 'bold', color: '#921F45' }}>
+          Ranking de Materias Reprobadas
+        </Typography>
+        {failedSubjectsRanking.length > 0 ? (
+          <TableContainer component={Paper} sx={{ mt: 3, borderRadius: 2, boxShadow: 3 }}>
+            <Table>
+              <TableHead>
+                <TableRow sx={{ backgroundColor: '#921F45' }}>
+                  <TableCell sx={{ color: 'white', fontWeight: 'bold', py: 1.5 }}>Posición</TableCell>
+                  <TableCell sx={{ color: 'white', fontWeight: 'bold', py: 1.5 }}>Materia</TableCell>
+                  <TableCell align="center" sx={{ color: 'white', fontWeight: 'bold', py: 1.5 }}>
+                    Número de Reprobaciones
+                  </TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {failedSubjectsRanking.map((item, index) => (
+                  <TableRow key={item.subject} sx={{ backgroundColor: index % 2 === 0 ? '#D9D9D9' : 'white' }}>
+                    <TableCell sx={{ fontWeight: 'medium', py: 1.5 }}>{index + 1}</TableCell>
+                    <TableCell sx={{ fontWeight: 'medium', py: 1.5 }}>{item.subject}</TableCell>
+                    <TableCell align="center" sx={{ fontWeight: 'medium', py: 1.5, color: 'red' }}>
+                      {item.count}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        ) : (
+          <Alert severity="info" sx={{ mt: 3 }}>
+            No hay materias reprobadas para mostrar en este grupo.
           </Alert>
         )}
 

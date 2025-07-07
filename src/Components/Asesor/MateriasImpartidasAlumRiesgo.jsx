@@ -33,6 +33,43 @@ const MateriasImpartidasNaView = () => {
   const [error, setError] = useState(null);
   const [docenteInfo, setDocenteInfo] = useState({ Nombre: '', PeriodoMasReciente: '' });
 
+  // Determinar si un parcial ha pasado basado en el período y la fecha actual
+  const hasParcialPassed = (parcial, periodo) => {
+    if (!periodo || periodo === 'Desconocido') return false;
+
+    const year = parseInt(periodo.slice(0, 4), 10);
+    const term = periodo.slice(4);
+    const currentDate = new Date(2025, 0, 31); // Obtener la fecha actual del sistema
+
+    // Definir fechas de fin para los parciales (último día del mes)
+    const parcialDates = {
+      '1': [ // Enero - Abril
+        new Date(year, 0, 31), // Parcial 1: 31 de enero
+        new Date(year, 1, 28), // Parcial 2: 28 de febrero (o 29 en año bisiesto)
+        new Date(year, 2, 31), // Parcial 3: 31 de marzo
+      ],
+      '2': [ // Mayo - Agosto
+        new Date(year, 4, 31), // Parcial 1: 31 de mayo
+        new Date(year, 5, 30), // Parcial 2: 30 de junio
+        new Date(year, 6, 31), // Parcial 3: 31 de julio
+      ],
+      '3': [ // Septiembre - Diciembre
+        new Date(year, 8, 30), // Parcial 1: 30 de septiembre
+        new Date(year, 9, 31), // Parcial 2: 31 de octubre
+        new Date(year, 10, 30), // Parcial 3: 30 de noviembre
+      ],
+    };
+
+    // Ajustar febrero para años bisiestos
+    if (term === '1') {
+      const isLeapYear = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+      parcialDates['1'][1] = new Date(year, 1, isLeapYear ? 29 : 28); // Parcial 2: 28 o 29 de febrero
+    }
+
+    const dates = parcialDates[term] || [];
+    return dates[parcial - 1] && currentDate >= dates[parcial - 1];
+  };
+
   // Obtener datos del docente
   useEffect(() => {
     const fetchDocenteInfo = async () => {
@@ -45,9 +82,11 @@ const MateriasImpartidasNaView = () => {
           Nombre: docenteData.Nombre.trim(),
           PeriodoMasReciente: formatPeriodo(docenteData.PeriodoMasReciente),
         });
+        console.log('Docente Info:', docenteData); // Depuración
       } catch (err) {
         setError('No se pudieron cargar los datos del docente. Verifique la conexión con el servidor.');
         setDocenteInfo({ Nombre: 'Desconocido', PeriodoMasReciente: 'Desconocido' });
+        console.error('Error fetching docente info:', err);
       } finally {
         setLoading(false);
       }
@@ -76,8 +115,10 @@ const MateriasImpartidasNaView = () => {
       try {
         const response = await axios.get(`${URL_Base}/materiasxDocente/?ClvDocente=${CLV_DOCENTE}`);
         setMaterias(response.data.data);
+        console.log('Materias:', response.data.data); // Depuración
       } catch (err) {
         setError('No se pudieron cargar las materias. Verifique la conexión con el servidor.');
+        console.error('Error fetching materias:', err);
       } finally {
         setLoading(false);
       }
@@ -96,9 +137,11 @@ const MateriasImpartidasNaView = () => {
             `${URL_Base}/gruposxMateria/?ClvMateria=${materia}&ClvDocente=${CLV_DOCENTE}`
           );
           setGrupos(response.data.data);
+          console.log('Grupos:', response.data.data); // Depuración
         } catch (err) {
           setError('No se pudieron cargar los grupos. Verifique la materia seleccionada.');
           setGrupos([]);
+          console.error('Error fetching grupos:', err);
         } finally {
           setLoading(false);
         }
@@ -119,9 +162,11 @@ const MateriasImpartidasNaView = () => {
         setError(null);
         try {
           const clvCuatrimestre = grupos[0]?.ClvCuatrimestre || '5';
+          console.log('Fetching estudiantes with:', { ClvMateria: materia, ClvCuatrimestre: clvCuatrimestre }); // Depuración
           const response = await axios.get(
             `${URL_Base}/CalificacionesXMateriaGrupo?ClvMateria=${materia}&ClvCuatrimestre=${clvCuatrimestre}`
           );
+          console.log('Estudiantes Response:', response.data.data); // Depuración
           if (response.data.data.length === 0) {
             setError('No hay calificaciones disponibles para esta materia.');
             setEstudiantes([]);
@@ -147,14 +192,24 @@ const MateriasImpartidasNaView = () => {
                 estudiante.Parcial3E3 || 0
               ),
             }));
-            // Filtrar estudiantes con N/A en al menos un parcial
-            const estudiantesConNA = estudiantesConEfectivas
-              .filter(
-                (estudiante) =>
-                  estudiante.Parcial1Efectiva === 0 ||
-                  estudiante.Parcial2Efectiva === 0 ||
-                  estudiante.Parcial3Efectiva === 0
-              )
+            // Filtrar estudiantes con calificaciones menores a 7 en al menos un parcial que haya pasado
+            const estudiantesEnRiesgo = estudiantesConEfectivas
+              .filter((estudiante) => {
+                const periodo = estudiante.Periodo;
+                console.log('Estudiante:', estudiante.Matricula, 'Periodo:', periodo, {
+                  Parcial1Efectiva: estudiante.Parcial1Efectiva,
+                  Parcial2Efectiva: estudiante.Parcial2Efectiva,
+                  Parcial3Efectiva: estudiante.Parcial3Efectiva,
+                  Parcial1Passed: hasParcialPassed(1, periodo),
+                  Parcial2Passed: hasParcialPassed(2, periodo),
+                  Parcial3Passed: hasParcialPassed(3, periodo),
+                }); // Depuración
+                return (
+                  (hasParcialPassed(1, periodo) && estudiante.Parcial1Efectiva < 7 && estudiante.Parcial1Efectiva >= 0) ||
+                  (hasParcialPassed(2, periodo) && estudiante.Parcial2Efectiva < 7 && estudiante.Parcial2Efectiva >= 0) ||
+                  (hasParcialPassed(3, periodo) && estudiante.Parcial3Efectiva < 7 && estudiante.Parcial3Efectiva >= 0)
+                );
+              })
               // Ordenar por grupo y luego por nombre completo
               .sort((a, b) => {
                 const grupoA = a.Grupo || '';
@@ -166,7 +221,8 @@ const MateriasImpartidasNaView = () => {
                 const nombreCompletoB = `${b.Nombre} ${b.APaterno} ${b.AMaterno}`.toLowerCase();
                 return nombreCompletoA.localeCompare(nombreCompletoB);
               });
-            setEstudiantes(estudiantesConNA);
+            console.log('Estudiantes en riesgo:', estudiantesEnRiesgo); // Depuración
+            setEstudiantes(estudiantesEnRiesgo);
           }
         } catch (err) {
           console.error('Error en fetchEstudiantes:', err);
@@ -184,7 +240,7 @@ const MateriasImpartidasNaView = () => {
     } else {
       setEstudiantes([]);
     }
-  }, [materia, grupos]);
+  }, [materia, grupos, docenteInfo.PeriodoMasReciente]);
 
   const handleMateriaChange = (event) => {
     setMateria(event.target.value);
@@ -260,7 +316,7 @@ const MateriasImpartidasNaView = () => {
         {materia && (
           <>
             <Typography variant="h5" sx={{ mt: 4, fontWeight: 'bold', color: '#921F45' }}>
-               {materias.find((m) => m.ClvMateria === materia)?.NomMateria}
+              {materias.find((m) => m.ClvMateria === materia)?.NomMateria}
             </Typography>
             {estudiantes.length > 0 ? (
               <TableContainer component={Paper} sx={{ mt: 3, borderRadius: 2, boxShadow: 3 }}>
@@ -293,13 +349,46 @@ const MateriasImpartidasNaView = () => {
                         <TableCell sx={{ fontWeight: 'medium', py: 1.5 }}>{e.APaterno}</TableCell>
                         <TableCell sx={{ fontWeight: 'medium', py: 1.5 }}>{e.AMaterno}</TableCell>
                         <TableCell sx={{ fontWeight: 'medium', py: 1.5 }}>{e.Grupo}</TableCell>
-                        <TableCell align="center" sx={{ py: 1.5 }}>
+                        <TableCell
+                          align="center"
+                          sx={{
+                            py: 1.5,
+                            color:
+                              hasParcialPassed(1, docenteInfo.PeriodoMasReciente) &&
+                              e.Parcial1Efectiva < 7 &&
+                              e.Parcial1Efectiva >= 0
+                                ? 'red'
+                                : 'inherit',
+                          }}
+                        >
                           {e.Parcial1Efectiva === 0 ? 'N/A' : `${e.Parcial1Efectiva} ${getParcialSource(e, 1)}`}
                         </TableCell>
-                        <TableCell align="center" sx={{ py: 1.5 }}>
+                        <TableCell
+                          align="center"
+                          sx={{
+                            py: 1.5,
+                            color:
+                              hasParcialPassed(2, docenteInfo.PeriodoMasReciente) &&
+                              e.Parcial2Efectiva < 7 &&
+                              e.Parcial2Efectiva >= 0
+                                ? 'red'
+                                : 'inherit',
+                          }}
+                        >
                           {e.Parcial2Efectiva === 0 ? 'N/A' : `${e.Parcial2Efectiva} ${getParcialSource(e, 2)}`}
                         </TableCell>
-                        <TableCell align="center" sx={{ py: 1.5 }}>
+                        <TableCell
+                          align="center"
+                          sx={{
+                            py: 1.5,
+                            color:
+                              hasParcialPassed(3, docenteInfo.PeriodoMasReciente) &&
+                              e.Parcial3Efectiva < 7 &&
+                              e.Parcial3Efectiva >= 0
+                                ? 'red'
+                                : 'inherit',
+                          }}
+                        >
                           {e.Parcial3Efectiva === 0 ? 'N/A' : `${e.Parcial3Efectiva} ${getParcialSource(e, 3)}`}
                         </TableCell>
                       </TableRow>
@@ -309,7 +398,7 @@ const MateriasImpartidasNaView = () => {
               </TableContainer>
             ) : (
               <Alert severity="info" sx={{ mt: 3 }}>
-                No hay estudiantes con parciales no calificados en esta materia.
+                No hay estudiantes en riesgo (calificaciones menores a 7) en esta materia.
               </Alert>
             )}
           </>
