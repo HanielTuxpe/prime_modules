@@ -74,7 +74,7 @@ const AlumnosRiesgoAsesorView = () => {
 
     const year = parseInt(periodo.slice(0, 4), 10);
     const term = periodo.slice(4);
-    const currentDate = new Date(2025, 0, 31); // Obtener la fecha actual del sistema
+     const currentDate = new Date(2025, 0, 31); // Obtener la fecha actual del sistema
 
     // Definir fechas de fin para los parciales (último día del mes)
     const parcialDates = {
@@ -213,6 +213,19 @@ const AlumnosRiesgoAsesorView = () => {
             const materiasP2 = failedSubjectsP2.length;
             const materiasP3 = failedSubjectsP3.length;
 
+            // Solo incluir estudiantes con al menos una materia reprobada
+            if (materiasP1 === 0 && materiasP2 === 0 && materiasP3 === 0) {
+              return null; // Excluir estudiantes sin materias reprobadas
+            }
+
+            console.log('Estudiante procesado:', {
+              matricula: student.Matricula,
+              nombre: `${student.NomAlumno} ${student.APaterno} ${student.AMaterno || ''}`,
+              failedSubjectsP1,
+              failedSubjectsP2,
+              failedSubjectsP3,
+            }); // Depuración específica
+
             return {
               matricula: student.Matricula?.trim() || 'Sin matrícula',
               nombre: student.NomAlumno?.trim() || 'Sin nombre',
@@ -226,6 +239,7 @@ const AlumnosRiesgoAsesorView = () => {
               failedSubjectsP3,
             };
           })
+          .filter((student) => student !== null) // Filtrar estudiantes sin materias reprobadas
           // Ordenar por nombre completo
           .sort((a, b) => {
             const nombreCompletoA = `${a.nombre} ${a.apaterno} ${a.amaterno || ''}`.toLowerCase().trim();
@@ -233,7 +247,7 @@ const AlumnosRiesgoAsesorView = () => {
             return nombreCompletoA.localeCompare(nombreCompletoB);
           });
 
-        console.log('Estudiantes procesados:', estudiantesProcesados); // Depuración
+        console.log('Estudiantes en riesgo:', estudiantesProcesados); // Depuración
         setEstudiantes(estudiantesProcesados);
 
         // Calcular ranking de materias reprobadas
@@ -254,11 +268,11 @@ const AlumnosRiesgoAsesorView = () => {
         const ranking = Object.entries(subjectCounts)
           .map(([subject, count]) => ({ subject, count }))
           .sort((a, b) => b.count - a.count || a.subject.localeCompare(b.subject));
-
+        console.log('Ranking de materias reprobadas:', ranking); // Depuración
         setFailedSubjectsRanking(ranking);
 
         if (estudiantesProcesados.length === 0) {
-          setError('No se encontraron estudiantes para mostrar.');
+          setError('No se encontraron estudiantes con materias reprobadas (calificaciones menores a 7).');
         }
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -386,7 +400,7 @@ const AlumnosRiesgoAsesorView = () => {
           </TableContainer>
         ) : (
           <Alert severity="info" sx={{ mt: 3 }}>
-            No hay estudiantes para mostrar en este grupo.
+            No hay estudiantes con materias reprobadas (calificaciones menores a 7) en este grupo.
           </Alert>
         )}
 

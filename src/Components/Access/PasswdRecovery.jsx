@@ -3,7 +3,7 @@ import { TextField, Button, Container, Typography, Box, LinearProgress, IconButt
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
-import banner from '../../assets/banner-login.png';
+import banner from '../../assets/banner-login.jpeg';
 import { useMediaQuery } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { TextField, Button, Container, Typography, Box, Link, IconButton } from '@mui/material';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import banner from '../../assets/banner-login.png';
+import banner from '../../assets/banner-login.jpeg';
 import { useMediaQuery } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
