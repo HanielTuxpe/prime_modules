@@ -16,6 +16,7 @@ import FAQS from './Components/Public/InfoDeEmpresa/FAQS';
 import AcercaDe from './Components/Public/InfoDeEmpresa/AcercaDe';
 
 // Estudiante
+import Calendar from './Components/Students/Calendar';
 import Calificaciones from './Components/Students/Calificaciones';
 import Historial from './Components/Students/Historial';
 import Rendimiento from './Components/Students/Rendimiento';
@@ -118,7 +119,7 @@ const App = () => {
             {/* Rutas protegidas - Estudiante */}
             <Route path="/Estudiante/" element={
               <RutaPrivada tipoPermitido="Estudiante">
-                <IndexPublic />
+                <Calendar />
               </RutaPrivada>
             } />
             <Route path="/Estudiante/Calificaciones" element={
