@@ -125,6 +125,7 @@ const Login = () => {
                     maxWidth: isMobile ? 'auto' : '100%',
                     marginLeft: '0 !important',
                     marginRight: '0 !important',
+                    background: '#BC955B',
                 }}
             >
                 {/* Banner Izquierdo */}
