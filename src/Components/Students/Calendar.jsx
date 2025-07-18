@@ -131,6 +131,37 @@ const StudentCalendar = ({ onSelectEvent, matricula }) => {
         obtenerActividades();
     }, [matricula]);
 
+    useEffect(() => {
+        const actividadesEstaticas = [
+            {
+                title: 'Entrega de Proyecto',
+                description: 'Proyecto final de Desarrollo Web Profesional',
+                topic: 'DESARROLLO WEB PROFESIONAL',
+                start: new Date(2025, 2, 12), // Miércoles 12 de marzo
+                end: new Date(2025, 2, 12),
+                allDay: true,
+            },
+            {
+                title: 'Examen de Seguridad',
+                description: 'Examen parcial de Seguridad en el Desarrollo de Aplicaciones',
+                topic: 'SEGURIDAD EN EL DESARROLLO DE APLICACIONES',
+                start: new Date(2025, 2, 13), // Jueves 13 de marzo
+                end: new Date(2025, 2, 13),
+                allDay: true,
+            },
+            {
+                title: 'Clase especial de Inglés',
+                description: 'Clase con práctica oral intensiva',
+                topic: 'INGLÉS VII',
+                start: new Date(2025, 2, 14), // Viernes 14 de marzo
+                end: new Date(2025, 2, 14),
+                allDay: true,
+            },
+        ];
+
+        setEventos(actividadesEstaticas);
+    }, []);
+
     return (
         <Box
             sx={{
