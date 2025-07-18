@@ -20,6 +20,7 @@ import Calendar from './Components/Students/Calendar';
 import Calificaciones from './Components/Students/Calificaciones';
 import Historial from './Components/Students/Historial';
 import Rendimiento from './Components/Students/Rendimiento';
+import Predicciones from './Components/Students/Predicciones';
 import Profile from './Components/Students/Profile';
 import Payments from './Components/Students/Paymets';
 
@@ -135,6 +136,11 @@ const App = () => {
             <Route path="/Estudiante/Rendimiento" element={
               <RutaPrivada tipoPermitido="Estudiante">
                 <Rendimiento />
+              </RutaPrivada>
+            } />
+             <Route path="/Estudiante/Predicciones" element={
+              <RutaPrivada tipoPermitido="Estudiante">
+                <Predicciones />
               </RutaPrivada>
             } />
             <Route path="/Estudiante/Perfil" element={

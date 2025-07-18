@@ -7,6 +7,7 @@ import { Chart } from 'react-google-charts';
 import PerfilAlumno from './PerfilAlumosAsesorados/PerfilAlumno';
 import HistorialAlumno from './PerfilAlumosAsesorados/HistorialAlumno';
 import RendimientoAlumno from './PerfilAlumosAsesorados/RendimientoAlumno';
+import PrediccionesAlumno from './PerfilAlumosAsesorados/Predicciones';
 
 import { obtenerMatricula } from '../Access/SessionService'; 
 
@@ -1089,7 +1090,9 @@ const ModuloAsesor = () => {
                     {[
                       { key: 'perfil', label: 'Perfil', icon: <AccountCircle /> },
                       { key: 'rendimiento', label: 'Rendimiento', icon: <BarChart /> },
+                      { key: 'predicciones', label: 'predicciones', icon: <BarChart /> },
                       { key: 'historial', label: 'Historial', icon: <History /> },
+                      
                     ].map((option) => (
                       <Button
                         key={option.key}
@@ -1139,6 +1142,7 @@ const ModuloAsesor = () => {
                 >
                   {selectedOption === 'perfil' && <PerfilAlumno matricula={selectedMatricula} />}
                   {selectedOption === 'rendimiento' && <RendimientoAlumno matricula={selectedMatricula} />}
+                  {selectedOption === 'predicciones' && <PrediccionesAlumno matricula={selectedMatricula} />}
                   {selectedOption === 'historial' && <HistorialAlumno matricula={selectedMatricula} />}
                 </Box>
               </motion.div>

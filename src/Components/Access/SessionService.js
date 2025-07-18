@@ -5,7 +5,8 @@ const MATRICULA_COOKIE_NAME = 'matricula';
 
 export const iniciarSesion = (tipoUsuario, matricula) => {
     const options = {
-        expires: 20 / (24 * 60), // 20 minutos
+        //expires: 20 / (24 * 60), // 20 minutos
+        expires: 1 / 24, // 1 hora
         sameSite: 'None',
         secure: true,
     };

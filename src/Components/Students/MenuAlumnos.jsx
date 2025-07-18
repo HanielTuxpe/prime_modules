@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 const menuItems = [
     { text: 'Inicio', icon: <Home />, path: '/Estudiante/' },
     { text: 'Rendimiento', icon: <TrendingUp />, path: '/Estudiante/Rendimiento' },
+    { text: 'Predicciones', icon: <TrendingUp />, path: '/Estudiante/Predicciones' },
     { text: 'Calificaciones', icon: <Grade />, path: '/Estudiante/Calificaciones' },
     { text: 'Perfil', icon: <AccountCircle />, path: '/Estudiante/Perfil' },
     { text: 'Pagos', icon: <AttachMoney  />, path: '/Estudiante/Pagos' }

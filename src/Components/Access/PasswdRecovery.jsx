@@ -163,7 +163,7 @@ const ForgotPassword = () => {
 
             if (response.ok) {
                 toast.success(data.message);
-                navigate('/login');
+                navigate('/Publico/login');
             } else {
                 toast.warning(data.message || 'Error inesperado');
             }

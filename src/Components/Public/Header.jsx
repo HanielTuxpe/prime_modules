@@ -93,10 +93,12 @@ const Header = ({ usuario, onLogout, toggleDarkMode, darkMode }) => {
                         src={logo}
                         alt="Logo"
                         style={{
-                            maxWidth: "80px", height: "auto",
-                            marginRight: "10%", marginLeft: isSmallScreen ? '0' : '40%',
+                            maxWidth: "60px", height: "auto",
+                            marginRight: "20%", marginLeft: isSmallScreen ? '0' : '40%',
                             filter: theme.custom.dropShadow,
                             borderRadius: '50%',
+                            marginTop: "10%",
+                            marginBottom:"10%"
                         }}
                     />
                 </Box>

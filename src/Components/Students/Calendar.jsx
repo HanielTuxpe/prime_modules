@@ -17,15 +17,18 @@ const localizer = dayjsLocalizer(dayjs);
 const StyledCalendar = styled(Calendar)({
     '& .rbc-toolbar button, & .rbc-toolbar-label': {
         fontSize: '12px',
+        color: '#000000',
     },
     '& .rbc-header': {
         fontSize: '12px',
+        color: '#000000',
     },
     '& .rbc-event': {
         fontSize: '11px',
     },
     '& .rbc-label': {
         fontSize: '12px',
+        color: '#000000',
     },
 });
 
@@ -45,7 +48,7 @@ const messages = {
 };
 
 const eventStyleGetter = (event) => {
-    let backgroundColor = '#2196F3'; // color por defecto
+    let backgroundColor = '#921F45'; // Color principal
 
     switch (event.topic?.toUpperCase()) {
         case 'SEGURIDAD EN EL DESARROLLO DE APLICACIONES':
@@ -73,7 +76,7 @@ const eventStyleGetter = (event) => {
     return {
         style: {
             backgroundColor,
-            color: 'white',
+            color: '#FFFFFF',
             borderRadius: '5px',
             padding: '4px',
         },
@@ -106,7 +109,6 @@ const StudentCalendar = ({ onSelectEvent, matricula }) => {
                     };
                 });
 
-
                 setEventos(actividadesTransformadas);
             } catch (error) {
                 console.error('Error al obtener actividades del alumno:', error);
@@ -114,32 +116,47 @@ const StudentCalendar = ({ onSelectEvent, matricula }) => {
         };
 
         obtenerActividades();
-    }, []);
+    }, [matricula]);
 
     return (
         <Box
             sx={{
-                height: 450,
-                maxWidth: 600,
-                color: "#000000"
+                display: 'flex',
+                justifyContent: 'center', // Centra horizontalmente
+                alignItems: 'center', // Centra verticalmente
+                minHeight: '100vh', // Ocupa toda la altura de la ventana
+                width: '100vw', // Asegura que ocupe todo el ancho disponible
+                // Fondo claro para diseño universitario
+                padding: 2,
+                boxSizing: 'border-box', // Evita desbordamientos por padding
             }}
         >
-            <StyledCalendar
-                localizer={localizer}
-                events={eventos}
-                messages={messages}
-                views={["month"]}
-                culture="es"
-                style={{ fontSize: '0.9rem' }}
-                eventPropGetter={eventStyleGetter}
-                onSelectEvent={onSelectEvent}
-                tooltipAccessor="title"
-                allDayAccessor="allDay"
-                step={1440}           // 1 paso = 1 día completo
-                timeslots={1}         // solo una franja diaria
-                showMultiDayTimes={false}
-            />
-
+            <Box
+                sx={{
+                    maxWidth: 600, // Limita el ancho del calendario
+                    width: '100%', // Ocupa todo el ancho disponible hasta el máximo
+                    height: 500, // Altura fija
+                    backgroundColor: '#FFFFFF', // Fondo blanco para el calendario
+                    borderRadius: 2, // Bordes redondeados para un diseño moderno
+                    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)', // Sombra sutil para profundidad
+                }}
+            >
+                <StyledCalendar
+                    localizer={localizer}
+                    events={eventos}
+                    messages={messages}
+                    views={['month']}
+                    culture="es"
+                    style={{ fontSize: '0.9rem' }}
+                    eventPropGetter={eventStyleGetter}
+                    onSelectEvent={onSelectEvent}
+                    tooltipAccessor="title"
+                    allDayAccessor="allDay"
+                    step={1440} // 1 paso = 1 día completo
+                    timeslots={1} // Solo una franja diaria
+                    showMultiDayTimes={false}
+                />
+            </Box>
         </Box>
     );
 };
