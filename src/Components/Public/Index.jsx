@@ -96,7 +96,7 @@ const Index = () => {
           <Typography
             sx={{
               color: '#FFFFFF',
-              fontSize: 'clamp(1rem, 2.5vw, 1.5rem)', // texto adaptable
+              fontSize: 'clamp(1rem, 1.5vw, 2.5rem)', // texto adaptable
               maxWidth: '90%',
               fontWeight: 400,
             }}

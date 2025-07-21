@@ -6,7 +6,7 @@ import LoginIcon from '@mui/icons-material/Login';
 import Home from '@mui/icons-material/Home';
 import MenuIcon from '@mui/icons-material/Menu'; // Icono para el menú
 import { useNavigate } from 'react-router-dom';
-import logo from '../../assets/PRIME V3.png';
+import logo from '../../assets/PRIME V2.gif';
 import MenuPrincipal from '../Public/Menu'; // Importa tu menú
 import { obtenerTipoUsuario } from '../Access/SessionService';
 import PropTypes from 'prop-types';
