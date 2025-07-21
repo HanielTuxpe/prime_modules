@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Box, Typography } from '@mui/material';
-import banner from '../../assets/banner.png';
-import { useMediaQuery } from '@mui/material';
+import { Container, Box, Typography, useMediaQuery } from '@mui/material';
+import bannerLogin from '../../assets/banner-login.jpeg'; // Ajusta la ruta según tu estructura
 
 const Index = () => {
   const [darkMode, setDarkMode] = useState(false);
@@ -10,7 +9,6 @@ const Index = () => {
   const isMobile = useMediaQuery('(max-width: 600px)');
 
   useEffect(() => {
-    // Load saved theme from localStorage
     const savedTheme = localStorage.getItem('darkMode') === 'true';
     setDarkMode(savedTheme);
 
@@ -18,7 +16,7 @@ const Index = () => {
     const storedUsersConnected = parseInt(localStorage.getItem('usersConnected'), 10) || 0;
 
     const updatedVisits = storedVisits + 1;
-    const updatedUsersConnected = 20; // Simplified logic for demo; adjust as needed
+    const updatedUsersConnected = 20;
 
     setVisits(updatedVisits);
     setUsersConnected(updatedUsersConnected);
@@ -29,7 +27,7 @@ const Index = () => {
 
   return (
     <Container
-      maxWidth={false} // Desactiva el ancho fijo de MUI
+      maxWidth={false}
       sx={{
         display: 'flex',
         flexDirection: 'column',
@@ -37,8 +35,8 @@ const Index = () => {
         justifyContent: 'center',
         marginTop: '5%',
         width: '100%',
-        maxWidth: '90%', // Ocupa solo el 70% del ancho máximo
-        mx: 'auto', // Centra horizontalmente
+        maxWidth: '90%',
+        mx: 'auto',
         padding: 0,
       }}
     >
@@ -46,26 +44,69 @@ const Index = () => {
       <Box
         sx={{
           display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          width: '100%', // Ahora ocupa todo el ancho disponible dentro del container
+          width: '100%',
           mb: 5,
+          borderRadius: 8,
+          backgroundColor: '#BC955B',
+          boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+          overflow: 'hidden',
+          flexDirection: isMobile ? 'column' : 'row',
         }}
       >
-        <img
-          src={banner}
-          alt="Banner-PODAI"
-          style={{
-            width: '100%', // Hace que la imagen se adapte al ancho del contenedor
-            height: 'auto',
-            boxShadow: '4px 10px 20px rgba(0, 0, 0, 0.9)',
-            borderRadius: 10,
-            display: 'block',
+        {/* Contenedor con la imagen y color vino */}
+        <Box
+          sx={{
+            flex: isMobile ? '1 1 100%' : '0 0 50%',
+            height: { xs: 170, md: 200 },
+            backgroundColor: '#921F45',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            clipPath: isMobile
+              ? 'none'
+              : 'polygon(0 0, 80% 0, 100% 50%, 80% 100%, 0 100%)',
           }}
-        />
+        >
+          <Box
+            component="img"
+            src={bannerLogin}
+            alt="Banner Login"
+            sx={{
+              width: '80%',
+              height: '80%',
+              objectFit: 'cover',
+              opacity: 0.8,
+            }}
+          />
+        </Box>
+
+        {/* Contenedor con texto y color café */}
+        <Box
+          sx={{
+            flex: isMobile ? '1 1 100%' : '0 0 50%',
+            height: { xs: 170, md: 200 },
+            backgroundColor: '#BC955B',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            textAlign: 'center',
+            px: 2,
+          }}
+        >
+          <Typography
+            sx={{
+              color: '#FFFFFF',
+              fontSize: 'clamp(1rem, 2.5vw, 1.5rem)', // texto adaptable
+              maxWidth: '90%',
+              fontWeight: 400,
+            }}
+          >
+            PRIME, nace para apoyar de manera virtual al estudiante, a través del uso de las tecnologías de la información y comunicación, como medida estratégica al Programa Institucional de Tutorías y para ayudar en el desempeño académico.
+          </Typography>
+        </Box>
       </Box>
 
-      {/* Responsive Boxes Container */}
+      {/* Contenedor de estadísticas */}
       <Box
         sx={{
           display: 'flex',
@@ -77,7 +118,7 @@ const Index = () => {
           mt: 3,
         }}
       >
-        {/* Total Visits Box */}
+        {/* Visitas totales */}
         <Box
           sx={{
             display: 'flex',
@@ -95,8 +136,8 @@ const Index = () => {
           <Typography
             sx={{
               color: '#fff',
-              fontSize: 20,
-              fontWeight: 'medium',
+              fontSize: 'clamp(1rem, 2vw, 1.3rem)', // texto adaptable
+              fontWeight: 500,
             }}
           >
             Visitas totales desde su activación
@@ -104,7 +145,7 @@ const Index = () => {
           <Typography
             sx={{
               color: '#fff',
-              fontSize: 50,
+              fontSize: 'clamp(2rem, 6vw, 3rem)', // número adaptable
               fontWeight: 'bold',
             }}
           >
@@ -112,7 +153,7 @@ const Index = () => {
           </Typography>
         </Box>
 
-        {/* Connected Users Box */}
+        {/* Usuarios conectados */}
         <Box
           sx={{
             display: 'flex',
@@ -130,8 +171,8 @@ const Index = () => {
           <Typography
             sx={{
               color: '#fff',
-              fontSize: 20,
-              fontWeight: 'medium',
+              fontSize: 'clamp(1rem, 2vw, 1.3rem)',
+              fontWeight: 500,
             }}
           >
             Usuarios Conectados
@@ -139,7 +180,7 @@ const Index = () => {
           <Typography
             sx={{
               color: '#fff',
-              fontSize: 50,
+              fontSize: 'clamp(2rem, 6vw, 3rem)',
               fontWeight: 'bold',
             }}
           >
