@@ -9,7 +9,7 @@ import HistorialAlumno from './PerfilAlumosAsesorados/HistorialAlumno';
 import RendimientoAlumno from './PerfilAlumosAsesorados/RendimientoAlumno';
 import PrediccionesAlumno from './PerfilAlumosAsesorados/Predicciones';
 
-import { obtenerMatricula } from '../Access/SessionService'; 
+import { obtenerMatricula } from '../Access/SessionService';
 
 // Material UI
 import {
@@ -47,6 +47,9 @@ const URL_Base = 'http://localhost:3000';
 
 const ModuloAsesor = () => {
   const [estudiantes, setEstudiantes] = useState([]);
+  const [riesgoBaja, setRiesgoBaja] = useState(null);
+  const [loadingRiesgo, setLoadingRiesgo] = useState(false);
+  const [errorRiesgo, setErrorRiesgo] = useState(null);
   const [estudiante, setEstudiante] = useState('');
   const [showGrades, setShowGrades] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
@@ -65,6 +68,9 @@ const ModuloAsesor = () => {
     title: '',
     students: [],
   });
+
+  // Move estudianteSeleccionado definition here, before useEffect
+  const estudianteSeleccionado = estudiantes.find((e) => e.nombre === estudiante);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -167,6 +173,29 @@ const ModuloAsesor = () => {
     fetchData();
   }, []);
 
+  // Nuevo useEffect para obtener el riesgo de baja
+  useEffect(() => {
+    const fetchRiesgoBaja = async () => {
+      if (estudianteSeleccionado && estudianteSeleccionado.matricula) {
+        setLoadingRiesgo(true);
+        setErrorRiesgo(null);
+        try {
+          const response = await axios.get(
+            `${URL_Base}/getDatosPrediccionAlumno?Matricula=${estudianteSeleccionado.matricula}`
+          );
+          setRiesgoBaja(response.data.prediccion.riesgo[0][0]); // Extrae el valor del riesgo
+        } catch (error) {
+          console.error('Error fetching riesgo de baja:', error);
+          setErrorRiesgo('No se pudo obtener el riesgo de baja');
+        } finally {
+          setLoadingRiesgo(false);
+        }
+      }
+    };
+
+    fetchRiesgoBaja();
+  }, [estudianteSeleccionado]);
+
   const handleOptionClick = (opcion) => {
     setSelectedOption(opcion);
   };
@@ -200,6 +229,7 @@ const ModuloAsesor = () => {
     setShowMore(false);
     setEstudiante('');
     setSelectedMatricula('');
+    setRiesgoBaja(null); // Reset riesgoBaja when going back
   };
 
   const handleDialogClose = () => {
@@ -207,23 +237,21 @@ const ModuloAsesor = () => {
     setDialogData({ title: '', students: [] });
   };
 
-  const estudianteSeleccionado = estudiantes.find((e) => e.nombre === estudiante);
-
   const studentData = estudianteSeleccionado
     ? [
-        ['Materia', 'M1', 'M2', 'M3', { role: 'tooltip', type: 'string', p: { html: true } }],
-        ...estudianteSeleccionado.calificaciones
-          .map((c) => [
-            c.materia,
-            c.m1.nota > 0 ? c.m1.nota : null,
-            c.m2.nota > 0 ? c.m2.nota : null,
-            c.m3.nota > 0 ? c.m3.nota : null,
-            `<div style="padding: 8px; font-size: 14px;"><b>Materia:</b> ${c.materia}<br/><b>M1:</b> ${c.m1.nota > 0 ? c.m1.nota : 'N/A'
-            }<br/><b>M2:</b> ${c.m2.nota > 0 ? c.m2.nota : 'N/A'}<br/><b>M3:</b> ${c.m3.nota > 0 ? c.m3.nota : 'N/A'
-            }</div>`,
-          ])
-          .filter((row) => row.slice(1, 4).some((grade) => grade !== null)),
-      ]
+      ['Materia', 'M1', 'M2', 'M3', { role: 'tooltip', type: 'string', p: { html: true } }],
+      ...estudianteSeleccionado.calificaciones
+        .map((c) => [
+          c.materia,
+          c.m1.nota > 0 ? c.m1.nota : null,
+          c.m2.nota > 0 ? c.m2.nota : null,
+          c.m3.nota > 0 ? c.m3.nota : null,
+          `<div style="padding: 8px; font-size: 14px;"><b>Materia:</b> ${c.materia}<br/><b>M1:</b> ${c.m1.nota > 0 ? c.m1.nota : 'N/A'
+          }<br/><b>M2:</b> ${c.m2.nota > 0 ? c.m2.nota : 'N/A'}<br/><b>M3:</b> ${c.m3.nota > 0 ? c.m3.nota : 'N/A'
+          }</div>`,
+        ])
+        .filter((row) => row.slice(1, 4).some((grade) => grade !== null)),
+    ]
     : [['Materia', 'M1', 'M2', 'M3', { role: 'tooltip', type: 'string', p: { html: true } }], ['', 0, 0, 0, '']];
 
   const studentChartOptions = {
@@ -286,7 +314,7 @@ const ModuloAsesor = () => {
         const selectedRange = gradeRanges[rangeIndex];
         const studentsInRange = estudiantes.filter((student) => {
           const grade = student.calificaciones.find((c) => c.materia === subject)?.finalGrade || 0;
-          return grade >= selectedRange.min && grade <= selectedRange.max && grade > 0;
+          return grade >= selectedRange.min && grade <= range.max && grade > 0;
         });
         setDialogData({
           title: `Estudiantes en ${subject} (Rango ${selectedRange.range})`,
@@ -732,7 +760,7 @@ const ModuloAsesor = () => {
                         callback: ({ chartWrapper }) => handleGroupGradeDistributionSelectByParcial('m1')(chartWrapper),
                       },
                     ]}
-                    className="w-full h-[200px]"
+                    className="w-full h-[400px]"
                   />
                 </>
               )}
@@ -789,7 +817,7 @@ const ModuloAsesor = () => {
                     chartEvents={[
                       {
                         eventName: 'select',
-                        callback: ({ chartWrapper }) => handlePassFailSelectByParcial('m2')(chartWrapper),
+                        callback: ({ chartWrapper }) => handleGroupGradeDistributionSelectByParcial('m2')(chartWrapper),
                       },
                     ]}
                     className="w-full h-[400px]"
@@ -923,6 +951,44 @@ const ModuloAsesor = () => {
                     </IconButton>
                     <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#921F45', mt: 2 }} className="text-[#921F45] font-bold mt-2">
                       Desempeño del Estudiante: {estudianteSeleccionado.nombre}
+                    </Typography>
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        mt: 2,
+                        fontWeight: 'bold',
+                        color:
+                          riesgoBaja === 'Sin Riesgo'
+                            ? '#005effff'
+                            : riesgoBaja === 'Bajo'
+                              ? '#4caf50'
+                              : riesgoBaja === 'Moderado'
+                                ? '#ffca28'
+                                : riesgoBaja === 'Alto'
+                                  ? '#fb8c00'
+                                  : riesgoBaja === 'Crítico'
+                                    ? '#d32f2f'
+                                    : '#000000',
+
+                      }}
+                      className={`mt-2 font-bold ${riesgoBaja === 'Sin Riesgo'
+                        ? 'text-blue-400'
+                        : riesgoBaja === 'Bajo'
+                          ? 'text-green-500'
+                          : riesgoBaja === 'Moderado'
+                            ? 'text-yellow-400'
+                            : riesgoBaja === 'Alto'
+                              ? 'text-orange-500'
+                              : riesgoBaja === 'Crítico'
+                                ? 'text-red-700'
+                                : 'text-black'
+                        }`}
+                    >
+                      {loadingRiesgo
+                        ? 'Cargando riesgo de baja...'
+                        : errorRiesgo
+                          ? errorRiesgo
+                          : `Riesgo de Baja: ${riesgoBaja || 'No disponible'}`}
                     </Typography>
                   </Box>
                   <IconButton
@@ -1090,9 +1156,8 @@ const ModuloAsesor = () => {
                     {[
                       { key: 'perfil', label: 'Perfil', icon: <AccountCircle /> },
                       { key: 'rendimiento', label: 'Rendimiento', icon: <BarChart /> },
-                      { key: 'predicciones', label: 'predicciones', icon: <BarChart /> },
+                      { key: 'predicciones', label: 'Predicciones', icon: <BarChart /> },
                       { key: 'historial', label: 'Historial', icon: <History /> },
-                      
                     ].map((option) => (
                       <Button
                         key={option.key}
@@ -1156,7 +1221,7 @@ const ModuloAsesor = () => {
         onClose={handleDialogClose}
         maxWidth="md"
         fullWidth
-        sx={{ '& .MuiDialog-paper': { width:'90%', overflowY: 'auto' } }}
+        sx={{ '& .MuiDialog-paper': { width: '90%', overflowY: 'auto' } }}
         className="max-w-3xl"
       >
         <DialogTitle sx={{ fontWeight: 'bold', color: '#921F45' }} className="text-[#921F45] font-bold">
