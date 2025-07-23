@@ -985,7 +985,7 @@ const ModuloAsesor = () => {
                         }`}
                     >
                       {loadingRiesgo
-                        ? 'Cargando riesgo de baja...'
+                        ? 'Cargando riesgo baja...'
                         : errorRiesgo
                           ? errorRiesgo
                           : `Riesgo de Baja: ${riesgoBaja || 'No disponible'}`}
