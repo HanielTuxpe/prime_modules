@@ -1156,7 +1156,6 @@ const ModuloAsesor = () => {
                     {[
                       { key: 'perfil', label: 'Perfil', icon: <AccountCircle /> },
                       { key: 'rendimiento', label: 'Rendimiento', icon: <BarChart /> },
-                      { key: 'predicciones', label: 'Predicciones', icon: <BarChart /> },
                       { key: 'historial', label: 'Historial', icon: <History /> },
                     ].map((option) => (
                       <Button
@@ -1207,7 +1206,6 @@ const ModuloAsesor = () => {
                 >
                   {selectedOption === 'perfil' && <PerfilAlumno matricula={selectedMatricula} />}
                   {selectedOption === 'rendimiento' && <RendimientoAlumno matricula={selectedMatricula} />}
-                  {selectedOption === 'predicciones' && <PrediccionesAlumno matricula={selectedMatricula} />}
                   {selectedOption === 'historial' && <HistorialAlumno matricula={selectedMatricula} />}
                 </Box>
               </motion.div>
