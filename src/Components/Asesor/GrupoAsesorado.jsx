@@ -3,6 +3,10 @@ import axios from 'axios';
 import { motion } from 'framer-motion';
 import { Chart } from 'react-google-charts';
 
+import { jsPDF } from "jspdf";
+import "jspdf-autotable";
+import { toast } from 'react-toastify';
+
 // Componentes propios
 import PerfilAlumno from './PerfilAlumosAsesorados/PerfilAlumno';
 import HistorialAlumno from './PerfilAlumosAsesorados/HistorialAlumno';
@@ -31,6 +35,7 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  CircularProgress,
 } from '@mui/material';
 
 // Íconos Material UI
@@ -612,6 +617,66 @@ const ModuloAsesor = () => {
     tooltip: { isHtml: true, trigger: 'focus' },
   });
 
+  const [loadingPreds, setLoadingPreds] = useState(false);
+
+  const handleImprimirPredicciones = async () => {
+    if (!estudiantes.length) return;
+
+    setLoadingPreds(true); // Inicia animación
+    const resultados = [];
+
+    for (const alumno of estudiantes) {
+      try {
+        const response = await axios.get(`${URL_Base}/getDatosPrediccionAlumno?Matricula=${alumno.matricula}`);
+        const riesgo = response.data.prediccion.riesgo[0][0];
+        resultados.push({
+          nombre: alumno.nombre,
+          matricula: alumno.matricula,
+          riesgo: riesgo,
+        });
+      } catch (error) {
+        resultados.push({
+          nombre: alumno.nombre,
+          matricula: alumno.matricula,
+          riesgo: 'Error al obtener riesgo',
+        });
+        console.error(`Error al obtener riesgo para ${alumno.nombre}:`, error);
+      }
+    }
+
+    console.log("Predicciones de riesgo de baja:");
+    resultados.forEach(r => console.log(`${r.nombre} (${r.matricula}): ${r.riesgo}`));
+    console.log(`Total de registros: ${resultados.length}`);
+
+    generarPredsPDF(resultados);
+    setLoadingPreds(false); // Finaliza animación
+  };
+
+
+  const generarPredsPDF = (resultados) => {
+    const doc = new jsPDF();
+    doc.setFontSize(16);
+    doc.text("Reporte de Riesgo de Baja Académica", 20, 20);
+
+    const tabla = resultados.map((r, index) => [
+      index + 1,
+      r.matricula,
+      r.nombre,
+      r.riesgo
+    ]);
+
+    doc.autoTable({
+      startY: 30,
+      head: [['#', 'Matrícula', 'Nombre', 'Riesgo']],
+      body: tabla,
+      styles: { halign: 'center' },
+      headStyles: { fillColor: [146, 31, 69] },
+    });
+
+    doc.save('riesgo_baja_alumnos.pdf');
+  };
+
+
   return (
     <>
       <Card sx={{ maxWidth: '95%', margin: 'auto', mt: 4, p: 2, boxShadow: 3 }} className="w-full">
@@ -631,6 +696,21 @@ const ModuloAsesor = () => {
           </Box>
 
           <Divider sx={{ mb: 3, borderColor: '#921F45' }} />
+
+          <Button
+            variant="contained"
+            sx={{ backgroundColor: '#921F45', color: 'white', mb: 2, position: 'relative' }}
+            onClick={handleImprimirPredicciones}
+            disabled={loadingPreds}
+          >
+            {loadingPreds ? 'Cargando...' : 'Imprimir Riesgo de Baja de Todos'}
+            {loadingPreds && (
+              <CircularProgress
+                size={20}
+                sx={{ color: 'white', position: 'absolute', right: 16 }}
+              />
+            )}
+          </Button>
 
           <Box sx={{ position: 'relative', width: '100%', overflow: 'hidden' }} className="w-full">
             <motion.div
