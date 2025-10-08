@@ -103,7 +103,7 @@ const StudentCalendar = ({ onSelectEvent, matricula }) => {
     useEffect(() => {
         const obtenerActividades = async () => {
             try {
-                const response = await axios.get('http://localhost:3000/actividadesXAlumno', { params: { Matricula: matricula } });
+                const response = await axios.get('https://prime-api-iawe.onrender.com/actividadesXAlumno', { params: { Matricula: matricula } });
 
                 const actividades = response.data.data;
 

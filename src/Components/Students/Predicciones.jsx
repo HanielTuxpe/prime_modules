@@ -16,7 +16,7 @@ export default function RendimientoAlumnos() {
 
     const fetchDataEStatus = async () => {
         try {
-            const response = await axios.get('http://localhost:3000/historial', {
+            const response = await axios.get('https://prime-api-iawe.onrender.com/historial', {
                 params: { matricula: matricula }
             });
             if (response.status === 200 && response.data.history) {
@@ -31,7 +31,7 @@ export default function RendimientoAlumnos() {
 
     const fetchMateriasData = async () => {
         try {
-            const response = await axios.get('http://localhost:3000/fullHistorial', {
+            const response = await axios.get('https://prime-api-iawe.onrender.com/fullHistorial', {
                 params: { matricula: matricula }
             });
             if (response.status === 200 && response.data.data) {
@@ -189,7 +189,7 @@ export default function RendimientoAlumnos() {
 
     const fetchData = async () => {
         try {
-            const response = await axios.get('http://localhost:3000/data', {
+            const response = await axios.get('https://prime-api-iawe.onrender.com/data', {
                 params: { matricula: matricula }
             });
             if (response.status === 200 && response.data) {

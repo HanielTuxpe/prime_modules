@@ -33,7 +33,7 @@ const Login = () => {
 
     
         try {
-            const loginResponse = await axios.post('http://localhost:3000/access', {
+            const loginResponse = await axios.post('https://prime-api-iawe.onrender.com/access', {
                 matricula: sanitizedMatricula,
                 password: sanitizedPassword,
                 userType: sanitizedUserType,
@@ -74,7 +74,7 @@ const Login = () => {
 
         try {
             // Verificar código
-            const verifyResponse = await axios.post('http://localhost:3000/CodigoVerificacion', {
+            const verifyResponse = await axios.post('https://prime-api-iawe.onrender.com/CodigoVerificacion', {
                 matricula,
                 code: Number(code),
             });

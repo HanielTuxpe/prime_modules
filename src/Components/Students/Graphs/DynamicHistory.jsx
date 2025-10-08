@@ -11,7 +11,7 @@ const DynamicHistory = ({ matricula }) => {
 
     const fetchData = async () => {
         try {
-            const response = await axios.get('http://localhost:3000/historial', {
+            const response = await axios.get('https://prime-api-iawe.onrender.com/historial', {
                 params: { matricula: matricula }
             });
             if (response.status === 200 && response.data.history) {

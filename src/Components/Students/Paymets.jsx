@@ -64,7 +64,7 @@ const CardCheckout = ({ precio }) => {
         }
 
         try {
-            const response = await fetch('http://localhost:3000/api/crear-pago', {
+            const response = await fetch('https://prime-api-iawe.onrender.com/api/crear-pago', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -200,7 +200,7 @@ const Payments = () => {
     useEffect(() => {
         const fetchStudentData = async () => {
             try {
-                const response = await axios.get(`http://localhost:3000/Fulldata/?matricula=${matricula}`);
+                const response = await axios.get(`https://prime-api-iawe.onrender.com/Fulldata/?matricula=${matricula}`);
                 if (response.data?.data?.length > 0) {
                     setStudentData(response.data.data[0]);
                 } else {

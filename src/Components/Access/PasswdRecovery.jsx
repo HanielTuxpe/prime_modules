@@ -22,7 +22,7 @@ const ForgotPassword = () => {
 
     const isMobile = useMediaQuery('(max-width: 600px)');
 
-    const Url_base = 'http://localhost:3000/'
+    const Url_base = 'https://prime-api-iawe.onrender.com/'
 
     // Función para calcular el progreso de la fortaleza de la contraseña
     const calculatePasswordProgress = () => {

@@ -43,7 +43,7 @@ const StudentGrades = () => {
 
     const fetchData = async () => {
         try {
-            const response = await axios.get('http://localhost:3000/data', { params: { matricula } });
+            const response = await axios.get('https://prime-api-iawe.onrender.com/data', { params: { matricula } });
             if (response.status === 200 && response.data) {
                 setStudent(response.data.data[0]);
             }
@@ -54,7 +54,7 @@ const StudentGrades = () => {
 
     const fetchDataHistorial = async () => {
         try {
-            const response = await axios.get('http://localhost:3000/fullHistorial', { params: { matricula } });
+            const response = await axios.get('https://prime-api-iawe.onrender.com/fullHistorial', { params: { matricula } });
             if (response.status === 200 && response.data.data) {
                 setCuatrimestresData(formatData(response.data.data));
             }

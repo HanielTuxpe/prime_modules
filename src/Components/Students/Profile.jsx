@@ -32,7 +32,7 @@ const Profile = () => {
             try {
                 setLoading(true);
                 setError(null);
-                const response = await axios.get(`http://localhost:3000/Fulldata/?matricula=${matricula}`);
+                const response = await axios.get(`https://prime-api-iawe.onrender.com/Fulldata/?matricula=${matricula}`);
                 const data = response.data.data[0];
                 setStudentData({
                     matricula: data.Matricula,
