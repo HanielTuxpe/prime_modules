@@ -60,7 +60,7 @@ const FAQs = () => {
     useEffect(() => {
         const fetchFaqs = async () => {
             try {
-                const response = await fetch('https://prj-server.onrender.com/faqs');
+                const response = await fetch('https://prime-api-iawe.onrender.com/faqs');
                 if (response.ok) {
                     const data = await response.json();
                     setFaqs(data);

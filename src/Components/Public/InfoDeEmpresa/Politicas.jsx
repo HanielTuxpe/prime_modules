@@ -11,7 +11,7 @@ import LinkedInIcon from '../../../assets/linkedin.png';
 import WhatsAppIcon from '../../../assets/whatsapp.png';
 import YouTubeIcon from '../../../assets/youtube.png';
 
-const API_BASE_URL = 'http://localhost:3000';
+const API_BASE_URL = 'https://prime-api-iawe.onrender.com/';
 const URL_POLITICAS = `${API_BASE_URL}/Politicas`;
 
 const PrivacyPolicy = () => {
