@@ -12,7 +12,7 @@ import { Error400, Error404, Error500 } from './Components/Public/Error_Codigo';
 
 // Info de la empresa
 import Politicas from './Components/Public/InfoDeEmpresa/Politicas';
-import FAQS from './Components/Public/InfoDeEmpresa/FAQS';
+import FAQS from './Components/Public/InfoDeEmpresa/FaQs';
 import AcercaDe from './Components/Public/InfoDeEmpresa/AcercaDe';
 
 // Estudiante
