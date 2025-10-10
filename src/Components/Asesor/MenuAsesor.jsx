@@ -3,6 +3,8 @@ import { List, ListItem, ListItemText, ListItemIcon, Collapse } from '@mui/mater
 import { Home, Groups, ExpandLess, ExpandMore } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 
+
+
 const menuItems = [
     { text: 'Inicio', icon: <Home />, path: '/Docente/' },
     { 

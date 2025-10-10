@@ -11,6 +11,8 @@ import LinkedInIcon from '../../../assets/linkedin.png';
 import WhatsAppIcon from '../../../assets/whatsapp.png';
 import YouTubeIcon from '../../../assets/youtube.png';
 
+const BaseURL = import.meta.env.VITE_URL_BASE_API;
+
 const FAQs = () => {
     const [faqs, setFaqs] = useState([]);
     const [expanded, setExpanded] = useState(null); // Controlar qué FAQ está expandida
@@ -60,7 +62,7 @@ const FAQs = () => {
     useEffect(() => {
         const fetchFaqs = async () => {
             try {
-                const response = await fetch('https://prime-api-iawe.onrender.com/faqs');
+                const response = await fetch(BaseURL + 'faqs');
                 if (response.ok) {
                     const data = await response.json();
                     setFaqs(data);

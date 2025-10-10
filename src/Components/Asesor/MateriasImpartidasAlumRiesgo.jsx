@@ -22,7 +22,7 @@ import axios from 'axios';
 import { obtenerMatricula } from '../Access/SessionService';
 
 const CLV_DOCENTE = obtenerMatricula(); // ID del docente
-const URL_Base = 'http://localhost:3000';
+const BaseURL = import.meta.env.VITE_URL_BASE_API;
 
 const MateriasImpartidasNaView = () => {
   const [materias, setMaterias] = useState([]);
@@ -76,7 +76,7 @@ const MateriasImpartidasNaView = () => {
       setLoading(true);
       setError(null);
       try {
-        const response = await axios.get(`${URL_Base}/DatosDocente?ClvDocente=${CLV_DOCENTE}`);
+        const response = await axios.get(`${BaseURL}/DatosDocente?ClvDocente=${CLV_DOCENTE}`);
         const docenteData = response.data.data[0] || { Nombre: 'Desconocido', PeriodoMasReciente: 'Desconocido' };
         setDocenteInfo({
           Nombre: docenteData.Nombre.trim(),
@@ -113,7 +113,7 @@ const MateriasImpartidasNaView = () => {
       setLoading(true);
       setError(null);
       try {
-        const response = await axios.get(`${URL_Base}/materiasxDocente/?ClvDocente=${CLV_DOCENTE}`);
+        const response = await axios.get(`${BaseURL}/materiasxDocente/?ClvDocente=${CLV_DOCENTE}`);
         setMaterias(response.data.data);
         console.log('Materias:', response.data.data); // Depuración
       } catch (err) {
@@ -134,7 +134,7 @@ const MateriasImpartidasNaView = () => {
         setError(null);
         try {
           const response = await axios.get(
-            `${URL_Base}/gruposxMateria/?ClvMateria=${materia}&ClvDocente=${CLV_DOCENTE}`
+            `${BaseURL}/gruposxMateria/?ClvMateria=${materia}&ClvDocente=${CLV_DOCENTE}`
           );
           setGrupos(response.data.data);
           console.log('Grupos:', response.data.data); // Depuración
@@ -164,7 +164,7 @@ const MateriasImpartidasNaView = () => {
           const clvCuatrimestre = grupos[0]?.ClvCuatrimestre || '5';
           console.log('Fetching estudiantes with:', { ClvMateria: materia, ClvCuatrimestre: clvCuatrimestre }); // Depuración
           const response = await axios.get(
-            `${URL_Base}/CalificacionesXMateriaGrupo?ClvMateria=${materia}&ClvCuatrimestre=${clvCuatrimestre}`
+            `${BaseURL}/CalificacionesXMateriaGrupo?ClvMateria=${materia}&ClvCuatrimestre=${clvCuatrimestre}`
           );
           console.log('Estudiantes Response:', response.data.data); // Depuración
           if (response.data.data.length === 0) {

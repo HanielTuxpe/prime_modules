@@ -13,6 +13,8 @@ import { obtenerMatricula } from '../Access/SessionService';
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 
+const BaseURL = import.meta.env.VITE_URL_BASE_API;
+
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || 'pk_test_XXXXXXXXXXXXXXXXXXXXXXXX');
 
 const CARD_ELEMENT_OPTIONS = {
@@ -64,7 +66,7 @@ const CardCheckout = ({ precio }) => {
         }
 
         try {
-            const response = await fetch('https://prime-api-iawe.onrender.com/api/crear-pago', {
+            const response = await fetch(BaseURL + 'api/crear-pago', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -200,7 +202,7 @@ const Payments = () => {
     useEffect(() => {
         const fetchStudentData = async () => {
             try {
-                const response = await axios.get(`https://prime-api-iawe.onrender.com/Fulldata/?matricula=${matricula}`);
+                const response = await axios.get(BaseURL + `Fulldata/?matricula=${matricula}`);
                 if (response.data?.data?.length > 0) {
                     setStudentData(response.data.data[0]);
                 } else {

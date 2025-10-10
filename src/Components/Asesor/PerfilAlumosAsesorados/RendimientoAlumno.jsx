@@ -4,6 +4,7 @@ import axios from "axios";
 import { useState, useEffect } from "react";
 import AnimatedGraph from '../../Students/Graphs/AnimatedGraph';
 
+const BaseURL = import.meta.env.VITE_URL_BASE_API;
 
 export default function RendimientoAlumnos({ matricula }) {
 
@@ -13,7 +14,7 @@ export default function RendimientoAlumnos({ matricula }) {
 
     const fetchDataEStatus = async () => {
         try {
-            const response = await axios.get('http://localhost:3000/historial', {
+            const response = await axios.get(BaseURL + 'historial', {
                 params: { matricula: matricula }
             });
             if (response.status === 200 && response.data.history) {
@@ -109,7 +110,7 @@ const getEstatusImage = (promedioFinal) => {
 
     const fetchData = async () => {
         try {
-            const response = await axios.get('http://localhost:3000/data', {
+            const response = await axios.get(BaseURL + 'data', {
                 params: { matricula: matricula }
             });
             if (response.status === 200 && response.data) {

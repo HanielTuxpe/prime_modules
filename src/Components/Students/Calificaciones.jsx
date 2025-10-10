@@ -5,6 +5,8 @@ import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 import { obtenerMatricula } from '../Access/SessionService'; 
 
+const BaseURL = import.meta.env.VITE_URL_BASE_API;
+
 const StudentGrades = () => {
     const [student, setStudent] = useState(null);
     const [selectedSemester, setSelectedSemester] = useState("");
@@ -43,7 +45,7 @@ const StudentGrades = () => {
 
     const fetchData = async () => {
         try {
-            const response = await axios.get('https://prime-api-iawe.onrender.com/data', { params: { matricula } });
+            const response = await axios.get(BaseURL + 'data', { params: { matricula } });
             if (response.status === 200 && response.data) {
                 setStudent(response.data.data[0]);
             }
@@ -54,7 +56,7 @@ const StudentGrades = () => {
 
     const fetchDataHistorial = async () => {
         try {
-            const response = await axios.get('https://prime-api-iawe.onrender.com/fullHistorial', { params: { matricula } });
+            const response = await axios.get(BaseURL + 'fullHistorial', { params: { matricula } });
             if (response.status === 200 && response.data.data) {
                 setCuatrimestresData(formatData(response.data.data));
             }

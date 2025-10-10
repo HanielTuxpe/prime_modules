@@ -9,6 +9,7 @@ import 'react-big-calendar/lib/css/react-big-calendar.css';
 import 'dayjs/locale/es';
 import utc from 'dayjs/plugin/utc';
 
+const BaseURL = import.meta.env.VITE_URL_BASE_API;
 
 dayjs.locale('es');
 dayjs.extend(utc);
@@ -103,7 +104,7 @@ const StudentCalendar = ({ onSelectEvent, matricula }) => {
     useEffect(() => {
         const obtenerActividades = async () => {
             try {
-                const response = await axios.get('https://prime-api-iawe.onrender.com/actividadesXAlumno', { params: { Matricula: matricula } });
+                const response = await axios.get(BaseURL + 'actividadesXAlumno', { params: { Matricula: matricula } });
 
                 const actividades = response.data.data;
 

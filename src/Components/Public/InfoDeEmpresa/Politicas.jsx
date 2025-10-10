@@ -11,8 +11,8 @@ import LinkedInIcon from '../../../assets/linkedin.png';
 import WhatsAppIcon from '../../../assets/whatsapp.png';
 import YouTubeIcon from '../../../assets/youtube.png';
 
-const API_BASE_URL = 'https://prime-api-iawe.onrender.com/';
-const URL_POLITICAS = `${API_BASE_URL}/Politicas`;
+const BaseURL = import.meta.env.VITE_URL_BASE_API;
+const URL_POLITICAS = `${BaseURL}/Politicas`;
 
 const PrivacyPolicy = () => {
   const [politicas, setPoliticas] = useState([]);

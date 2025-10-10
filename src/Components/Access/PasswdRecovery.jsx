@@ -9,6 +9,8 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import DOMPurify from 'dompurify';
 
+const BaseURL = import.meta.env.VITE_URL_BASE_API;
+
 const ForgotPassword = () => {
     const [email, setEmail] = useState('');
     const [codigo, setCodigo] = useState('');
@@ -22,7 +24,6 @@ const ForgotPassword = () => {
 
     const isMobile = useMediaQuery('(max-width: 600px)');
 
-    const Url_base = 'https://prime-api-iawe.onrender.com/'
 
     // Función para calcular el progreso de la fortaleza de la contraseña
     const calculatePasswordProgress = () => {
@@ -75,7 +76,7 @@ const ForgotPassword = () => {
         }
 
         try {
-            const response = await axios.post(`${Url_base}TokenEmail`, {
+            const response = await axios.post(`${BaseURL}TokenEmail`, {
                 email: sanitizedEmail,
             });
 
@@ -109,7 +110,7 @@ const ForgotPassword = () => {
         }
 
         try {
-            const response = await axios.post(`${Url_base}VerifiTokenEmail`, {
+            const response = await axios.post(`${BaseURL}VerifiTokenEmail`, {
                 email: sanitizedEmail,
                 token: sanitizedCodigo,
             });
@@ -148,7 +149,7 @@ const ForgotPassword = () => {
         }
 
         try {
-            const response = await fetch(`${Url_base}EmailPassword`, {
+            const response = await fetch(`${BaseURL}EmailPassword`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

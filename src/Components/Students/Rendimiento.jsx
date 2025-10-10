@@ -3,7 +3,9 @@ import DynamicHistory from './Graphs/DynamicHistory';
 import axios from "axios";
 import { useState, useEffect } from "react";
 import AnimatedGraph from './Graphs/AnimatedGraph';
-import { obtenerMatricula } from '../Access/SessionService'; 
+import { obtenerMatricula } from '../Access/SessionService';
+
+const BaseURL = import.meta.env.VITE_URL_BASE_API;
 
 export default function RendimientoAlumnos() {
 
@@ -14,7 +16,7 @@ export default function RendimientoAlumnos() {
 
     const fetchDataEStatus = async () => {
         try {
-            const response = await axios.get('https://prime-api-iawe.onrender.com/historial', {
+            const response = await axios.get(BaseURL + 'historial', {
                 params: { matricula: matricula }
             });
             if (response.status === 200 && response.data.history) {
@@ -110,7 +112,7 @@ const getEstatusImage = (promedioFinal) => {
 
     const fetchData = async () => {
         try {
-            const response = await axios.get('https://prime-api-iawe.onrender.com/data', {
+            const response = await axios.get(BaseURL + 'data', {
                 params: { matricula: matricula }
             });
             if (response.status === 200 && response.data) {

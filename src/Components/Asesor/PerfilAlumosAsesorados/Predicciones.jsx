@@ -3,6 +3,7 @@ import { Chart } from "react-google-charts";
 import axios from "axios";
 import { useState, useEffect } from "react";
 
+const BaseURL = import.meta.env.VITE_URL_BASE_API;
 
 export default function RendimientoAlumnos({matricula}) {
     const theme = useTheme();
@@ -15,7 +16,7 @@ export default function RendimientoAlumnos({matricula}) {
 
     const fetchDataEStatus = async () => {
         try {
-            const response = await axios.get('http://localhost:3000/historial', {
+            const response = await axios.get(BaseURL + 'historial', {
                 params: { matricula: matricula }
             });
             if (response.status === 200 && response.data.history) {
@@ -30,7 +31,7 @@ export default function RendimientoAlumnos({matricula}) {
 
     const fetchMateriasData = async () => {
         try {
-            const response = await axios.get('http://localhost:3000/fullHistorial', {
+            const response = await axios.get(BaseURL + 'fullHistorial', {
                 params: { matricula: matricula }
             });
             if (response.status === 200 && response.data.data) {
@@ -188,7 +189,7 @@ export default function RendimientoAlumnos({matricula}) {
 
     const fetchData = async () => {
         try {
-            const response = await axios.get('http://localhost:3000/data', {
+            const response = await axios.get(BaseURL + 'data', {
                 params: { matricula: matricula }
             });
             if (response.status === 200 && response.data) {

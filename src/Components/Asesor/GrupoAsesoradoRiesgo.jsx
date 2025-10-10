@@ -23,7 +23,8 @@ import axios from 'axios';
 import { obtenerMatricula } from '../Access/SessionService';
 
 const CLV_DOCENTE = obtenerMatricula(); // ID del docente
-const URL_Base = 'http://localhost:3000';
+
+const BaseURL = import.meta.env.VITE_URL_BASE_API;
 
 const modalStyle = {
   position: 'absolute',
@@ -130,7 +131,7 @@ const AlumnosRiesgoAsesorView = () => {
       setError(null);
       try {
         // Obtener lista de estudiantes
-        const studentsResponse = await axios.get(`${URL_Base}/studentsList?ClvTutor=${CLV_DOCENTE}`);
+        const studentsResponse = await axios.get(`${BaseURL}/studentsList?ClvTutor=${CLV_DOCENTE}`);
         const studentsData = studentsResponse.data.data || [];
         console.log('Datos de estudiantes (/studentsList):', studentsData); // Depuración
 
@@ -154,7 +155,7 @@ const AlumnosRiesgoAsesorView = () => {
 
         // Obtener calificaciones
         const gradesResponse = await axios.get(
-          `${URL_Base}/getCalificacionesPorGrupo/?grupo=${tutorData.grupo}&cuatrimestre=${tutorData.cuatrimestre}&periodo=${firstStudent.Periodo}`
+          `${BaseURL}/getCalificacionesPorGrupo/?grupo=${tutorData.grupo}&cuatrimestre=${tutorData.cuatrimestre}&periodo=${firstStudent.Periodo}`
         );
         const gradesData = gradesResponse.data.data || [];
         console.log('Datos de calificaciones (/getCalificacionesPorGrupo):', gradesData); // Depuración

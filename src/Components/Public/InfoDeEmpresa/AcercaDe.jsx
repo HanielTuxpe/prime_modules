@@ -9,6 +9,8 @@ import LinkedInIcon from '../../../assets/linkedin.png';
 import WhatsAppIcon from '../../../assets/whatsapp.png';
 import YouTubeIcon from '../../../assets/youtube.png';
 
+const BaseURL = import.meta.env.VITE_URL_BASE_API;
+
 const About = () => {
   // Animaciones para las secciones
   const sectionVariants = {

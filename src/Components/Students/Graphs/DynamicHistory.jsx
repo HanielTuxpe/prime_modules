@@ -4,6 +4,8 @@ import { Chart } from "react-google-charts";
 import { CircularProgress, Box, Typography } from "@mui/material";
 import PropTypes from "prop-types";
 
+const BaseURL = import.meta.env.VITE_URL_BASE_API;
+
 const DynamicHistory = ({ matricula }) => {
     const [chartData, setChartData] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -11,7 +13,7 @@ const DynamicHistory = ({ matricula }) => {
 
     const fetchData = async () => {
         try {
-            const response = await axios.get('https://prime-api-iawe.onrender.com/historial', {
+            const response = await axios.get(BaseURL + 'historial', {
                 params: { matricula: matricula }
             });
             if (response.status === 200 && response.data.history) {

@@ -7,6 +7,8 @@ import PsychologyIcon from '@mui/icons-material/Psychology';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import axios from 'axios';
 
+const BaseURL = import.meta.env.VITE_URL_BASE_API;
+
 const Profile = ({matricula}) => {
 
     const [studentData, setStudentData] = useState({
@@ -31,7 +33,7 @@ const Profile = ({matricula}) => {
             try {
                 setLoading(true);
                 setError(null);
-                const response = await axios.get(`http://localhost:3000/Fulldata/?matricula=${matricula}`);
+                const response = await axios.get(BaseURL + `Fulldata/?matricula=${matricula}`);
                 const data = response.data.data[0];
                 setStudentData({
                     matricula: data.Matricula,

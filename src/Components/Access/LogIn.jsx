@@ -10,6 +10,8 @@ import { iniciarSesion } from './SessionService';
 import PropTypes from 'prop-types';
 import DOMPurify from 'dompurify';
 
+const BaseURL = import.meta.env.VITE_URL_BASE_API;
+
 const Login = () => {
     const [matricula, setMatricula] = useState('');
     const [password, setPassword] = useState('');
@@ -33,7 +35,7 @@ const Login = () => {
 
     
         try {
-            const loginResponse = await axios.post('https://prime-api-iawe.onrender.com/access', {
+            const loginResponse = await axios.post(BaseURL + 'access', {
                 matricula: sanitizedMatricula,
                 password: sanitizedPassword,
                 userType: sanitizedUserType,
@@ -74,7 +76,7 @@ const Login = () => {
 
         try {
             // Verificar código
-            const verifyResponse = await axios.post('https://prime-api-iawe.onrender.com/CodigoVerificacion', {
+            const verifyResponse = await axios.post(BaseURL + 'CodigoVerificacion', {
                 matricula,
                 code: Number(code),
             });

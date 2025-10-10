@@ -14,9 +14,11 @@ export default function RendimientoAlumnos() {
     const [currentCuatrimestre, setCurrentCuatrimestre] = useState(1);
     const [loadingMaterias, setLoadingMaterias] = useState(true);
 
+    const BaseURL = import.meta.env.VITE_URL_BASE_API;
+
     const fetchDataEStatus = async () => {
         try {
-            const response = await axios.get('https://prime-api-iawe.onrender.com/historial', {
+            const response = await axios.get(BaseURL + 'historial', {
                 params: { matricula: matricula }
             });
             if (response.status === 200 && response.data.history) {
@@ -31,7 +33,7 @@ export default function RendimientoAlumnos() {
 
     const fetchMateriasData = async () => {
         try {
-            const response = await axios.get('https://prime-api-iawe.onrender.com/fullHistorial', {
+            const response = await axios.get(BaseURL + 'fullHistorial', {
                 params: { matricula: matricula }
             });
             if (response.status === 200 && response.data.data) {
@@ -189,7 +191,7 @@ export default function RendimientoAlumnos() {
 
     const fetchData = async () => {
         try {
-            const response = await axios.get('https://prime-api-iawe.onrender.com/data', {
+            const response = await axios.get(BaseURL + 'data', {
                 params: { matricula: matricula }
             });
             if (response.status === 200 && response.data) {

@@ -8,6 +8,8 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import axios from 'axios';
 import { obtenerMatricula } from '../Access/SessionService'; 
 
+const BaseURL = import.meta.env.VITE_URL_BASE_API;
+
 const Profile = () => {
     const matricula = obtenerMatricula();
     const [studentData, setStudentData] = useState({
@@ -32,7 +34,7 @@ const Profile = () => {
             try {
                 setLoading(true);
                 setError(null);
-                const response = await axios.get(`https://prime-api-iawe.onrender.com/Fulldata/?matricula=${matricula}`);
+                const response = await axios.get(BaseURL + `Fulldata/?matricula=${matricula}`);
                 const data = response.data.data[0];
                 setStudentData({
                     matricula: data.Matricula,
