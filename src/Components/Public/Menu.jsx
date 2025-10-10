@@ -1,71 +1,84 @@
 import { useEffect, useState } from 'react';
-import { Drawer } from '@mui/material';
+import { Drawer, List, ListItem, ListItemText, Typography } from '@mui/material';
 import { styled } from '@mui/system';
-import { obtenerTipoUsuario } from '../Access/SessionService';
+import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
-
+import { obtenerTipoUsuario } from '../Access/SessionService';
 import AlumnoMenu from '../Students/MenuAlumnos';
 import AsesorMenu from '../Asesor/MenuAsesor';
 
 const drawerWidth = 240;
 
 const StyledDrawer = styled(Drawer)(() => ({
+  width: drawerWidth,
+  flexShrink: 0,
+  '& .MuiDrawer-paper': {
     width: drawerWidth,
-    flexShrink: 0,
-    '& .MuiDrawer-paper': {
-        width: drawerWidth,
-        backgroundColor: '#1e1e2d', // Color oscuro del fondo del menú
-        color: '#fff',
-    },
+    backgroundColor: '#1e1e2d',
+    color: '#fff',
+  },
 }));
 
+const DefaultMenu = () => (
+  <List sx={{ p: 2 }}>
+    <ListItem
+      component={Link}
+      to="/Publico/login"
+      sx={{
+        color: '#fff',
+        '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.1)' },
+      }}
+    >
+      <ListItemText primary="Iniciar Sesión" />
+    </ListItem>
+    <ListItem
+      component={Link}
+      to="/"
+      sx={{
+        color: '#fff',
+        '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.1)' },
+      }}
+    >
+      <ListItemText primary="Home" />
+    </ListItem>
+  </List>
+);
+
 function SideMenu({ open, toggleMenu }) {
-    const [user, setUser] = useState(() => obtenerTipoUsuario()); // Inicializa el estado con el valor de la cookie
+  const [user, setUser] = useState(null);
 
-    useEffect(() => {
-        // Ejecuta cada vez que el componente se renderiza
-        const savedUser = obtenerTipoUsuario(); // Obtiene el valor actual de la cookie
-        if (savedUser !== user) { // Si el valor de la cookie es diferente del estado actual
-            setUser(savedUser); // Actualiza el estado solo si la cookie ha cambiado
-        }
-    }, [user]); // Se ejecuta siempre que el estado `user` cambie
+  useEffect(() => {
+    const savedUser = obtenerTipoUsuario();
+    setUser(savedUser);
+  }, []); // Ejecutar solo al montar el componente
 
+  const getMenuComponent = (userType) => {
+    switch (userType) {
+      case 'Estudiante':
+        return <AlumnoMenu />;
+      case 'Docente':
+        return <AsesorMenu />;
+      default:
+        return <DefaultMenu />;
+    }
+  };
 
-    const getMenuComponent = (user) => {
-        switch (user) {
-            //case 'Admin':
-                //return <AdminMenu />;
-            case 'Estudiante':
-                return <AlumnoMenu />;
-            case 'Docente':
-                return <AsesorMenu />;
-            default:
-                
-        }
-    };
-
-
-    return (
-        <StyledDrawer
-            variant="temporary"
-            anchor="right"
-            open={open}
-            onClose={toggleMenu}
-        >
-            {getMenuComponent(user)}
-        </StyledDrawer>
-    );
-
+  return (
+    <StyledDrawer
+      variant="temporary"
+      anchor="right"
+      open={open}
+      onClose={toggleMenu}
+    >
+     
+      {getMenuComponent(user)}
+    </StyledDrawer>
+  );
 }
 
 SideMenu.propTypes = {
-    open: PropTypes.bool.isRequired,
-    toggleMenu: PropTypes.func.isRequired,
-    onLogout: PropTypes.func.isRequired,
-    toggleDarkMode: PropTypes.func.isRequired,
-    darkMode: PropTypes.bool.isRequired,
-    usuario: PropTypes.object.isRequired, // Cambia esto si usuario tiene una estructura específica
+  open: PropTypes.bool.isRequired,
+  toggleMenu: PropTypes.func.isRequired,
 };
-
 
 export default SideMenu;
