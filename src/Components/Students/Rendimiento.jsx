@@ -49,7 +49,7 @@ export default function RendimientoAlumnos() {
 
         // Identificar el último cuatrimestre
         const cuatrimestres = Object.keys(groupedData).map(Number).sort((a, b) => a - b);
-        ultimoCuatrimestre = cuatrimestres[cuatrimestres.length - 1];
+        ultimoCuatrimestre = cuatrimestres[cuatrimestres.length + 1];
 
         // Verificar si el último cuatrimestre está completo con 3 parciales
         if (groupedData[ultimoCuatrimestre] && groupedData[ultimoCuatrimestre].count !== 3) {

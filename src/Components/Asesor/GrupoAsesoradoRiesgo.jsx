@@ -131,7 +131,7 @@ const AlumnosRiesgoAsesorView = () => {
       setError(null);
       try {
         // Obtener lista de estudiantes
-        const studentsResponse = await axios.get(`${BaseURL}/studentsList?ClvTutor=${CLV_DOCENTE}`);
+        const studentsResponse = await axios.get(`${BaseURL}studentsList?ClvTutor=${CLV_DOCENTE}`);
         const studentsData = studentsResponse.data.data || [];
         console.log('Datos de estudiantes (/studentsList):', studentsData); // Depuración
 
@@ -155,7 +155,7 @@ const AlumnosRiesgoAsesorView = () => {
 
         // Obtener calificaciones
         const gradesResponse = await axios.get(
-          `${BaseURL}/getCalificacionesPorGrupo/?grupo=${tutorData.grupo}&cuatrimestre=${tutorData.cuatrimestre}&periodo=${firstStudent.Periodo}`
+          `${BaseURL}getCalificacionesPorGrupo/?grupo=${tutorData.grupo}&cuatrimestre=${tutorData.cuatrimestre}&periodo=${firstStudent.Periodo}`
         );
         const gradesData = gradesResponse.data.data || [];
         console.log('Datos de calificaciones (/getCalificacionesPorGrupo):', gradesData); // Depuración

@@ -97,7 +97,7 @@ const MateriasImpartidasView = () => {
       setLoading(true);
       setError(null);
       try {
-        const response = await axios.get(`${BaseURL}/DatosDocente?ClvDocente=${CLV_DOCENTE}`);
+        const response = await axios.get(`${BaseURL}DatosDocente?ClvDocente=${CLV_DOCENTE}`);
         const docenteData = response.data.data[0] || { Nombre: 'Desconocido', PeriodoMasReciente: 'Desconocido' };
         setDocenteInfo({
           Nombre: docenteData.Nombre.trim(),
@@ -132,7 +132,7 @@ const MateriasImpartidasView = () => {
       setLoading(true);
       setError(null);
       try {
-        const response = await axios.get(`${BaseURL}/materiasxDocente/?ClvDocente=${CLV_DOCENTE}`);
+        const response = await axios.get(`${BaseURL}materiasxDocente/?ClvDocente=${CLV_DOCENTE}`);
         setMaterias(response.data.data);
       } catch (err) {
         setError('No se pudieron cargar las materias. Verifique la conexión con el servidor.');
@@ -151,7 +151,7 @@ const MateriasImpartidasView = () => {
         setError(null);
         try {
           const response = await axios.get(
-            `${BaseURL}/gruposxMateria/?ClvMateria=${materia}&ClvDocente=${CLV_DOCENTE}`
+            `${BaseURL}gruposxMateria/?ClvMateria=${materia}&ClvDocente=${CLV_DOCENTE}`
           );
           setGrupos(response.data.data);
         } catch (err) {
@@ -195,7 +195,7 @@ const MateriasImpartidasView = () => {
             return;
           }
           const response = await axios.get(
-            `${BaseURL}/CalificacionesXMateriaGrupo?ClvMateria=${materia}&ClvCuatrimestre=${clvCuatrimestre}`
+            `${BaseURL}CalificacionesXMateriaGrupo?ClvMateria=${materia}&ClvCuatrimestre=${clvCuatrimestre}`
           );
           if (response.data.data.length === 0) {
             setEstudiantesAllGroups([]);
@@ -253,7 +253,7 @@ const MateriasImpartidasView = () => {
           const grupoData = grupos.find((g) => g.Grupo === grupo);
           const clvCuatrimestre = grupoData ? grupoData.ClvCuatrimestre : '5';
           const response = await axios.get(
-            `${BaseURL}/CalificacionesXMateriaGrupo?ClvMateria=${materia}&ClvCuatrimestre=${clvCuatrimestre}&Grupo=${grupo}`
+            `${BaseURL}CalificacionesXMateriaGrupo?ClvMateria=${materia}&ClvCuatrimestre=${clvCuatrimestre}&Grupo=${grupo}`
           );
           if (response.data.data.length === 0) {
             setError('No hay calificaciones disponibles para este grupo y materia.');

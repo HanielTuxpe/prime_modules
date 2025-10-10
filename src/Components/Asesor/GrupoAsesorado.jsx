@@ -82,7 +82,7 @@ const ModuloAsesor = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const studentsResponse = await axios.get(`${BaseURL}/studentsList?ClvTutor=${CLV_DOCENTE}`);
+        const studentsResponse = await axios.get(`${BaseURL}studentsList?ClvTutor=${CLV_DOCENTE}`);
         const studentsData = studentsResponse.data.data;
 
         let tutorData = {
@@ -104,7 +104,7 @@ const ModuloAsesor = () => {
         }
 
         const gradesResponse = await axios.get(
-          `${BaseURL}/getCalificacionesPorGrupo/?grupo=${tutorData.grupo}&cuatrimestre=${tutorData.cuatrimestre}&periodo=${tutorData.periodo}`
+          `${BaseURL}getCalificacionesPorGrupo/?grupo=${tutorData.grupo}&cuatrimestre=${tutorData.cuatrimestre}&periodo=${tutorData.periodo}`
         );
         const gradesData = gradesResponse.data.data;
 
@@ -188,7 +188,7 @@ const ModuloAsesor = () => {
         setErrorRiesgo(null);
         try {
           const response = await axios.get(
-            `${BaseURL}/getDatosPrediccionAlumno?Matricula=${estudianteSeleccionado.matricula}`
+            `${BaseURL}getDatosPrediccionAlumno?Matricula=${estudianteSeleccionado.matricula}`
           );
           setRiesgoBaja(response.data.prediccion.riesgo[0][0]); // Extrae el valor del riesgo
         } catch (error) {
@@ -629,7 +629,7 @@ const ModuloAsesor = () => {
 
     for (const alumno of estudiantes) {
       try {
-        const response = await axios.get(`${BaseURL}/getDatosPrediccionAlumno?Matricula=${alumno.matricula}`);
+        const response = await axios.get(`${BaseURL}getDatosPrediccionAlumno?Matricula=${alumno.matricula}`);
         const riesgo = response.data.prediccion.riesgo[0][0];
         resultados.push({
           nombre: alumno.nombre,

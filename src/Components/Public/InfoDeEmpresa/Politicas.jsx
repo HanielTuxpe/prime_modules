@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Container, Typography, Box, List, ListItem, ListItemText, Divider, Link } from '@mui/material';
+import { Container, Typography, Box, List, ListItem, ListItemText, Divider, Link, IconButton, useTheme, useMediaQuery } from '@mui/material';
 import { motion } from 'framer-motion';
 import * as XLSX from 'xlsx';
-
 import uthh from '../../../assets/uthh.png';
 import FacebookIcon from '../../../assets/facebook.png';
 import TwitterIcon from '../../../assets/twitter.png';
@@ -11,13 +10,26 @@ import LinkedInIcon from '../../../assets/linkedin.png';
 import WhatsAppIcon from '../../../assets/whatsapp.png';
 import YouTubeIcon from '../../../assets/youtube.png';
 
-const BaseURL = import.meta.env.VITE_URL_BASE_API;
-const URL_POLITICAS = `${BaseURL}/Politicas`;
+const socialLinks = [
+  { name: 'WhatsApp', icon: WhatsAppIcon, url: '#' },
+  { name: 'Facebook', icon: FacebookIcon, url: '#' },
+  { name: 'Instagram', icon: InstagramIcon, url: '#' },
+  { name: 'YouTube', icon: YouTubeIcon, url: '#' },
+  { name: 'Twitter', icon: TwitterIcon, url: '#' },
+  { name: 'LinkedIn', icon: LinkedInIcon, url: '#' },
+];
 
 const PrivacyPolicy = () => {
   const [politicas, setPoliticas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const theme = useTheme();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
+  const [showLinks, setShowLinks] = useState(false);
+
+  const toggleLinks = () => {
+    setShowLinks((prev) => !prev);
+  };
 
   // Animaciones para las secciones
   const sectionVariants = {
@@ -35,7 +47,8 @@ const PrivacyPolicy = () => {
   useEffect(() => {
     const fetchPoliticas = async () => {
       try {
-        const response = await fetch(URL_POLITICAS);
+        const baseUrl = import.meta.env.VITE_URL_BASE_API || '';
+        const response = await fetch(`${baseUrl}Politicas`);
         if (!response.ok) {
           throw new Error(`Error al cargar el archivo de políticas: ${response.statusText}`);
         }
@@ -50,9 +63,6 @@ const PrivacyPolicy = () => {
           header: ['Seccion', 'TipoElemento', 'Contenido'],
           range: 1, // Ignorar la primera fila (encabezados)
         });
-
-        // Depuración: Mostrar datos crudos
-        console.log('Datos crudos del Excel:', data);
 
         // Agrupar datos por sección
         const secciones = data.reduce((acc, row) => {
@@ -71,12 +81,9 @@ const PrivacyPolicy = () => {
         const seccionesOrdenadas = Object.keys(secciones)
           .map((seccionId) => ({
             id: parseInt(seccionId),
-            elementos: secciones[seccionId], // Mantener el orden original del Excel
+            elementos: secciones[seccionId],
           }))
           .sort((a, b) => a.id - b.id);
-
-        // Depuración: Mostrar secciones procesadas
-        console.log('Secciones procesadas:', seccionesOrdenadas);
 
         setPoliticas(seccionesOrdenadas);
       } catch (err) {
@@ -111,9 +118,8 @@ const PrivacyPolicy = () => {
 
   return (
     <Box
-      disableGutters
       sx={{
-        maxWidth: '100%',
+        minHeight: '100vh',
         bgcolor: 'linear-gradient(180deg, #f5f5f5 0%, #e0e0e0 100%)',
         py: { xs: 6, md: 10 },
         px: { xs: 2, sm: 4 },
@@ -191,7 +197,10 @@ const PrivacyPolicy = () => {
                   );
                 } else if (elemento.tipoElemento === 'item') {
                   return (
-                    <List key={idx} sx={{ pl: 2, mt: idx > 0 && seccion.elementos[idx - 1].tipoElemento !== 'item' ? 1 : 0 }}>
+                    <List
+                      key={idx}
+                      sx={{ pl: 2, mt: idx > 0 && seccion.elementos[idx - 1].tipoElemento !== 'item' ? 1 : 0 }}
+                    >
                       <ListItem
                         sx={{
                           py: 0.5,
@@ -217,11 +226,22 @@ const PrivacyPolicy = () => {
                   );
                 } else if (elemento.tipoElemento === 'items') {
                   const itemsList = elemento.contenido
-                    .split(/(?<!\d)\.(?!\d)/) // Dividir por puntos, excluyendo puntos en números
+                    .split(/(?<!\d)\.(?!\d)/)
                     .map((item) => item.trim())
                     .filter((item) => item.length > 0);
                   return (
-                    <List key={idx} sx={{ pl: 2, mt: idx > 0 && seccion.elementos[idx - 1].tipoElemento !== 'items' && seccion.elementos[idx - 1].tipoElemento !== 'item' ? 1 : 0 }}>
+                    <List
+                      key={idx}
+                      sx={{
+                        pl: 2,
+                        mt:
+                          idx > 0 &&
+                            seccion.elementos[idx - 1].tipoElemento !== 'items' &&
+                            seccion.elementos[idx - 1].tipoElemento !== 'item'
+                            ? 1
+                            : 0,
+                      }}
+                    >
                       {itemsList.map((item, itemIdx) => (
                         <ListItem
                           key={itemIdx}
@@ -256,68 +276,131 @@ const PrivacyPolicy = () => {
         ))}
 
         {/* Footer */}
-        <Divider sx={{ my: 4, borderColor: '#921F45' }} />
-        <Box sx={{ textAlign: 'center', mb: 4 }}>
-          <img
-            src={uthh}
-            alt="UTHH Logo"
-            style={{ maxWidth: '100px', marginBottom: '16px' }}
-          />
-          <Typography
-            variant="body2"
-            sx={{ color: 'text.secondary', mb: 2 }}
-          >
-            © {new Date().getFullYear()} Universidad Tecnológica de la Huasteca Hidalguense. Todos los derechos reservados.
-          </Typography>
-          <List sx={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', p: 0 }}>
-            {[
-              { name: 'WhatsApp', icon: WhatsAppIcon, url: '#' },
-              { name: 'Facebook', icon: FacebookIcon, url: '#' },
-              { name: 'Instagram', icon: InstagramIcon, url: '#' },
-              { name: 'YouTube', icon: YouTubeIcon, url: '#' },
-              { name: 'Twitter', icon: TwitterIcon, url: '#' },
-              { name: 'LinkedIn', icon: LinkedInIcon, url: '#' },
-            ].map((social, index) => (
-              <ListItem
-                key={index}
-                sx={{
-                  width: 'auto',
-                  display: 'inline-flex',
-                  listStyleType: 'none',
-                  px: 1,
-                  '&:before': {
-                    content: '"➤"',
-                    color: 'text.secondary',
-                    fontSize: '1.2rem',
-                    mr: 1,
-                  },
-                }}
-              >
-                <Link
-                  href={social.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
+        <Divider sx={{ mb: 4, borderColor: '#921F45' }} />
+        <Box
+
+          sx={{
+            textAlign: 'center',
+            mb: 4,
+            color: 'white',
+            p: 2,
+            boxShadow: theme.custom?.boxShadow,
+          }}
+        >
+          {isSmallScreen ? (
+            <Box>
+              <Box display="flex" flexDirection="column" alignItems="center">
+                <img src={uthh} alt="UTHH Logo" style={{ maxWidth: '100px', marginBottom: '16px' }} />
+
+                <Typography
+                  variant="body2"
                   sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    color: 'text.secondary',
-                    textDecoration: 'none',
-                    '&:hover': { color: '#921F45', textDecoration: 'underline' },
+                    fontSize: 'clamp(0.8rem, 1.2vw, 1rem)',
+                    fontWeight: 400,
                   }}
                 >
-                  <img
-                    src={social.icon}
-                    alt={`${social.name} icon`}
-                    style={{ width: '20px', height: '20px', marginRight: '8px' }}
-                  />
-                  <ListItemText
-                    primary={social.name}
-                    sx={{ '& .MuiListItemText-primary': { color: 'text.secondary', fontSize: '0.9rem' } }}
-                  />
-                </Link>
-              </ListItem>
-            ))}
-          </List>
+                  © {new Date().getFullYear()} .Todos los derechos reservados.
+                </Typography>
+
+              </Box>
+
+              <List
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  flexWrap: 'wrap',
+                  p: 0,
+                  mt: 1,
+                }}
+              >
+                {socialLinks.map((social, index) => (
+                  <ListItem
+                    key={index}
+                    sx={{
+                      width: 'auto',
+                      px: 1,
+                    }}
+                  >
+                    <Link
+                      href={social.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      sx={{
+                        color: 'text.secondary',
+                        '&:hover': { color: '#921F45' },
+                      }}
+                    >
+                      <img
+                        src={social.icon}
+                        alt={`${social.name} icon`}
+                        style={{ width: '20px', height: '20px' }}
+                      />
+                    </Link>
+                  </ListItem>
+                ))}
+              </List>
+
+            </Box>
+          ) : (
+            <Box>
+              <img src={uthh} alt="UTHH Logo" style={{ maxWidth: '100px', marginBottom: '16px' }} />
+              <Typography
+                variant="body2"
+                sx={{ color: 'text.secondary', mb: 2 }}
+              >
+                © {new Date().getFullYear()} Universidad Tecnológica de la Huasteca Hidalguense. Todos los derechos reservados.
+              </Typography>
+              <List
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  flexWrap: 'wrap',
+                  p: 0,
+                }}
+              >
+                {socialLinks.map((social, index) => (
+                  <ListItem
+                    key={index}
+                    sx={{
+                      width: 'auto',
+                      display: 'inline-flex',
+                      listStyleType: 'none',
+                      px: 1,
+                      '&:before': {
+                        content: '"➤"',
+                        color: 'text.secondary',
+                        fontSize: '1.2rem',
+                        mr: 1,
+                      },
+                    }}
+                  >
+                    <Link
+                      href={social.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        color: 'text.secondary',
+                        textDecoration: 'none',
+                        '&:hover': { textDecoration: 'underline' },
+                      }}
+                    >
+                      <img
+                        src={social.icon}
+                        alt={`${social.name} icon`}
+                        style={{ width: '20px', height: '20px', marginRight: '8px' }}
+                      />
+                      <ListItemText
+                        primary={social.name}
+                        sx={{ '& .MuiListItemText-primary': { color: 'text.secondary', fontSize: '0.9rem' } }}
+                      />
+                    </Link>
+                  </ListItem>
+                ))}
+              </List>
+            </Box>
+          )}
         </Box>
       </Container>
     </Box>

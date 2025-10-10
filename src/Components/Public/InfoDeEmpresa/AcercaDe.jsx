@@ -1,5 +1,5 @@
-import React from 'react';
-import { Container, Typography, Box, List, ListItem, ListItemText, Divider, Link } from '@mui/material';
+import React, { useState } from 'react';
+import { Container, Typography, Box, List, ListItem, ListItemText, Divider, Link, IconButton, useTheme, useMediaQuery } from '@mui/material';
 import { motion } from 'framer-motion';
 import uthh from '../../../assets/uthh.png';
 import FacebookIcon from '../../../assets/facebook.png';
@@ -9,9 +9,24 @@ import LinkedInIcon from '../../../assets/linkedin.png';
 import WhatsAppIcon from '../../../assets/whatsapp.png';
 import YouTubeIcon from '../../../assets/youtube.png';
 
-const BaseURL = import.meta.env.VITE_URL_BASE_API;
+const socialLinks = [
+  { name: 'WhatsApp', icon: WhatsAppIcon, url: '#' },
+  { name: 'Facebook', icon: FacebookIcon, url: '#' },
+  { name: 'Instagram', icon: InstagramIcon, url: '#' },
+  { name: 'YouTube', icon: YouTubeIcon, url: '#' },
+  { name: 'Twitter', icon: TwitterIcon, url: '#' },
+  { name: 'LinkedIn', icon: LinkedInIcon, url: '#' },
+];
 
 const About = () => {
+  const theme = useTheme();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
+  const [showLinks, setShowLinks] = useState(false);
+
+  const toggleLinks = () => {
+    setShowLinks((prev) => !prev);
+  };
+
   // Animaciones para las secciones
   const sectionVariants = {
     hidden: { opacity: 0, y: 50 },
@@ -34,11 +49,7 @@ const About = () => {
       }}
     >
       <Container maxWidth="lg">
-        <motion.div
-          variants={titleVariants}
-          initial="hidden"
-          animate="visible"
-        >
+        <motion.div variants={titleVariants} initial="hidden" animate="visible">
           <Box
             sx={{
               bgcolor: 'white',
@@ -60,11 +71,7 @@ const About = () => {
           >
             {/* Título principal y logo */}
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 4 }}>
-              <img
-                src={uthh}
-                alt="UTHH12 Logo"
-                style={{ maxWidth: '150px', marginBottom: '16px' }}
-              />
+              <img src={uthh} alt="UTHH Logo" style={{ maxWidth: '150px', marginBottom: '16px' }} />
               <Typography
                 variant="h3"
                 component="h1"
@@ -194,69 +201,134 @@ const About = () => {
               </Typography>
             </Box>
           </motion.div>
-
         </Box>
 
         {/* Footer */}
-       <Divider sx={{ mb: 4, borderColor: '#921F45' }} />
-        <Box sx={{ textAlign: 'center', mb: 4 }}>
-          <img
-            src={uthh}
-            alt="UTHH Logo"
-            style={{ maxWidth: '100px', marginBottom: '16px' }}
-          />
-          <Typography
-            variant="body2"
-            sx={{ color: 'text.secondary', mb: 2 }}
-          >
-            © {new Date().getFullYear()} Universidad Tecnológica de la Huasteca Hidalguense. Todos los derechos reservados.
-          </Typography>
-          <List sx={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', p: 0 }}>
-            {[
-              { name: 'WhatsApp', icon: WhatsAppIcon, url: '#' },
-              { name: 'Facebook', icon: FacebookIcon, url: '#' },
-              { name: 'Instagram', icon: InstagramIcon, url: '#' },
-              { name: 'YouTube', icon: YouTubeIcon, url: '#' },
-              { name: 'Twitter', icon: TwitterIcon, url: '#' },
-              { name: 'LinkedIn', icon: LinkedInIcon, url: '#' },
-            ].map((social, index) => (
-              <ListItem
-                key={index}
-                sx={{
-                  width: 'auto',
-                  display: 'inline-flex',
-                  listStyleType: 'none',
-                  px: 1,
-                  '&:before': {
-                    content: '"➤"',
-                    color: 'text.secondary',
-                    fontSize: '1.2rem',
-                    mr: 1,
-                  },
-                }}
-              >
-                <Link
-                  href={social.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
+        <Divider sx={{ mb: 4, borderColor: '#921F45' }} />
+        <Box
+
+          sx={{
+            textAlign: 'center',
+            mb: 4,
+            color: 'white',
+            p: 2,
+            boxShadow: theme.custom?.boxShadow,
+          }}
+        >
+          {isSmallScreen ? (
+            <Box>
+              <Box display="flex" flexDirection="column" alignItems="center">
+                <img src={uthh} alt="UTHH Logo" style={{ maxWidth: '100px', marginBottom: '16px' }} />
+
+                <Typography
+                  variant="body2"
                   sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    color: 'text.secondary',
-                    textDecoration: 'none',
-                    '&:hover': { color: '#921F45', textDecoration: 'underline' },
+                    fontSize: 'clamp(0.8rem, 1.2vw, 1rem)',
+                    fontWeight: 400,
                   }}
                 >
-                  <img
-                    src={social.icon}
-                    alt={`${social.name} icon`}
-                    style={{ width: '20px', height: '20px', marginRight: '8px' }}
-                  />
-                  <ListItemText primary={social.name} sx={{ '& .MuiListItemText-primary': { color: 'text.secondary', fontSize: '0.9rem' } }} />
-                </Link>
-              </ListItem>
-            ))}
-          </List>
+                  © {new Date().getFullYear()} .Todos los derechos reservados.
+                </Typography>
+
+              </Box>
+
+              <List
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  flexWrap: 'wrap',
+                  p: 0,
+                  mt: 1,
+                }}
+              >
+                {socialLinks.map((social, index) => (
+                  <ListItem
+                    key={index}
+                    sx={{
+                      width: 'auto',
+                      px: 1,
+                    }}
+                  >
+                    <Link
+                      href={social.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      sx={{
+                        color: 'text.secondary',
+                        '&:hover': { color: '#921F45' },
+                      }}
+                    >
+                      <img
+                        src={social.icon}
+                        alt={`${social.name} icon`}
+                        style={{ width: '20px', height: '20px' }}
+                      />
+                    </Link>
+                  </ListItem>
+                ))}
+              </List>
+
+            </Box>
+          ) : (
+            <Box>
+              <img src={uthh} alt="UTHH Logo" style={{ maxWidth: '100px', marginBottom: '16px' }} />
+              <Typography
+                variant="body2"
+                sx={{ color: 'text.secondary', mb: 2 }}
+              >
+                © {new Date().getFullYear()} Universidad Tecnológica de la Huasteca Hidalguense. Todos los derechos reservados.
+              </Typography>
+              <List
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  flexWrap: 'wrap',
+                  p: 0,
+                }}
+              >
+                {socialLinks.map((social, index) => (
+                  <ListItem
+                    key={index}
+                    sx={{
+                      width: 'auto',
+                      display: 'inline-flex',
+                      listStyleType: 'none',
+                      px: 1,
+                      '&:before': {
+                        content: '"➤"',
+                        color: 'text.secondary',
+                        fontSize: '1.2rem',
+                        mr: 1,
+                      },
+                    }}
+                  >
+                    <Link
+                      href={social.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        color: 'text.secondary',
+                        textDecoration: 'none',
+                        '&:hover': { textDecoration: 'underline' },
+                      }}
+                    >
+                      <img
+                        src={social.icon}
+                        alt={`${social.name} icon`}
+                        style={{ width: '20px', height: '20px', marginRight: '8px' }}
+                      />
+                      <ListItemText
+                        primary={social.name}
+                        sx={{ '& .MuiListItemText-primary': { color: 'text.secondary', fontSize: '0.9rem' } }}
+                      />
+                    </Link>
+                  </ListItem>
+                ))}
+              </List>
+            </Box>
+          )}
         </Box>
       </Container>
     </Box>

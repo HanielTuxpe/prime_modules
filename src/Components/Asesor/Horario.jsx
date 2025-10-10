@@ -17,8 +17,8 @@ import { obtenerMatricula } from '../Access/SessionService';
 
 const CLV_DOCENTE = obtenerMatricula(); // ID del docente
 const BaseURL = import.meta.env.VITE_URL_BASE_API;
-const URL_DOCENTE = `${BaseURL}/DatosDocente/?ClvDocente=${CLV_DOCENTE}`;
-const URL_HORARIOS = `${BaseURL}/horarios`;
+const URL_DOCENTE = `${BaseURL}DatosDocente/?ClvDocente=${CLV_DOCENTE}`;
+const URL_HORARIOS = `${BaseURL}horarios`;
 
 const HorarioDocente = () => {
   const [horario, setHorario] = useState([]);
