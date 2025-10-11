@@ -164,7 +164,7 @@ const AnimatedGraph = ({ matricula }) => {
       }}
     >
       <Typography
-        variant={isMobile ? "h6" : "h5"} // Smaller title on mobile
+        variant={isMobile ? "h6" : "h6"} // Smaller title on mobile
         gutterBottom
         sx={{ fontSize: isMobile ? "1rem" : "1.25rem" }}
       >
