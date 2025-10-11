@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Container, Box, Typography, Card, CardContent, CircularProgress, Fade, Divider, List, ListItem, ListItemText, Collapse } from '@mui/material';
+import { Container, Box, Typography, Card, CardContent, CircularProgress, Fade, Divider, List, ListItem, ListItemText, Collapse, useMediaQuery, useTheme } from '@mui/material';
 import QRCode from 'react-qr-code';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
 import PsychologyIcon from '@mui/icons-material/Psychology';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import axios from 'axios';
-import { obtenerMatricula } from '../Access/SessionService'; 
+import { obtenerMatricula } from '../Access/SessionService';
 
 const BaseURL = import.meta.env.VITE_URL_BASE_API;
 
@@ -28,6 +28,9 @@ const Profile = () => {
     const [selectedPerformance, setSelectedPerformance] = useState(null);
     const [expandedMedical, setExpandedMedical] = useState(null);
     const [expandedPsychological, setExpandedPsychological] = useState(null);
+
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
     useEffect(() => {
         const fetchStudentData = async () => {
@@ -311,7 +314,7 @@ const Profile = () => {
                 reason: 'Dificultades de concentración',
                 area: 'Académico, conductual',
                 diagnosis: 'Falta de hábitos de estudio efectivos',
-                strategies: 'Pruebas psychométricas, técnicas de organización',
+                strategies: 'Pruebas psicométricas, técnicas de organización',
                 observations: 'Paciente distraído, pero con disposición al cambio.',
                 agreements: 'Usar técnica Pomodoro, seguimiento en 2 semanas',
                 sessions: '1 de 5 sesiones programadas',
@@ -394,7 +397,6 @@ const Profile = () => {
                 alignItems: 'center',
                 justifyContent: 'center',
                 padding: { xs: 2, md: 4 },
-               
             }}
             disableGutters
         >
@@ -403,7 +405,7 @@ const Profile = () => {
                     <CircularProgress sx={{ color: '#921F45' }} />
                 </Box>
             ) : error ? (
-                <Typography color="error" variant="h6" sx={{ textAlign: 'center', color: '#000' }}>
+                <Typography color="error" variant="h6" sx={{ textAlign: 'center', color: '#000', fontSize: { xs: 16, sm: 20 } }}>
                     {error}
                 </Typography>
             ) : (
@@ -415,7 +417,7 @@ const Profile = () => {
                             <Card
                                 sx={{
                                     flex: 1,
-                                    maxWidth: { xs: '90%', md: '35%' },
+                                    maxWidth: { xs: '100%', md: '35%' },
                                     boxShadow: 3,
                                     borderRadius: 3,
                                     bgcolor: '#ffffff',
@@ -427,7 +429,7 @@ const Profile = () => {
                                     '&:hover': { transform: 'translateY(-5px)' },
                                 }}
                             >
-                                <Typography variant="h6" sx={{ fontWeight: 600, color: '#921F45', mb: 2 }}>
+                                <Typography variant="h6" sx={{ fontWeight: 600, color: '#921F45', mb: 2, fontSize: { xs: 16, sm: 20 } }}>
                                     QR de Acceso
                                 </Typography>
                                 <Box
@@ -451,14 +453,14 @@ const Profile = () => {
                                     />
                                 </Box>
                                 <Box sx={{ width: '100%', mt: 3 }}>
-                                    <Typography variant="h6" sx={{ fontWeight: 600, color: '#921F45', mb: 2 }}>
+                                    <Typography variant="h6" sx={{ fontWeight: 600, color: '#921F45', mb: 2, fontSize: { xs: 16, sm: 20 } }}>
                                         Registro de Entrada y Salida
                                     </Typography>
                                     <Box
                                         sx={{
-                                            maxHeight: { xs: '150px', md: '300px' }, // Ajustado para igualar la altura aproximada de la tarjeta de perfil
+                                            maxHeight: { xs: '150px', md: '300px' },
                                             overflowY: 'auto',
-                                            pr: 1, // Espacio para el scrollbar
+                                            pr: 1,
                                         }}
                                     >
                                         <List>
@@ -475,8 +477,8 @@ const Profile = () => {
                                                     <ListItemText
                                                         primary={`${record.date}`}
                                                         secondary={`Tipo: ${record.type}`}
-                                                        primaryTypographyProps={{ color: '#000', fontWeight: 600 }}
-                                                        secondaryTypographyProps={{ color: '#000' }}
+                                                        primaryTypographyProps={{ color: '#000', fontWeight: 600, fontSize: { xs: 12, sm: 16 } }}
+                                                        secondaryTypographyProps={{ color: '#000', fontSize: { xs: 10, sm: 14 } }}
                                                     />
                                                 </ListItem>
                                             ))}
@@ -492,7 +494,7 @@ const Profile = () => {
                                     boxShadow: 3,
                                     borderRadius: 3,
                                     bgcolor: '#ffffff',
-                                    p: 4,
+
                                     transition: 'transform 0.3s ease-in-out',
                                     '&:hover': { transform: 'translateY(-5px)' },
                                 }}
@@ -503,9 +505,10 @@ const Profile = () => {
                                         sx={{
                                             fontWeight: 700,
                                             textAlign: 'center',
-                                            mb: 3,
+
                                             color: '#000',
                                             textTransform: 'capitalize',
+                                            fontSize: { xs: 24, sm: 34 },
                                         }}
                                     >
                                         {toTitleCase(fullName) || 'Sin Nombre'}
@@ -514,7 +517,7 @@ const Profile = () => {
                                     <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
                                         <AccountCircleIcon
                                             sx={{
-                                                fontSize: 120,
+                                                fontSize: { xs: 80, sm: 120 },
                                                 color: '#921F45',
                                                 border: '3px solid #921F45',
                                                 borderRadius: '50%',
@@ -522,62 +525,63 @@ const Profile = () => {
                                             }}
                                         />
                                     </Box>
-                                    <Typography variant="body2" sx={{ textAlign: 'center', color: '#000', mb: 3 }}>
+                                    <Typography variant="body2" sx={{ textAlign: 'center', color: '#000', mb: 3, fontSize: { xs: 14, sm: 18 } }}>
                                         Foto de Perfil
                                     </Typography>
 
                                     <Box
                                         sx={{
                                             display: 'grid',
-                                            gridTemplateColumns: { xs: '1fr', sm: '2fr 2fr' },
+                                            gridTemplateColumns: '2fr 2fr', // siempre dos columnas
                                             gap: 2,
                                             bgcolor: '#f9f9f9',
                                             p: 3,
                                             borderRadius: 2,
                                         }}
                                     >
-                                        <Typography variant="body1" sx={{ fontWeight: 600, color: '#000' }}>
+                                        <Typography variant="body1" sx={{ fontWeight: 600, color: '#000', fontSize: { xs: 12, sm: 16 } }}>
                                             Matrícula del Alumno
                                         </Typography>
-                                        <Typography variant="body1" sx={{ color: '#000' }}>
+                                        <Typography variant="body1" sx={{ color: '#000', fontSize: { xs: 12, sm: 16 } }}>
                                             {studentData.matricula}
                                         </Typography>
 
-                                        <Typography variant="body1" sx={{ fontWeight: 600, color: '#000' }}>
+                                        <Typography variant="body1" sx={{ fontWeight: 600, color: '#000', fontSize: { xs: 12, sm: 16 } }}>
                                             Correo Electrónico
                                         </Typography>
-                                        <Typography variant="body1" sx={{ color: '#000' }}>
+                                        <Typography variant="body1" sx={{ color: '#000', fontSize: { xs: 12, sm: 16 } }}>
                                             {studentData.email || 'N/A'}
                                         </Typography>
 
-                                        <Typography variant="body1" sx={{ fontWeight: 600, color: '#000' }}>
+                                        <Typography variant="body1" sx={{ fontWeight: 600, color: '#000', fontSize: { xs: 12, sm: 16 } }}>
                                             Programa Educativo
                                         </Typography>
-                                        <Typography variant="body1" sx={{ color: '#000', textTransform: 'capitalize' }}>
+                                        <Typography variant="body1" sx={{ color: '#000', textTransform: 'capitalize', fontSize: { xs: 12, sm: 16 } }}>
                                             {studentData.nombreCarrera.toLowerCase() || 'N/A'}
                                         </Typography>
 
-                                        <Typography variant="body1" sx={{ fontWeight: 600, color: '#000' }}>
+                                        <Typography variant="body1" sx={{ fontWeight: 600, color: '#000', fontSize: { xs: 12, sm: 16 } }}>
                                             Cuatrimestre Actual
                                         </Typography>
-                                        <Typography variant="body1" sx={{ color: '#000' }}>
+                                        <Typography variant="body1" sx={{ color: '#000', fontSize: { xs: 12, sm: 16 } }}>
                                             {formatCuatrimestre(studentData.cuatrimestre) || 'N/A'}
                                         </Typography>
 
-                                        <Typography variant="body1" sx={{ fontWeight: 600, color: '#000' }}>
+                                        <Typography variant="body1" sx={{ fontWeight: 600, color: '#000', fontSize: { xs: 12, sm: 16 } }}>
                                             Periodo
                                         </Typography>
-                                        <Typography variant="body1" sx={{ color: '#000' }}>
+                                        <Typography variant="body1" sx={{ color: '#000', fontSize: { xs: 12, sm: 16 } }}>
                                             {formatPeriodo(studentData.periodo) || 'N/A'}
                                         </Typography>
 
-                                        <Typography variant="body1" sx={{ fontWeight: 600, color: '#000' }}>
+                                        <Typography variant="body1" sx={{ fontWeight: 600, color: '#000', fontSize: { xs: 12, sm: 16 } }}>
                                             Grupo
                                         </Typography>
-                                        <Typography variant="body1" sx={{ color: '#000' }}>
+                                        <Typography variant="body1" sx={{ color: '#000', fontSize: { xs: 12, sm: 16 } }}>
                                             {studentData.grupo || 'N/A'}
                                         </Typography>
                                     </Box>
+
                                 </CardContent>
                             </Card>
                         </Box>
@@ -596,8 +600,8 @@ const Profile = () => {
                         >
                             <CardContent>
                                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                                    <LocalHospitalIcon sx={{ fontSize: 40, color: '#921F45', mr: 2 }} />
-                                    <Typography variant="h5" sx={{ fontWeight: 700, color: '#000' }}>
+                                    <LocalHospitalIcon sx={{ fontSize: { xs: 30, sm: 40 }, color: '#921F45', mr: 2 }} />
+                                    <Typography variant="h5" sx={{ fontWeight: 700, color: '#000', fontSize: { xs: 18, sm: 24 } }}>
                                         Historial de Consultas Médicas
                                     </Typography>
                                 </Box>
@@ -619,40 +623,41 @@ const Profile = () => {
                                                     <ListItemText
                                                         primary={`Consulta - ${consultation.date}`}
                                                         secondary={consultation.reason}
-                                                        primaryTypographyProps={{ color: '#000', fontWeight: 600 }}
-                                                        secondaryTypographyProps={{ color: '#000' }}
+                                                        primaryTypographyProps={{ color: '#000', fontWeight: 600, fontSize: { xs: 12, sm: 16 } }}
+                                                        secondaryTypographyProps={{ color: '#000', fontSize: { xs: 10, sm: 14 } }}
                                                     />
                                                     <ExpandMoreIcon
                                                         sx={{
                                                             transform: expandedMedical === index ? 'rotate(180deg)' : 'rotate(0deg)',
-                                                            color: '#921F45'
+                                                            color: '#921F45',
+                                                            fontSize: { xs: 20, sm: 24 }
                                                         }}
                                                     />
                                                 </ListItem>
                                                 <Collapse in={expandedMedical === index} timeout="auto" unmountOnExit>
                                                     <Box sx={{ p: 2, bgcolor: '#f9f9f9', borderRadius: 2, ml: 2 }}>
-                                                        <Typography variant="body1" sx={{ fontWeight: 600, color: '#000' }}>
+                                                        <Typography variant="body1" sx={{ fontWeight: 600, color: '#000', fontSize: { xs: 12, sm: 16 } }}>
                                                             Fecha y Hora: <span style={{ fontWeight: 400 }}>{consultation.date}</span>
                                                         </Typography>
-                                                        <Typography variant="body1" sx={{ fontWeight: 600, color: '#000' }}>
+                                                        <Typography variant="body1" sx={{ fontWeight: 600, color: '#000', fontSize: { xs: 12, sm: 16 } }}>
                                                             Motivo: <span style={{ fontWeight: 400 }}>{consultation.reason}</span>
                                                         </Typography>
-                                                        <Typography variant="body1" sx={{ fontWeight: 600, color: '#000' }}>
+                                                        <Typography variant="body1" sx={{ fontWeight: 600, color: '#000', fontSize: { xs: 12, sm: 16 } }}>
                                                             Signos Vitales: <span style={{ fontWeight: 400 }}>{consultation.vitals}</span>
                                                         </Typography>
-                                                        <Typography variant="body1" sx={{ fontWeight: 600, color: '#000' }}>
+                                                        <Typography variant="body1" sx={{ fontWeight: 600, color: '#000', fontSize: { xs: 12, sm: 16 } }}>
                                                             Diagnóstico: <span style={{ fontWeight: 400 }}>{consultation.diagnosis}</span>
                                                         </Typography>
-                                                        <Typography variant="body1" sx={{ fontWeight: 600, color: '#000' }}>
+                                                        <Typography variant="body1" sx={{ fontWeight: 600, color: '#000', fontSize: { xs: 12, sm: 16 } }}>
                                                             Tratamiento: <span style={{ fontWeight: 400 }}>{consultation.treatment}</span>
                                                         </Typography>
-                                                        <Typography variant="body1" sx={{ fontWeight: 600, color: '#000' }}>
+                                                        <Typography variant="body1" sx={{ fontWeight: 600, color: '#000', fontSize: { xs: 12, sm: 16 } }}>
                                                             Recomendaciones: <span style={{ fontWeight: 400 }}>{consultation.recommendations}</span>
                                                         </Typography>
-                                                        <Typography variant="body1" sx={{ fontWeight: 600, color: '#000' }}>
+                                                        <Typography variant="body1" sx={{ fontWeight: 600, color: '#000', fontSize: { xs: 12, sm: 16 } }}>
                                                             Médico: <span style={{ fontWeight: 400 }}>{consultation.doctor}</span>
                                                         </Typography>
-                                                        <Typography variant="body1" sx={{ fontWeight: 600, color: '#000' }}>
+                                                        <Typography variant="body1" sx={{ fontWeight: 600, color: '#000', fontSize: { xs: 12, sm: 16 } }}>
                                                             Observaciones: <span style={{ fontWeight: 400 }}>{consultation.observations}</span>
                                                         </Typography>
                                                     </Box>
@@ -660,7 +665,7 @@ const Profile = () => {
                                             </Box>
                                         ))
                                     ) : (
-                                        <Typography variant="body1" sx={{ color: '#000' }}>
+                                        <Typography variant="body1" sx={{ color: '#000', fontSize: { xs: 12, sm: 16 } }}>
                                             No hay consultas médicas disponibles.
                                         </Typography>
                                     )}
@@ -682,12 +687,12 @@ const Profile = () => {
                         >
                             <CardContent>
                                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                                    <PsychologyIcon sx={{ fontSize: 40, color: '#921F45', mr: 2 }} />
-                                    <Typography variant="h5" sx={{ fontWeight: 700, color: '#000' }}>
+                                    <PsychologyIcon sx={{ fontSize: { xs: 30, sm: 40 }, color: '#921F45', mr: 2 }} />
+                                    <Typography variant="h5" sx={{ fontWeight: 700, color: '#000', fontSize: { xs: 18, sm: 24 } }}>
                                         Historial de Consultas Psicológicas
                                     </Typography>
                                 </Box>
- 
+
                                 <List>
                                     {selectedPerformance && psychologicalConsultations[selectedPerformance].length > 0 ? (
                                         psychologicalConsultations[selectedPerformance].map((consultation, index) => (
@@ -705,43 +710,44 @@ const Profile = () => {
                                                     <ListItemText
                                                         primary={`Sesión - ${consultation.date}`}
                                                         secondary={consultation.reason}
-                                                        primaryTypographyProps={{ color: '#000', fontWeight: 600 }}
-                                                        secondaryTypographyProps={{ color: '#000' }}
+                                                        primaryTypographyProps={{ color: '#000', fontWeight: 600, fontSize: { xs: 12, sm: 16 } }}
+                                                        secondaryTypographyProps={{ color: '#000', fontSize: { xs: 10, sm: 14 } }}
                                                     />
                                                     <ExpandMoreIcon
                                                         sx={{
                                                             transform: expandedPsychological === index ? 'rotate(180deg)' : 'rotate(0deg)',
-                                                            color: '#921F45'
+                                                            color: '#921F45',
+                                                            fontSize: { xs: 20, sm: 24 }
                                                         }}
                                                     />
                                                 </ListItem>
                                                 <Collapse in={expandedPsychological === index} timeout="auto" unmountOnExit>
                                                     <Box sx={{ p: 2, bgcolor: '#f9f9f9', borderRadius: 2, ml: 2 }}>
-                                                        <Typography variant="body1" sx={{ fontWeight: 600, color: '#000' }}>
+                                                        <Typography variant="body1" sx={{ fontWeight: 600, color: '#000', fontSize: { xs: 12, sm: 16 } }}>
                                                             Fecha y Hora: <span style={{ fontWeight: 400 }}>{consultation.date}</span>
                                                         </Typography>
-                                                        <Typography variant="body1" sx={{ fontWeight: 600, color: '#000' }}>
+                                                        <Typography variant="body1" sx={{ fontWeight: 600, color: '#000', fontSize: { xs: 12, sm: 16 } }}>
                                                             Motivo: <span style={{ fontWeight: 400 }}>{consultation.reason}</span>
                                                         </Typography>
-                                                        <Typography variant="body1" sx={{ fontWeight: 600, color: '#000' }}>
+                                                        <Typography variant="body1" sx={{ fontWeight: 600, color: '#000', fontSize: { xs: 12, sm: 16 } }}>
                                                             Área de Atención: <span style={{ fontWeight: 400 }}>{consultation.area}</span>
                                                         </Typography>
-                                                        <Typography variant="body1" sx={{ fontWeight: 600, color: '#000' }}>
+                                                        <Typography variant="body1" sx={{ fontWeight: 600, color: '#000', fontSize: { xs: 12, sm: 16 } }}>
                                                             Diagnóstico: <span style={{ fontWeight: 400 }}>{consultation.diagnosis}</span>
                                                         </Typography>
-                                                        <Typography variant="body1" sx={{ fontWeight: 600, color: '#000' }}>
+                                                        <Typography variant="body1" sx={{ fontWeight: 600, color: '#000', fontSize: { xs: 12, sm: 16 } }}>
                                                             Estrategias: <span style={{ fontWeight: 400 }}>{consultation.strategies}</span>
                                                         </Typography>
-                                                        <Typography variant="body1" sx={{ fontWeight: 600, color: '#000' }}>
+                                                        <Typography variant="body1" sx={{ fontWeight: 600, color: '#000', fontSize: { xs: 12, sm: 16 } }}>
                                                             Observaciones: <span style={{ fontWeight: 400 }}>{consultation.observations}</span>
                                                         </Typography>
-                                                        <Typography variant="body1" sx={{ fontWeight: 600, color: '#000' }}>
+                                                        <Typography variant="body1" sx={{ fontWeight: 600, color: '#000', fontSize: { xs: 12, sm: 16 } }}>
                                                             Acuerdos: <span style={{ fontWeight: 400 }}>{consultation.agreements}</span>
                                                         </Typography>
-                                                        <Typography variant="body1" sx={{ fontWeight: 600, color: '#000' }}>
+                                                        <Typography variant="body1" sx={{ fontWeight: 600, color: '#000', fontSize: { xs: 12, sm: 16 } }}>
                                                             Sesiones: <span style={{ fontWeight: 400 }}>{consultation.sessions}</span>
                                                         </Typography>
-                                                        <Typography variant="body1" sx={{ fontWeight: 600, color: '#000' }}>
+                                                        <Typography variant="body1" sx={{ fontWeight: 600, color: '#000', fontSize: { xs: 12, sm: 16 } }}>
                                                             Psicólogo: <span style={{ fontWeight: 400 }}>{consultation.psychologist}</span>
                                                         </Typography>
                                                     </Box>
@@ -749,7 +755,7 @@ const Profile = () => {
                                             </Box>
                                         ))
                                     ) : (
-                                        <Typography variant="body1" sx={{ color: '#000' }}>
+                                        <Typography variant="body1" sx={{ color: '#000', fontSize: { xs: 12, sm: 16 } }}>
                                             No hay consultas psicológicas disponibles.
                                         </Typography>
                                     )}
