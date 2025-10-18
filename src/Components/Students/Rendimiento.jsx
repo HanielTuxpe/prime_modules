@@ -74,22 +74,22 @@ export default function RendimientoAlumnos() {
     const getEstatusImage = (promedioFinal) => {
         if (promedioFinal >= 9) {
             return {
-                src: '/src/assets/MEDALLA_PLATA.png',
+                src: '../../assets/MEDALLA_PLATA.png',
                 alt: 'Excelente',
             };
         } else if (promedioFinal >= 8) {
             return {
-                src: '/src/assets/MEDALLA_MORADO.png',
+                src: '../../assets/MEDALLA_MORADO.png',
                 alt: 'Bueno',
             };
         } else if (promedioFinal >= 7) {
             return {
-                src: '/src/assets/MEDALLA_VERDE.png',
+                src: '../../assets/MEDALLA_VERDE.png',
                 alt: 'Regular',
             };
         } else {
             return {
-                src: '/src/assets/MEDALLA_ROJA.png',
+                src: '../../assets/MEDALLA_ROJA.png',
                 alt: 'Necesita mejorar',
             };
         }

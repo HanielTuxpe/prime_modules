@@ -139,8 +139,8 @@ export default function RendimientoAlumnos() {
       const prediccion = ultimoPromedioPorMateria[Materia]
         ? parseFloat((ultimoPromedioPorMateria[Materia] + (Math.random() - 0.5) * 0.5).toFixed(2))
         : PromedioFinal
-        ? parseFloat((PromedioFinal + (Math.random() - 0.5) * 0.5).toFixed(2))
-        : 8.0;
+          ? parseFloat((PromedioFinal + (Math.random() - 0.5) * 0.5).toFixed(2))
+          : 8.0;
       const calificacionReal = PromedioFinal ? parseFloat(PromedioFinal.toFixed(2)) : null;
       cuatrimestresData[Cuatrimestre].push([Materia, prediccion, calificacionReal]);
       ultimoPromedioPorMateria[Materia] = calificacionReal || prediccion;
@@ -171,23 +171,23 @@ export default function RendimientoAlumnos() {
   const getEstatusImage = (promedioFinal) => {
     if (promedioFinal >= 9) {
       return {
-        src: "/src/assets/MEDALLA_PLATA.png",
-        alt: "Excelente",
+        src: '../../assets/MEDALLA_PLATA.png',
+        alt: 'Excelente',
       };
     } else if (promedioFinal >= 8) {
       return {
-        src: "/src/assets/MEDALLA_MORADO.png",
-        alt: "Bueno",
+        src: '../../assets/MEDALLA_MORADO.png',
+        alt: 'Bueno',
       };
     } else if (promedioFinal >= 7) {
       return {
-        src: "/src/assets/MEDALLA_VERDE.png",
-        alt: "Regular",
+        src: '../../assets/MEDALLA_VERDE.png',
+        alt: 'Regular',
       };
     } else {
       return {
-        src: "/src/assets/MEDALLA_ROJA.png",
-        alt: "Necesita mejorar",
+        src: '../../assets/MEDALLA_ROJA.png',
+        alt: 'Necesita mejorar',
       };
     }
   };
@@ -301,7 +301,7 @@ export default function RendimientoAlumnos() {
         color: '#000',
       },
     },
-    legend: { 
+    legend: {
       position: isMobile ? "top" : "bottom", // Legend at top on mobile
       textStyle: {
         fontSize: isMobile ? 10 : 12,
@@ -384,102 +384,102 @@ export default function RendimientoAlumnos() {
         boxShadow: '0 6px 18px rgba(0, 0, 0, 0.1)',
         transition: 'all 0.3s ease-in-out',
         backgroundColor: theme.palette.paper,
-        
+
       }}>
 
-         {/* Tarjeta de datos del alumno */}
-            <Card
-                sx={{
-                    mb: 4,
-                    borderRadius: '16px',
-                    background: 'linear-gradient(to right, rgb(160, 12, 71), rgb(199, 22, 87))',
-                    color: 'white',
-                    boxShadow: '0 6px 18px rgba(0, 0, 0, 0.2)',
-                    transition: 'all 0.3s ease-in-out',
-                }}
-            >
-                <CardContent>
-                    <Grid container spacing={2} alignItems="center">
-                        <Grid item xs={12}>
-                            <Box
-                                sx={{
-                                    display: 'flex',
-                                    flexDirection: 'row',
-                                    alignItems: 'center',
-                                    justifyContent: 'space-between',
-                                    flexWrap: 'nowrap',
-                                    gap: 1,
-                                    minWidth: 0, // Allows flex items to shrink
-                                }}
-                            >
-                                <Box sx={{ minWidth: 0, flexShrink: 1 }}>
-                                    <Typography
-                                        variant="body1"
-                                        sx={{
-                                            fontWeight: 'bold',
-                                            whiteSpace: 'nowrap',
-                                            overflow: 'hidden',
-                                            textOverflow: 'ellipsis',
-                                            fontSize: { xs: '0.8rem', sm: '1.2rem' }, // tamaño pequeño en móvil, grande en desktop
-                                        }}
-                                    >
-                                        {data[0].Nombre} {data[0].APaterno} {data[0].AMaterno}
-                                    </Typography>
-                                    <Typography
-                                        variant="body1"
-                                        sx={{
-                                            mt: 1,
-                                            whiteSpace: 'nowrap',
-                                            overflow: 'hidden',
-                                            textOverflow: 'ellipsis',
-                                            fontSize: { xs: '0.6rem', sm: '1.2rem' }, // tamaño adaptativo
-                                        }}
-                                    >
-                                        CUATRIMESTRE: {data[0].Cuatrimestre}º | GRUPO: {data[0].Grupo}
-                                    </Typography>
-                                </Box>
+        {/* Tarjeta de datos del alumno */}
+        <Card
+          sx={{
+            mb: 4,
+            borderRadius: '16px',
+            background: 'linear-gradient(to right, rgb(160, 12, 71), rgb(199, 22, 87))',
+            color: 'white',
+            boxShadow: '0 6px 18px rgba(0, 0, 0, 0.2)',
+            transition: 'all 0.3s ease-in-out',
+          }}
+        >
+          <CardContent>
+            <Grid container spacing={2} alignItems="center">
+              <Grid item xs={12}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    flexWrap: 'nowrap',
+                    gap: 1,
+                    minWidth: 0, // Allows flex items to shrink
+                  }}
+                >
+                  <Box sx={{ minWidth: 0, flexShrink: 1 }}>
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        fontWeight: 'bold',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        fontSize: { xs: '0.8rem', sm: '1.2rem' }, // tamaño pequeño en móvil, grande en desktop
+                      }}
+                    >
+                      {data[0].Nombre} {data[0].APaterno} {data[0].AMaterno}
+                    </Typography>
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        mt: 1,
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        fontSize: { xs: '0.6rem', sm: '1.2rem' }, // tamaño adaptativo
+                      }}
+                    >
+                      CUATRIMESTRE: {data[0].Cuatrimestre}º | GRUPO: {data[0].Grupo}
+                    </Typography>
+                  </Box>
 
-                                <Box
-                                    sx={{
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        alignItems: 'center',
-                                        marginLeft: 'auto',
-                                        flexShrink: 0,
-                                        gap: 0.5,
-                                        '& > img': {
-                                            width: { xs: 30, sm: 50 },
-                                            height: { xs: 30, sm: 50 },
-                                        },
-                                        '& > .MuiTypography-root': {
-                                            fontSize: { xs: '0.6rem', sm: '0.9rem' },
-                                        },
-                                    }}
-                                >
-                                    <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
-                                        ESTATUS
-                                    </Typography>
-                                    <Box component="img" src={estatus.src} alt={estatus.alt} />
-                                    <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
-                                        {estatus.alt}
-                                    </Typography>
-                                </Box>
-                            </Box>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      marginLeft: 'auto',
+                      flexShrink: 0,
+                      gap: 0.5,
+                      '& > img': {
+                        width: { xs: 30, sm: 50 },
+                        height: { xs: 30, sm: 50 },
+                      },
+                      '& > .MuiTypography-root': {
+                        fontSize: { xs: '0.6rem', sm: '0.9rem' },
+                      },
+                    }}
+                  >
+                    <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+                      ESTATUS
+                    </Typography>
+                    <Box component="img" src={estatus.src} alt={estatus.alt} />
+                    <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+                      {estatus.alt}
+                    </Typography>
+                  </Box>
+                </Box>
 
-                            <Typography
-                                variant="body1"
-                                sx={{
-                                    mt: 1,
-                                    fontSize: { xs: '0.7rem', sm: '1.2rem' }, // tamaño adaptativo para nombre de carrera
-                                    wordBreak: 'break-word', // asegura que palabras largas también bajen de línea
-                                }}
-                            >
-                                {data[0].NombreCarrera}
-                            </Typography>
-                        </Grid>
-                    </Grid>
-                </CardContent>
-            </Card>
+                <Typography
+                  variant="body1"
+                  sx={{
+                    mt: 1,
+                    fontSize: { xs: '0.7rem', sm: '1.2rem' }, // tamaño adaptativo para nombre de carrera
+                    wordBreak: 'break-word', // asegura que palabras largas también bajen de línea
+                  }}
+                >
+                  {data[0].NombreCarrera}
+                </Typography>
+              </Grid>
+            </Grid>
+          </CardContent>
+        </Card>
 
         {/* Gráfica de predicciones existente */}
         <Card sx={{
@@ -487,15 +487,15 @@ export default function RendimientoAlumnos() {
           boxShadow: '0 6px 18px rgba(0, 0, 0, 0.1)',
           transition: 'all 0.3s ease-in-out',
           backgroundColor: theme.palette.paper,
-         
+
         }}>
           <CardContent>
-            <Typography 
-              variant={isMobile ? "h6" : "h5"} 
-              sx={{ 
-                color: '#921F45', 
-                fontWeight: 'bold', 
-              
+            <Typography
+              variant={isMobile ? "h6" : "h5"}
+              sx={{
+                color: '#921F45',
+                fontWeight: 'bold',
+
                 fontSize: isMobile ? '1rem' : '1.25rem',
               }}
             >
@@ -528,11 +528,11 @@ export default function RendimientoAlumnos() {
           mb: isMobile ? 2 : 4,
         }}>
           <CardContent>
-            <Typography 
-              variant={isMobile ? "h6" : "h5"} 
-              sx={{ 
-                color: '#921F45', 
-                fontWeight: 'bold', 
+            <Typography
+              variant={isMobile ? "h6" : "h5"}
+              sx={{
+                color: '#921F45',
+                fontWeight: 'bold',
                 mb: isMobile ? 1 : 2,
                 fontSize: isMobile ? '1rem' : '1.25rem',
               }}
