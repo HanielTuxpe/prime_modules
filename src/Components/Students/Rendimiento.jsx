@@ -5,6 +5,10 @@ import { useState, useEffect } from 'react';
 import AnimatedGraph from './Graphs/AnimatedGraph';
 import { obtenerMatricula } from '../Access/SessionService';
 import CircularProgress from '@mui/material/CircularProgress';
+import MEDALLA_PLATA from '../../assets/MEDALLA_PLATA.png'; // Importa tu menú
+import MEDALLA_MORADO from '../../assets/MEDALLA_MORADO.png';
+import MEDALLA_ROJA from '../../assets/MEDALLA_ROJA.png';
+import MEDALLA_VERDE from '../../assets/MEDALLA_VERDE.png';
 
 const BaseURL = import.meta.env.VITE_URL_BASE_API;
 
@@ -74,22 +78,22 @@ export default function RendimientoAlumnos() {
     const getEstatusImage = (promedioFinal) => {
         if (promedioFinal >= 9) {
             return {
-                src: '../../assets/MEDALLA_PLATA.png',
+                src: MEDALLA_PLATA,
                 alt: 'Excelente',
             };
         } else if (promedioFinal >= 8) {
             return {
-                src: '../../assets/MEDALLA_MORADO.png',
+                src: MEDALLA_MORADO,
                 alt: 'Bueno',
             };
         } else if (promedioFinal >= 7) {
             return {
-                src: '../../assets/MEDALLA_VERDE.png',
+                src: MEDALLA_VERDE,
                 alt: 'Regular',
             };
         } else {
             return {
-                src: '../../assets/MEDALLA_ROJA.png',
+                src: MEDALLA_ROJA,
                 alt: 'Necesita mejorar',
             };
         }
