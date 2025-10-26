@@ -48,6 +48,7 @@ export default defineConfig({
 
       // 👇 SECCIÓN DE CACHÉ ACTUALIZADA PARA TU NUEVO BACKEND
       workbox: {
+        maximumFileSizeToCacheInBytes: 3000000, // 3 MB (ajusta según necesites)
         runtimeCaching: [
           {
             // 🧠 Coincide con tu API actual en Render

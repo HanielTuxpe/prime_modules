@@ -16,12 +16,14 @@ import {
   useTheme,
   Alert,
   Button,
+  Snackbar,
 } from '@mui/material';
 import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
 import PsychologyIcon from '@mui/icons-material/Psychology';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import axios from 'axios';
 import { obtenerMatricula } from '../Access/SessionService';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle'; // Asegurado
 import { Html5QrcodeScanner } from 'html5-qrcode';
 
 const BaseURL = import.meta.env.VITE_URL_BASE_API;
@@ -47,12 +49,14 @@ const Profile = () => {
   const [expandedPsychological, setExpandedPsychological] = useState(null);
   const [attendanceRecords, setAttendanceRecords] = useState([]);
   const [scannerActive, setScannerActive] = useState(false);
+  const [scanSuccess, setScanSuccess] = useState(false);
+  const [scanError, setScanError] = useState(null); // For invalid QR code feedback
   const scannerRef = useRef(null);
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-  // 🔌 Detectar conexión/desconexión en tiempo real
+  // 🔌 Detectar conexión/desconexión
   useEffect(() => {
     const handleOnline = () => setIsOffline(false);
     const handleOffline = () => setIsOffline(true);
@@ -66,7 +70,7 @@ const Profile = () => {
     };
   }, []);
 
-  // 📊 Consultar datos de la API o recuperar del almacenamiento
+  // 📊 Consultar datos y cargar registros
   useEffect(() => {
     const fetchStudentData = async () => {
       try {
@@ -114,13 +118,13 @@ const Profile = () => {
       }
     };
 
-    // Cargar registros de asistencia desde localStorage
+    // Cargar registros de asistencia
     const savedAttendance = localStorage.getItem('attendanceRecords');
     if (savedAttendance) {
       setAttendanceRecords(JSON.parse(savedAttendance));
     }
 
-    // Seleccionar un perfil de rendimiento al azar al cargar
+    // Seleccionar rendimiento al azar
     const performances = ['Muy Alto Rendimiento', 'Alto Rendimiento', 'Rendimiento Medio', 'Rendimiento Bajo'];
     const randomPerformance = performances[Math.floor(Math.random() * performances.length)];
     setSelectedPerformance(randomPerformance);
@@ -154,8 +158,85 @@ const Profile = () => {
     return `${year}-${term}`;
   };
 
-  // Datos ficticios para consultas médicas y psicológicas (mantenidos como estaban)
-  // Datos ficticios para consultas médicas
+  // Iniciar escaneo de QR
+  const startScanner = () => {
+    if (scannerRef.current) {
+      scannerRef.current.clear();
+    }
+    const html5QrcodeScanner = new Html5QrcodeScanner(
+      'qr-reader',
+      { fps: 10, qrbox: { width: 250, height: 250 } },
+      false
+    );
+    scannerRef.current = html5QrcodeScanner;
+
+    html5QrcodeScanner.render(
+      (decodedText) => {
+        // Validar el contenido del QR
+        const validQRCodes = ['Entrada_26/10/2025_asdf', 'Salida_26/10/2025_asdr'];
+        if (!validQRCodes.includes(decodedText)) {
+          setScanError('Código QR no válido. Usa un código QR autorizado.');
+          return;
+        }
+
+        // Determinar tipo de registro
+        const now = new Date().toLocaleString('es-MX', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true,
+        });
+        const type = decodedText.includes('Entrada') ? 'Entrada' : 'Salida';
+
+        // Evitar registro duplicado del mismo tipo consecutivamente
+        const lastRecord = attendanceRecords[0]; // Most recent at index 0
+        if (lastRecord && lastRecord.type === type) {
+          setScanError(`No se puede registrar ${type} consecutivamente.`);
+          return;
+        }
+
+        // Agregar nuevo registro al inicio (más reciente arriba)
+        const newRecord = { date: now, type };
+        setAttendanceRecords((prev) => {
+          const updatedRecords = [newRecord, ...prev];
+          localStorage.setItem('attendanceRecords', JSON.stringify(updatedRecords));
+          return updatedRecords;
+        });
+        setScanSuccess(true);
+        stopScanner(); // Detener escaneo tras éxito
+      },
+      (error) => {
+        // Suprimir errores repetitivos en consola
+        if (!error.includes('No MultiFormat Readers were able to detect the code')) {
+          console.warn('Error al escanear QR:', error);
+        }
+      }
+    );
+
+    setScannerActive(true);
+  };
+
+  // Detener escaneo de QR
+  const stopScanner = () => {
+    if (scannerRef.current) {
+      scannerRef.current.clear();
+      setScannerActive(false);
+    }
+  };
+
+  // Cerrar feedback de éxito
+  const handleCloseSuccess = () => {
+    setScanSuccess(false);
+  };
+
+  // Cerrar feedback de error
+  const handleCloseError = () => {
+    setScanError(null);
+  };
+
+   // Datos ficticios para consultas médicas
   const medicalConsultations = {
     'Muy Alto Rendimiento': [
       {
@@ -439,50 +520,6 @@ const Profile = () => {
     setExpandedPsychological(expandedPsychological === index ? null : index);
   };
 
-  // Iniciar escaneo de QR
-  const startScanner = () => {
-    if (scannerRef.current) {
-      scannerRef.current.clear();
-    }
-    const html5QrcodeScanner = new Html5QrcodeScanner(
-      'qr-reader',
-      { fps: 10, qrbox: { width: 250, height: 250 } },
-      /* verbose= */ false
-    );
-    scannerRef.current = html5QrcodeScanner;
-
-    html5QrcodeScanner.render((decodedText, decodedResult) => {
-      // Al detectar un QR, registrar entrada o salida
-      const now = new Date().toLocaleString('es-MX', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: true,
-      });
-      const lastRecord = attendanceRecords[attendanceRecords.length - 1];
-      const type = lastRecord?.type === 'Entrada' ? 'Salida' : 'Entrada';
-      const newRecord = { date: now, type };
-      setAttendanceRecords((prev) => [...prev, newRecord]);
-      localStorage.setItem('attendanceRecords', JSON.stringify([...attendanceRecords, newRecord]));
-      html5QrcodeScanner.clear(); // Detener escaneo después de un éxito
-      setScannerActive(false);
-    }, (error) => {
-      console.warn('Error al escanear QR:', error);
-    });
-
-    setScannerActive(true);
-  };
-
-  // Detener escaneo de QR
-  const stopScanner = () => {
-    if (scannerRef.current) {
-      scannerRef.current.clear();
-      setScannerActive(false);
-    }
-  };
-
   return (
     <Container
       sx={{
@@ -495,7 +532,6 @@ const Profile = () => {
       }}
       disableGutters
     >
-      {/* 🔌 Indicador de conexión */}
       {isOffline && (
         <Alert severity="warning" sx={{ mb: 2, borderRadius: '12px', width: '100%' }}>
           ⚠️ Estás sin conexión. Se están mostrando los datos guardados.
@@ -560,8 +596,14 @@ const Profile = () => {
                     borderRadius: 2,
                     overflow: 'hidden',
                     display: scannerActive ? 'block' : 'none',
+                    backgroundColor: scannerActive ? '#f0f0f0' : 'transparent',
                   }}
                 />
+                {scanError && (
+                  <Alert severity="error" sx={{ mt: 2, width: '100%' }} onClose={handleCloseError}>
+                    {scanError}
+                  </Alert>
+                )}
                 <Box sx={{ width: '100%', mt: 3 }}>
                   <Typography variant="h6" sx={{ fontWeight: 600, color: '#921F45', mb: 2, fontSize: { xs: 16, sm: 20 } }}>
                     Registro de Entrada y Salida
@@ -597,7 +639,7 @@ const Profile = () => {
                 </Box>
               </Card>
 
-              {/* Student Information Section (sin cambios) */}
+              {/* Student Information Section */}
               <Card
                 sx={{
                   flex: 2,
@@ -693,7 +735,6 @@ const Profile = () => {
               </Card>
             </Box>
 
-            {/* Servicios Médicos (sin cambios) */}
             <Card
               sx={{
                 width: '100%',
@@ -774,7 +815,7 @@ const Profile = () => {
               </CardContent>
             </Card>
 
-            {/* Servicios Psicológicos (sin cambios) */}
+            {/* Servicios Psicológicos */}
             <Card
               sx={{
                 width: '100%',
@@ -860,6 +901,30 @@ const Profile = () => {
           </Box>
         </Fade>
       )}
+      {/* Feedback de éxito */}
+      <Snackbar
+        open={scanSuccess}
+        autoHideDuration={3000}
+        onClose={handleCloseSuccess}
+        message={`Registro ${attendanceRecords[0]?.type || 'Entrada'} realizado a las ${attendanceRecords[0]?.date || new Date().toLocaleString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: true })}`}
+        action={
+          <Button color="inherit" size="small" onClick={handleCloseSuccess}>
+            Cerrar
+          </Button>
+        }
+      />
+      {/* Feedback de error */}
+      <Snackbar
+        open={!!scanError}
+        autoHideDuration={3000}
+        onClose={handleCloseError}
+        message={scanError}
+        action={
+          <Button color="inherit" size="small" onClick={handleCloseError}>
+            Cerrar
+          </Button>
+        }
+      />
     </Container>
   );
 };

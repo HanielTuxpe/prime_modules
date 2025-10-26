@@ -14,6 +14,11 @@ import axios from 'axios';
 import { useState, useEffect } from 'react';
 import { obtenerMatricula } from '../Access/SessionService';
 
+import MEDALLA_PLATA from "../../assets/MEDALLA_PLATA.png";
+import MEDALLA_MORADO from "../../assets/MEDALLA_MORADO.png";
+import MEDALLA_ROJA from "../../assets/MEDALLA_ROJA.png";
+import MEDALLA_VERDE from "../../assets/MEDALLA_VERDE.png";
+
 export default function RendimientoAlumnos() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm')); // Detects screens smaller than 'sm' (600px)
@@ -270,7 +275,7 @@ export default function RendimientoAlumnos() {
     return cuatrimestresData;
   };
 
-  // 🏅 Determinar imagen según promedio
+ // 🏅 Determinar imagen según promedio
   const getEstatusImage = (promedioFinal) => {
     if (promedioFinal >= 9) return { src: MEDALLA_PLATA, alt: "Excelente" };
     if (promedioFinal >= 8) return { src: MEDALLA_MORADO, alt: "Bueno" };

@@ -24,6 +24,7 @@ import Predicciones from './Components/Students/Predicciones';
 import Profile from './Components/Students/Profile';
 import Payments from './Components/Students/Paymets';
 
+
 // Asesor / Docente
 import GrupoAccesorado from './Components/Asesor/GrupoAsesorado';
 import GrupoAsesoradoRiesgo from './Components/Asesor/GrupoAsesoradoRiesgo';

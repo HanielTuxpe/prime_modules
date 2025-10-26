@@ -1,4 +1,242 @@
-  // Datos ficticios para consultas médicas
+import { useState, useEffect, useRef } from 'react';
+import {
+  Container,
+  Box,
+  Typography,
+  Card,
+  CardContent,
+  CircularProgress,
+  Fade,
+  Divider,
+  List,
+  ListItem,
+  ListItemText,
+  Collapse,
+  useMediaQuery,
+  useTheme,
+  Alert,
+  Button,
+  Snackbar,
+} from '@mui/material';
+import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
+import PsychologyIcon from '@mui/icons-material/Psychology';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import axios from 'axios';
+import { obtenerMatricula } from '../Access/SessionService';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle'; // Asegurado
+import { Html5QrcodeScanner } from 'html5-qrcode';
+
+const BaseURL = import.meta.env.VITE_URL_BASE_API;
+
+const Profile = () => {
+  const matricula = obtenerMatricula();
+  const [studentData, setStudentData] = useState({
+    matricula: '',
+    nombre: '',
+    apaterno: '',
+    amaterno: '',
+    cuatrimestre: '',
+    grupo: '',
+    nombreCarrera: '',
+    email: '',
+    periodo: '',
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const [selectedPerformance, setSelectedPerformance] = useState(null);
+  const [expandedMedical, setExpandedMedical] = useState(null);
+  const [expandedPsychological, setExpandedPsychological] = useState(null);
+  const [attendanceRecords, setAttendanceRecords] = useState([]);
+  const [scannerActive, setScannerActive] = useState(false);
+  const [scanSuccess, setScanSuccess] = useState(false);
+  const [scanError, setScanError] = useState(null); // For invalid QR code feedback
+  const scannerRef = useRef(null);
+
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
+  // 🔌 Detectar conexión/desconexión
+  useEffect(() => {
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  // 📊 Consultar datos y cargar registros
+  useEffect(() => {
+    const fetchStudentData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        if (!isOffline) {
+          const response = await axios.get(`${BaseURL}Fulldata/?matricula=${matricula}`);
+          if (response.status === 200 && response.data.data) {
+            const data = response.data.data[0];
+            const newStudentData = {
+              matricula: data.Matricula,
+              nombre: data.Nombre,
+              apaterno: data.APaterno,
+              amaterno: data.AMaterno,
+              cuatrimestre: data.Cuatrimestre,
+              grupo: data.Grupo,
+              nombreCarrera: data.NombreCarrera,
+              email: data.Email,
+              periodo: data.Periodo,
+            };
+            setStudentData(newStudentData);
+            localStorage.setItem('studentData', JSON.stringify(newStudentData));
+          } else {
+            throw new Error('Datos no válidos recibidos de la API');
+          }
+        } else {
+          console.warn('⚠️ Sin conexión, cargando datos guardados...');
+          const localData = localStorage.getItem('studentData');
+          if (localData) {
+            setStudentData(JSON.parse(localData));
+          } else {
+            setError('No hay datos guardados y no hay conexión a internet.');
+          }
+        }
+      } catch (error) {
+        console.warn('⚠️ Error al cargar datos, intentando con datos locales...');
+        const localData = localStorage.getItem('studentData');
+        if (localData) {
+          setStudentData(JSON.parse(localData));
+        } else {
+          setError('No se pudieron cargar los datos del estudiante y no hay datos guardados.');
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    // Cargar registros de asistencia
+    const savedAttendance = localStorage.getItem('attendanceRecords');
+    if (savedAttendance) {
+      setAttendanceRecords(JSON.parse(savedAttendance));
+    }
+
+    // Seleccionar rendimiento al azar
+    const performances = ['Muy Alto Rendimiento', 'Alto Rendimiento', 'Rendimiento Medio', 'Rendimiento Bajo'];
+    const randomPerformance = performances[Math.floor(Math.random() * performances.length)];
+    setSelectedPerformance(randomPerformance);
+
+    if (matricula) {
+      fetchStudentData();
+    }
+  }, [matricula, isOffline]);
+
+  const fullName = `${studentData.nombre} ${studentData.apaterno} ${studentData.amaterno}`.trim();
+
+  const formatCuatrimestre = (cuatrimestre) => {
+    const cuatrimestreNum = parseInt(cuatrimestre, 10);
+    if (isNaN(cuatrimestreNum)) return cuatrimestre;
+    const cuatrimestreNames = [
+      'Primero', 'Segundo', 'Tercero', 'Cuarto', 'Quinto',
+      'Sexto', 'Séptimo', 'Octavo', 'Noveno', 'Décimo'
+    ];
+    return `${cuatrimestreNames[cuatrimestreNum - 1] || cuatrimestre} (${cuatrimestre}°)`;
+  };
+
+  const toTitleCase = (str) => {
+    if (!str) return '';
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+  };
+
+  const formatPeriodo = (periodo) => {
+    if (!periodo) return 'N/A';
+    const year = periodo.slice(0, 4);
+    const term = periodo.slice(4);
+    return `${year}-${term}`;
+  };
+
+  // Iniciar escaneo de QR
+  const startScanner = () => {
+    if (scannerRef.current) {
+      scannerRef.current.clear();
+    }
+    const html5QrcodeScanner = new Html5QrcodeScanner(
+      'qr-reader',
+      { fps: 10, qrbox: { width: 250, height: 250 } },
+      false
+    );
+    scannerRef.current = html5QrcodeScanner;
+
+    html5QrcodeScanner.render(
+      (decodedText) => {
+        // Validar el contenido del QR
+        const validQRCodes = ['Entrada_26/10/2025_asdf', 'Salida_26/10/2025_asdr'];
+        if (!validQRCodes.includes(decodedText)) {
+          setScanError('Código QR no válido. Usa un código QR autorizado.');
+          return;
+        }
+
+        // Determinar tipo de registro
+        const now = new Date().toLocaleString('es-MX', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true,
+        });
+        const type = decodedText.includes('Entrada') ? 'Entrada' : 'Salida';
+
+        // Evitar registro duplicado del mismo tipo consecutivamente
+        const lastRecord = attendanceRecords[0]; // Most recent at index 0
+        if (lastRecord && lastRecord.type === type) {
+          setScanError(`No se puede registrar ${type} consecutivamente.`);
+          return;
+        }
+
+        // Agregar nuevo registro al inicio (más reciente arriba)
+        const newRecord = { date: now, type };
+        setAttendanceRecords((prev) => {
+          const updatedRecords = [newRecord, ...prev];
+          localStorage.setItem('attendanceRecords', JSON.stringify(updatedRecords));
+          return updatedRecords;
+        });
+        setScanSuccess(true);
+        stopScanner(); // Detener escaneo tras éxito
+      },
+      (error) => {
+        // Suprimir errores repetitivos en consola
+        if (!error.includes('No MultiFormat Readers were able to detect the code')) {
+          console.warn('Error al escanear QR:', error);
+        }
+      }
+    );
+
+    setScannerActive(true);
+  };
+
+  // Detener escaneo de QR
+  const stopScanner = () => {
+    if (scannerRef.current) {
+      scannerRef.current.clear();
+      setScannerActive(false);
+    }
+  };
+
+  // Cerrar feedback de éxito
+  const handleCloseSuccess = () => {
+    setScanSuccess(false);
+  };
+
+  // Cerrar feedback de error
+  const handleCloseError = () => {
+    setScanError(null);
+  };
+
+   // Datos ficticios para consultas médicas
   const medicalConsultations = {
     'Muy Alto Rendimiento': [
       {
@@ -273,3 +511,422 @@
       }
     ]
   };
+
+  const handleMedicalToggle = (index) => {
+    setExpandedMedical(expandedMedical === index ? null : index);
+  };
+
+  const handlePsychologicalToggle = (index) => {
+    setExpandedPsychological(expandedPsychological === index ? null : index);
+  };
+
+  return (
+    <Container
+      sx={{
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: { xs: 2, md: 4 },
+      }}
+      disableGutters
+    >
+      {isOffline && (
+        <Alert severity="warning" sx={{ mb: 2, borderRadius: '12px', width: '100%' }}>
+          ⚠️ Estás sin conexión. Se están mostrando los datos guardados.
+        </Alert>
+      )}
+
+      {loading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
+          <CircularProgress sx={{ color: '#921F45' }} />
+        </Box>
+      ) : error ? (
+        <Typography color="error" variant="h6" sx={{ textAlign: 'center', color: '#000', fontSize: { xs: 16, sm: 20 } }}>
+          {error}
+        </Typography>
+      ) : (
+        <Fade in={!loading} timeout={600}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, width: '100%' }}>
+            {/* Perfil del Estudiante */}
+            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 3, width: '100%' }}>
+              {/* QR Scanner Section */}
+              <Card
+                sx={{
+                  flex: 1,
+                  maxWidth: { xs: '100%', md: '35%' },
+                  boxShadow: 3,
+                  borderRadius: 3,
+                  bgcolor: '#ffffff',
+                  p: 3,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  transition: 'transform 0.3s ease-in-out',
+                  '&:hover': { transform: 'translateY(-5px)' },
+                }}
+              >
+                <Typography variant="h6" sx={{ fontWeight: 600, color: '#921F45', mb: 2, fontSize: { xs: 16, sm: 20 } }}>
+                  Escaneo para Registro2
+                </Typography>
+                {!scannerActive ? (
+                  <Button
+                    variant="contained"
+                    sx={{ bgcolor: '#921F45', color: '#fff', '&:hover': { bgcolor: '#7a1a38' }, mb: 2 }}
+                    onClick={startScanner}
+                  >
+                    Iniciar Escaneo3
+                  </Button>
+                ) : (
+                  <Button
+                    variant="contained"
+                    sx={{ bgcolor: '#921F45', color: '#fff', '&:hover': { bgcolor: '#7a1a38' }, mb: 2 }}
+                    onClick={stopScanner}
+                  >
+                    Detener Escaneo
+                  </Button>
+                )}
+                <Box
+                  id="qr-reader"
+                  sx={{
+                    width: '100%',
+                    height: { xs: 200, md: 300 },
+                    border: '2px solid #921F45',
+                    borderRadius: 2,
+                    overflow: 'hidden',
+                    display: scannerActive ? 'block' : 'none',
+                    backgroundColor: scannerActive ? '#f0f0f0' : 'transparent',
+                  }}
+                />
+                {scanError && (
+                  <Alert severity="error" sx={{ mt: 2, width: '100%' }} onClose={handleCloseError}>
+                    {scanError}
+                  </Alert>
+                )}
+                <Box sx={{ width: '100%', mt: 3 }}>
+                  <Typography variant="h6" sx={{ fontWeight: 600, color: '#921F45', mb: 2, fontSize: { xs: 16, sm: 20 } }}>
+                    Registro de Entrada y Salida
+                  </Typography>
+                  <Box
+                    sx={{
+                      maxHeight: { xs: '150px', md: '300px' },
+                      overflowY: 'auto',
+                      pr: 1,
+                    }}
+                  >
+                    <List>
+                      {attendanceRecords.map((record, index) => (
+                        <ListItem
+                          key={index}
+                          sx={{
+                            bgcolor: '#f9f9f9',
+                            mb: 1,
+                            borderRadius: 1,
+                            '&:hover': { bgcolor: '#f0f0f0' }
+                          }}
+                        >
+                          <ListItemText
+                            primary={`${record.date}`}
+                            secondary={`Tipo: ${record.type}`}
+                            primaryTypographyProps={{ color: '#000', fontWeight: 600, fontSize: { xs: 12, sm: 16 } }}
+                            secondaryTypographyProps={{ color: '#000', fontSize: { xs: 10, sm: 14 } }}
+                          />
+                        </ListItem>
+                      ))}
+                    </List>
+                  </Box>
+                </Box>
+              </Card>
+
+              {/* Student Information Section */}
+              <Card
+                sx={{
+                  flex: 2,
+                  boxShadow: 3,
+                  borderRadius: 3,
+                  bgcolor: '#ffffff',
+                  transition: 'transform 0.3s ease-in-out',
+                  '&:hover': { transform: 'translateY(-5px)' },
+                }}
+              >
+                <CardContent>
+                  <Typography
+                    variant="h4"
+                    sx={{
+                      fontWeight: 700,
+                      textAlign: 'center',
+                      color: '#000',
+                      textTransform: 'capitalize',
+                      fontSize: { xs: 24, sm: 34 },
+                    }}
+                  >
+                    {toTitleCase(fullName) || 'Sin Nombre'}
+                  </Typography>
+
+                  <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+                    <AccountCircleIcon
+                      sx={{
+                        fontSize: { xs: 80, sm: 120 },
+                        color: '#921F45',
+                        border: '3px solid #921F45',
+                        borderRadius: '50%',
+                        p: 1,
+                      }}
+                    />
+                  </Box>
+                  <Typography variant="body2" sx={{ textAlign: 'center', color: '#000', mb: 3, fontSize: { xs: 14, sm: 18 } }}>
+                    Foto de Perfil
+                  </Typography>
+
+                  <Box
+                    sx={{
+                      display: 'grid',
+                      gridTemplateColumns: '2fr 2fr',
+                      gap: 2,
+                      bgcolor: '#f9f9f9',
+                      p: 3,
+                      borderRadius: 2,
+                    }}
+                  >
+                    <Typography variant="body1" sx={{ fontWeight: 600, color: '#000', fontSize: { xs: 12, sm: 16 } }}>
+                      Matrícula del Alumno
+                    </Typography>
+                    <Typography variant="body1" sx={{ color: '#000', fontSize: { xs: 12, sm: 16 } }}>
+                      {studentData.matricula}
+                    </Typography>
+
+                    <Typography variant="body1" sx={{ fontWeight: 600, color: '#000', fontSize: { xs: 12, sm: 16 } }}>
+                      Correo Electrónico
+                    </Typography>
+                    <Typography variant="body1" sx={{ color: '#000', fontSize: { xs: 12, sm: 16 } }}>
+                      {studentData.email || 'N/A'}
+                    </Typography>
+
+                    <Typography variant="body1" sx={{ fontWeight: 600, color: '#000', fontSize: { xs: 12, sm: 16 } }}>
+                      Programa Educativo
+                    </Typography>
+                    <Typography variant="body1" sx={{ color: '#000', textTransform: 'capitalize', fontSize: { xs: 12, sm: 16 } }}>
+                      {studentData.nombreCarrera.toLowerCase() || 'N/A'}
+                    </Typography>
+
+                    <Typography variant="body1" sx={{ fontWeight: 600, color: '#000', fontSize: { xs: 12, sm: 16 } }}>
+                      Cuatrimestre Actual
+                    </Typography>
+                    <Typography variant="body1" sx={{ color: '#000', fontSize: { xs: 12, sm: 16 } }}>
+                      {formatCuatrimestre(studentData.cuatrimestre) || 'N/A'}
+                    </Typography>
+
+                    <Typography variant="body1" sx={{ fontWeight: 600, color: '#000', fontSize: { xs: 12, sm: 16 } }}>
+                      Periodo
+                    </Typography>
+                    <Typography variant="body1" sx={{ color: '#000', fontSize: { xs: 12, sm: 16 } }}>
+                      {formatPeriodo(studentData.periodo) || 'N/A'}
+                    </Typography>
+
+                    <Typography variant="body1" sx={{ fontWeight: 600, color: '#000', fontSize: { xs: 12, sm: 16 } }}>
+                      Grupo
+                    </Typography>
+                    <Typography variant="body1" sx={{ color: '#000', fontSize: { xs: 12, sm: 16 } }}>
+                      {studentData.grupo || 'N/A'}
+                    </Typography>
+                  </Box>
+                </CardContent>
+              </Card>
+            </Box>
+
+            <Card
+              sx={{
+                width: '100%',
+                boxShadow: 3,
+                borderRadius: 3,
+                bgcolor: '#ffffff',
+                p: 4,
+                transition: 'transform 0.3s ease-in-out',
+                '&:hover': { transform: 'translateY(-5px)' },
+              }}
+            >
+              <CardContent>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                  <LocalHospitalIcon sx={{ fontSize: { xs: 30, sm: 40 }, color: '#921F45', mr: 2 }} />
+                  <Typography variant="h5" sx={{ fontWeight: 700, color: '#000', fontSize: { xs: 18, sm: 24 } }}>
+                    Historial de Consultas Médicas
+                  </Typography>
+                </Box>
+                <List>
+                  {selectedPerformance && medicalConsultations[selectedPerformance].length > 0 ? (
+                    medicalConsultations[selectedPerformance].map((consultation, index) => (
+                      <Box key={index}>
+                        <ListItem
+                          button
+                          onClick={() => handleMedicalToggle(index)}
+                          sx={{ bgcolor: '#f9f9f9', mb: 1, borderRadius: 1, '&:hover': { bgcolor: '#f0f0f0' } }}
+                        >
+                          <ListItemText
+                            primary={`Consulta - ${consultation.date}`}
+                            secondary={consultation.reason}
+                            primaryTypographyProps={{ color: '#000', fontWeight: 600, fontSize: { xs: 12, sm: 16 } }}
+                            secondaryTypographyProps={{ color: '#000', fontSize: { xs: 10, sm: 14 } }}
+                          />
+                          <ExpandMoreIcon
+                            sx={{
+                              transform: expandedMedical === index ? 'rotate(180deg)' : 'rotate(0deg)',
+                              color: '#921F45',
+                              fontSize: { xs: 20, sm: 24 }
+                            }}
+                          />
+                        </ListItem>
+                        <Collapse in={expandedMedical === index} timeout="auto" unmountOnExit>
+                          <Box sx={{ p: 2, bgcolor: '#f9f9f9', borderRadius: 2, ml: 2 }}>
+                            <Typography variant="body1" sx={{ fontWeight: 600, color: '#000', fontSize: { xs: 12, sm: 16 } }}>
+                              Fecha y Hora: <span style={{ fontWeight: 400 }}>{consultation.date}</span>
+                            </Typography>
+                            <Typography variant="body1" sx={{ fontWeight: 600, color: '#000', fontSize: { xs: 12, sm: 16 } }}>
+                              Motivo: <span style={{ fontWeight: 400 }}>{consultation.reason}</span>
+                            </Typography>
+                            <Typography variant="body1" sx={{ fontWeight: 600, color: '#000', fontSize: { xs: 12, sm: 16 } }}>
+                              Signos Vitales: <span style={{ fontWeight: 400 }}>{consultation.vitals}</span>
+                            </Typography>
+                            <Typography variant="body1" sx={{ fontWeight: 600, color: '#000', fontSize: { xs: 12, sm: 16 } }}>
+                              Diagnóstico: <span style={{ fontWeight: 400 }}>{consultation.diagnosis}</span>
+                            </Typography>
+                            <Typography variant="body1" sx={{ fontWeight: 600, color: '#000', fontSize: { xs: 12, sm: 16 } }}>
+                              Tratamiento: <span style={{ fontWeight: 400 }}>{consultation.treatment}</span>
+                            </Typography>
+                            <Typography variant="body1" sx={{ fontWeight: 600, color: '#000', fontSize: { xs: 12, sm: 16 } }}>
+                              Recomendaciones: <span style={{ fontWeight: 400 }}>{consultation.recommendations}</span>
+                            </Typography>
+                            <Typography variant="body1" sx={{ fontWeight: 600, color: '#000', fontSize: { xs: 12, sm: 16 } }}>
+                              Médico: <span style={{ fontWeight: 400 }}>{consultation.doctor}</span>
+                            </Typography>
+                            <Typography variant="body1" sx={{ fontWeight: 600, color: '#000', fontSize: { xs: 12, sm: 16 } }}>
+                              Observaciones: <span style={{ fontWeight: 400 }}>{consultation.observations}</span>
+                            </Typography>
+                          </Box>
+                        </Collapse>
+                      </Box>
+                    ))
+                  ) : (
+                    <Typography variant="body1" sx={{ color: '#000', fontSize: { xs: 12, sm: 16 } }}>
+                      No hay consultas médicas disponibles.
+                    </Typography>
+                  )}
+                </List>
+              </CardContent>
+            </Card>
+
+            {/* Servicios Psicológicos */}
+            <Card
+              sx={{
+                width: '100%',
+                boxShadow: 3,
+                borderRadius: 3,
+                bgcolor: '#ffffff',
+                p: 4,
+                transition: 'transform 0.3s ease-in-out',
+                '&:hover': { transform: 'translateY(-5px)' },
+              }}
+            >
+              <CardContent>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                  <PsychologyIcon sx={{ fontSize: { xs: 30, sm: 40 }, color: '#921F45', mr: 2 }} />
+                  <Typography variant="h5" sx={{ fontWeight: 700, color: '#000', fontSize: { xs: 18, sm: 24 } }}>
+                    Historial de Consultas Psicológicas
+                  </Typography>
+                </Box>
+                <List>
+                  {selectedPerformance && psychologicalConsultations[selectedPerformance].length > 0 ? (
+                    psychologicalConsultations[selectedPerformance].map((consultation, index) => (
+                      <Box key={index}>
+                        <ListItem
+                          button
+                          onClick={() => handlePsychologicalToggle(index)}
+                          sx={{ bgcolor: '#f9f9f9', mb: 1, borderRadius: 1, '&:hover': { bgcolor: '#f0f0f0' } }}
+                        >
+                          <ListItemText
+                            primary={`Sesión - ${consultation.date}`}
+                            secondary={consultation.reason}
+                            primaryTypographyProps={{ color: '#000', fontWeight: 600, fontSize: { xs: 12, sm: 16 } }}
+                            secondaryTypographyProps={{ color: '#000', fontSize: { xs: 10, sm: 14 } }}
+                          />
+                          <ExpandMoreIcon
+                            sx={{
+                              transform: expandedPsychological === index ? 'rotate(180deg)' : 'rotate(0deg)',
+                              color: '#921F45',
+                              fontSize: { xs: 20, sm: 24 }
+                            }}
+                          />
+                        </ListItem>
+                        <Collapse in={expandedPsychological === index} timeout="auto" unmountOnExit>
+                          <Box sx={{ p: 2, bgcolor: '#f9f9f9', borderRadius: 2, ml: 2 }}>
+                            <Typography variant="body1" sx={{ fontWeight: 600, color: '#000', fontSize: { xs: 12, sm: 16 } }}>
+                              Fecha y Hora: <span style={{ fontWeight: 400 }}>{consultation.date}</span>
+                            </Typography>
+                            <Typography variant="body1" sx={{ fontWeight: 600, color: '#000', fontSize: { xs: 12, sm: 16 } }}>
+                              Motivo: <span style={{ fontWeight: 400 }}>{consultation.reason}</span>
+                            </Typography>
+                            <Typography variant="body1" sx={{ fontWeight: 600, color: '#000', fontSize: { xs: 12, sm: 16 } }}>
+                              Área de Atención: <span style={{ fontWeight: 400 }}>{consultation.area}</span>
+                            </Typography>
+                            <Typography variant="body1" sx={{ fontWeight: 600, color: '#000', fontSize: { xs: 12, sm: 16 } }}>
+                              Diagnóstico: <span style={{ fontWeight: 400 }}>{consultation.diagnosis}</span>
+                            </Typography>
+                            <Typography variant="body1" sx={{ fontWeight: 600, color: '#000', fontSize: { xs: 12, sm: 16 } }}>
+                              Estrategias: <span style={{ fontWeight: 400 }}>{consultation.strategies}</span>
+                            </Typography>
+                            <Typography variant="body1" sx={{ fontWeight: 600, color: '#000', fontSize: { xs: 12, sm: 16 } }}>
+                              Observaciones: <span style={{ fontWeight: 400 }}>{consultation.observations}</span>
+                            </Typography>
+                            <Typography variant="body1" sx={{ fontWeight: 600, color: '#000', fontSize: { xs: 12, sm: 16 } }}>
+                              Acuerdos: <span style={{ fontWeight: 400 }}>{consultation.agreements}</span>
+                            </Typography>
+                            <Typography variant="body1" sx={{ fontWeight: 600, color: '#000', fontSize: { xs: 12, sm: 16 } }}>
+                              Sesiones: <span style={{ fontWeight: 400 }}>{consultation.sessions}</span>
+                            </Typography>
+                            <Typography variant="body1" sx={{ fontWeight: 600, color: '#000', fontSize: { xs: 12, sm: 16 } }}>
+                              Psicólogo: <span style={{ fontWeight: 400 }}>{consultation.psychologist}</span>
+                            </Typography>
+                          </Box>
+                        </Collapse>
+                      </Box>
+                    ))
+                  ) : (
+                    <Typography variant="body1" sx={{ color: '#000', fontSize: { xs: 12, sm: 16 } }}>
+                      No hay consultas psicológicas disponibles.
+                    </Typography>
+                  )}
+                </List>
+              </CardContent>
+            </Card>
+          </Box>
+        </Fade>
+      )}
+      {/* Feedback de éxito */}
+      <Snackbar
+        open={scanSuccess}
+        autoHideDuration={3000}
+        onClose={handleCloseSuccess}
+        message={`Registro ${attendanceRecords[0]?.type || 'Entrada'} realizado a las ${attendanceRecords[0]?.date || new Date().toLocaleString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: true })}`}
+        action={
+          <Button color="inherit" size="small" onClick={handleCloseSuccess}>
+            Cerrar
+          </Button>
+        }
+      />
+      {/* Feedback de error */}
+      <Snackbar
+        open={!!scanError}
+        autoHideDuration={3000}
+        onClose={handleCloseError}
+        message={scanError}
+        action={
+          <Button color="inherit" size="small" onClick={handleCloseError}>
+            Cerrar
+          </Button>
+        }
+      />
+    </Container>
+  );
+};
+
+export default Profile;
