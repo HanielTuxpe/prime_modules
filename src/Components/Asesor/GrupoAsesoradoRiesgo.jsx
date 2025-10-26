@@ -23,7 +23,6 @@ import axios from 'axios';
 import { obtenerMatricula } from '../Access/SessionService';
 
 const CLV_DOCENTE = obtenerMatricula(); // ID del docente
-
 const BaseURL = import.meta.env.VITE_URL_BASE_API;
 
 const modalStyle = {
@@ -55,6 +54,29 @@ const AlumnosRiesgoAsesorView = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalData, setModalData] = useState({ matricula: '', nombre: '', parcial: '', failedSubjects: [] });
   const [failedSubjectsRanking, setFailedSubjectsRanking] = useState([]);
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+
+  // Detectar conexión/desconexión en tiempo real
+  useEffect(() => {
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  // Restaurar modal en carga inicial
+  useEffect(() => {
+    const savedModalData = localStorage.getItem('modalData');
+    const savedModalOpen = localStorage.getItem('modalOpen');
+    if (savedModalData) setModalData(JSON.parse(savedModalData));
+    if (savedModalOpen) setModalOpen(JSON.parse(savedModalOpen));
+  }, []);
 
   // Formatear el período para mostrarlo de forma legible
   const formatPeriodo = (periodo) => {
@@ -75,7 +97,7 @@ const AlumnosRiesgoAsesorView = () => {
 
     const year = parseInt(periodo.slice(0, 4), 10);
     const term = periodo.slice(4);
-     const currentDate = new Date(2025, 0, 31); // Obtener la fecha actual del sistema
+    const currentDate = new Date(); // Obtener la fecha actual del sistema
 
     // Definir fechas de fin para los parciales (último día del mes)
     const parcialDates = {
@@ -109,19 +131,25 @@ const AlumnosRiesgoAsesorView = () => {
   // Manejar la apertura del modal
   const handleOpenModal = (estudiante, parcial) => {
     const failedSubjects = estudiante[`failedSubjectsP${parcial}`] || [];
-    setModalData({
+    const modalInfo = {
       matricula: estudiante.matricula,
       nombre: `${estudiante.nombre} ${estudiante.apaterno} ${estudiante.amaterno || ''}`,
       parcial: `Parcial ${parcial}`,
       failedSubjects,
-    });
+    };
+    setModalData(modalInfo);
     setModalOpen(true);
+    // Guardar en localStorage
+    localStorage.setItem('modalData', JSON.stringify(modalInfo));
+    localStorage.setItem('modalOpen', JSON.stringify(true));
   };
 
   // Manejar el cierre del modal
   const handleCloseModal = () => {
     setModalOpen(false);
     setModalData({ matricula: '', nombre: '', parcial: '', failedSubjects: [] });
+    localStorage.setItem('modalData', JSON.stringify({ matricula: '', nombre: '', parcial: '', failedSubjects: [] }));
+    localStorage.setItem('modalOpen', JSON.stringify(false));
   };
 
   // Obtener datos del tutor y estudiantes
@@ -130,150 +158,182 @@ const AlumnosRiesgoAsesorView = () => {
       setLoading(true);
       setError(null);
       try {
-        // Obtener lista de estudiantes
-        const studentsResponse = await axios.get(`${BaseURL}studentsList?ClvTutor=${CLV_DOCENTE}`);
-        const studentsData = studentsResponse.data.data || [];
-        console.log('Datos de estudiantes (/studentsList):', studentsData); // Depuración
+        if (!isOffline) {
+          // Obtener lista de estudiantes
+          const studentsResponse = await axios.get(`${BaseURL}studentsList?ClvTutor=${CLV_DOCENTE}`);
+          const studentsData = studentsResponse.data.data || [];
+          console.log('Datos de estudiantes (/studentsList):', studentsData); // Depuración
 
-        if (studentsData.length === 0) {
-          setError('No se encontraron estudiantes para el tutor especificado.');
-          setEstudiantes([]);
-          return;
-        }
+          if (studentsData.length === 0) {
+            setError('No se encontraron estudiantes para el tutor especificado.');
+            setEstudiantes([]);
+            localStorage.setItem('estudiantesData', JSON.stringify([]));
+            localStorage.setItem('tutorInfoData', JSON.stringify(tutorInfo));
+            localStorage.setItem('failedSubjectsRankingData', JSON.stringify([]));
+            return;
+          }
 
-        // Extraer información del tutor del primer estudiante
-        const firstStudent = studentsData[0];
-        const tutorData = {
-          nombreTutor: firstStudent.Nombre_Tutor?.trim() || 'Desconocido',
-          grupo: firstStudent.Grupo?.trim() || 'Desconocido',
-          cuatrimestre: firstStudent.Cuatri?.trim() || 'Desconocido',
-          periodo: formatPeriodo(firstStudent.Periodo) || 'Desconocido',
-          carrera: 'Tecnologías de la Información',
-        };
-        setTutorInfo(tutorData);
-        console.log('Información del tutor:', tutorData); // Depuración
+          // Extraer información del tutor del primer estudiante
+          const firstStudent = studentsData[0];
+          const tutorData = {
+            nombreTutor: firstStudent.Nombre_Tutor?.trim() || 'Desconocido',
+            grupo: firstStudent.Grupo?.trim() || 'Desconocido',
+            cuatrimestre: firstStudent.Cuatri?.trim() || 'Desconocido',
+            periodo: formatPeriodo(firstStudent.Periodo) || 'Desconocido',
+            carrera: 'Tecnologías de la Información',
+          };
+          setTutorInfo(tutorData);
+          localStorage.setItem('tutorInfoData', JSON.stringify(tutorData));
+          console.log('Información del tutor:', tutorData); // Depuración
 
-        // Obtener calificaciones
-        const gradesResponse = await axios.get(
-          `${BaseURL}getCalificacionesPorGrupo/?grupo=${tutorData.grupo}&cuatrimestre=${tutorData.cuatrimestre}&periodo=${firstStudent.Periodo}`
-        );
-        const gradesData = gradesResponse.data.data || [];
-        console.log('Datos de calificaciones (/getCalificacionesPorGrupo):', gradesData); // Depuración
+          // Obtener calificaciones
+          const gradesResponse = await axios.get(
+            `${BaseURL}getCalificacionesPorGrupo/?grupo=${tutorData.grupo}&cuatrimestre=${tutorData.cuatrimestre}&periodo=${firstStudent.Periodo}`
+          );
+          const gradesData = gradesResponse.data.data || [];
+          console.log('Datos de calificaciones (/getCalificacionesPorGrupo):', gradesData); // Depuración
 
-        // Procesar estudiantes y calcular materias reprobadas
-        const estudiantesProcesados = studentsData
-          .map((student) => {
-            const studentGrades = gradesData.filter((grade) => grade.Matricula === student.Matricula);
+          // Procesar estudiantes y calcular materias reprobadas
+          const estudiantesProcesados = studentsData
+            .map((student) => {
+              const studentGrades = gradesData.filter((grade) => grade.Matricula === student.Matricula);
 
-            const calificaciones = studentGrades.map((grade) => {
-              const parcial1Efectiva = Math.max(
-                grade.Parcial1 || 0,
-                grade.Parcial1E1 || 0,
-                grade.Parcial1E2 || 0,
-                grade.Parcial1E3 || 0
-              );
-              const parcial2Efectiva = Math.max(
-                grade.Parcial2 || 0,
-                grade.Parcial2E1 || 0,
-                grade.Parcial2E2 || 0,
-                grade.Parcial2E3 || 0
-              );
-              const parcial3Efectiva = Math.max(
-                grade.Parcial3 || 0,
-                grade.Parcial3E1 || 0,
-                grade.Parcial3E2 || 0,
-                grade.Parcial3E3 || 0
-              );
+              const calificaciones = studentGrades.map((grade) => {
+                const parcial1Efectiva = Math.max(
+                  grade.Parcial1 || 0,
+                  grade.Parcial1E1 || 0,
+                  grade.Parcial1E2 || 0,
+                  grade.Parcial1E3 || 0
+                );
+                const parcial2Efectiva = Math.max(
+                  grade.Parcial2 || 0,
+                  grade.Parcial2E1 || 0,
+                  grade.Parcial2E2 || 0,
+                  grade.Parcial2E3 || 0
+                );
+                const parcial3Efectiva = Math.max(
+                  grade.Parcial3 || 0,
+                  grade.Parcial3E1 || 0,
+                  grade.Parcial3E2 || 0,
+                  grade.Parcial3E3 || 0
+                );
+
+                return {
+                  materia: grade.Materia?.trim() || 'Sin materia',
+                  parcial1Efectiva,
+                  parcial2Efectiva,
+                  parcial3Efectiva,
+                };
+              });
+
+              // Contar materias reprobadas y guardar nombres de materias reprobadas
+              const failedSubjectsP1 = hasParcialPassed(1, firstStudent.Periodo)
+                ? calificaciones
+                    .filter((c) => c.parcial1Efectiva === 0 || (c.parcial1Efectiva > 0 && c.parcial1Efectiva < 7))
+                    .map((c) => c.materia)
+                : [];
+              const failedSubjectsP2 = hasParcialPassed(2, firstStudent.Periodo)
+                ? calificaciones
+                    .filter((c) => c.parcial2Efectiva === 0 || (c.parcial2Efectiva > 0 && c.parcial2Efectiva < 7))
+                    .map((c) => c.materia)
+                : [];
+              const failedSubjectsP3 = hasParcialPassed(3, firstStudent.Periodo)
+                ? calificaciones
+                    .filter((c) => c.parcial3Efectiva === 0 || (c.parcial3Efectiva > 0 && c.parcial3Efectiva < 7))
+                    .map((c) => c.materia)
+                : [];
+
+              const materiasP1 = failedSubjectsP1.length;
+              const materiasP2 = failedSubjectsP2.length;
+              const materiasP3 = failedSubjectsP3.length;
+
+              // Solo incluir estudiantes con al menos una materia reprobada
+              if (materiasP1 === 0 && materiasP2 === 0 && materiasP3 === 0) {
+                return null; // Excluir estudiantes sin materias reprobadas
+              }
+
+              console.log('Estudiante procesado:', {
+                matricula: student.Matricula,
+                nombre: `${student.NomAlumno} ${student.APaterno} ${student.AMaterno || ''}`,
+                failedSubjectsP1,
+                failedSubjectsP2,
+                failedSubjectsP3,
+              }); // Depuración específica
 
               return {
-                materia: grade.Materia?.trim() || 'Sin materia',
-                parcial1Efectiva,
-                parcial2Efectiva,
-                parcial3Efectiva,
+                matricula: student.Matricula?.trim() || 'Sin matrícula',
+                nombre: student.NomAlumno?.trim() || 'Sin nombre',
+                apaterno: student.APaterno?.trim() || '',
+                amaterno: student.AMaterno?.trim() || '',
+                materiasP1,
+                materiasP2,
+                materiasP3,
+                failedSubjectsP1,
+                failedSubjectsP2,
+                failedSubjectsP3,
               };
+            })
+            .filter((student) => student !== null) // Filtrar estudiantes sin materias reprobadas
+            .sort((a, b) => {
+              const nombreCompletoA = `${a.nombre} ${a.apaterno} ${a.amaterno || ''}`.toLowerCase().trim();
+              const nombreCompletoB = `${b.nombre} ${b.apaterno} ${b.amaterno || ''}`.toLowerCase().trim();
+              return nombreCompletoA.localeCompare(nombreCompletoB);
             });
 
-            // Contar materias reprobadas y guardar nombres de materias reprobadas
-            const failedSubjectsP1 = hasParcialPassed(1, firstStudent.Periodo)
-              ? calificaciones
-                  .filter((c) => c.parcial1Efectiva === 0 || (c.parcial1Efectiva > 0 && c.parcial1Efectiva < 7))
-                  .map((c) => c.materia)
-              : [];
-            const failedSubjectsP2 = hasParcialPassed(2, firstStudent.Periodo)
-              ? calificaciones
-                  .filter((c) => c.parcial2Efectiva === 0 || (c.parcial2Efectiva > 0 && c.parcial2Efectiva < 7))
-                  .map((c) => c.materia)
-              : [];
-            const failedSubjectsP3 = hasParcialPassed(3, firstStudent.Periodo)
-              ? calificaciones
-                  .filter((c) => c.parcial3Efectiva === 0 || (c.parcial3Efectiva > 0 && c.parcial3Efectiva < 7))
-                  .map((c) => c.materia)
-              : [];
+          console.log('Estudiantes en riesgo:', estudiantesProcesados); // Depuración
+          setEstudiantes(estudiantesProcesados);
+          localStorage.setItem('estudiantesData', JSON.stringify(estudiantesProcesados));
 
-            const materiasP1 = failedSubjectsP1.length;
-            const materiasP2 = failedSubjectsP2.length;
-            const materiasP3 = failedSubjectsP3.length;
-
-            // Solo incluir estudiantes con al menos una materia reprobada
-            if (materiasP1 === 0 && materiasP2 === 0 && materiasP3 === 0) {
-              return null; // Excluir estudiantes sin materias reprobadas
-            }
-
-            console.log('Estudiante procesado:', {
-              matricula: student.Matricula,
-              nombre: `${student.NomAlumno} ${student.APaterno} ${student.AMaterno || ''}`,
-              failedSubjectsP1,
-              failedSubjectsP2,
-              failedSubjectsP3,
-            }); // Depuración específica
-
-            return {
-              matricula: student.Matricula?.trim() || 'Sin matrícula',
-              nombre: student.NomAlumno?.trim() || 'Sin nombre',
-              apaterno: student.APaterno?.trim() || '',
-              amaterno: student.AMaterno?.trim() || '',
-              materiasP1,
-              materiasP2,
-              materiasP3,
-              failedSubjectsP1,
-              failedSubjectsP2,
-              failedSubjectsP3,
-            };
-          })
-          .filter((student) => student !== null) // Filtrar estudiantes sin materias reprobadas
-          // Ordenar por nombre completo
-          .sort((a, b) => {
-            const nombreCompletoA = `${a.nombre} ${a.apaterno} ${a.amaterno || ''}`.toLowerCase().trim();
-            const nombreCompletoB = `${b.nombre} ${b.apaterno} ${b.amaterno || ''}`.toLowerCase().trim();
-            return nombreCompletoA.localeCompare(nombreCompletoB);
+          // Calcular ranking de materias reprobadas
+          const subjectCounts = {};
+          estudiantesProcesados.forEach((student) => {
+            const allFailedSubjects = [
+              ...student.failedSubjectsP1,
+              ...student.failedSubjectsP2,
+              ...student.failedSubjectsP3,
+            ];
+            allFailedSubjects.forEach((subject) => {
+              if (subject && subject !== 'Sin materia') {
+                subjectCounts[subject] = (subjectCounts[subject] || 0) + 1;
+              }
+            });
           });
 
-        console.log('Estudiantes en riesgo:', estudiantesProcesados); // Depuración
-        setEstudiantes(estudiantesProcesados);
+          const ranking = Object.entries(subjectCounts)
+            .map(([subject, count]) => ({ subject, count }))
+            .sort((a, b) => b.count - a.count || a.subject.localeCompare(b.subject));
+          console.log('Ranking de materias reprobadas:', ranking); // Depuración
+          setFailedSubjectsRanking(ranking);
+          localStorage.setItem('failedSubjectsRankingData', JSON.stringify(ranking));
 
-        // Calcular ranking de materias reprobadas
-        const subjectCounts = {};
-        estudiantesProcesados.forEach((student) => {
-          const allFailedSubjects = [
-            ...student.failedSubjectsP1,
-            ...student.failedSubjectsP2,
-            ...student.failedSubjectsP3,
-          ];
-          allFailedSubjects.forEach((subject) => {
-            if (subject && subject !== 'Sin materia') {
-              subjectCounts[subject] = (subjectCounts[subject] || 0) + 1;
+          if (estudiantesProcesados.length === 0) {
+            setError('No se encontraron estudiantes con materias reprobadas (calificaciones menores a 7).');
+          }
+        } else {
+          console.warn('⚠️ Sin conexión, cargando datos guardados...');
+          const localTutorInfo = localStorage.getItem('tutorInfoData');
+          const localEstudiantes = localStorage.getItem('estudiantesData');
+          const localRanking = localStorage.getItem('failedSubjectsRankingData');
+
+          if (localTutorInfo && localEstudiantes && localRanking) {
+            setTutorInfo(JSON.parse(localTutorInfo));
+            setEstudiantes(JSON.parse(localEstudiantes));
+            setFailedSubjectsRanking(JSON.parse(localRanking));
+            if (JSON.parse(localEstudiantes).length === 0) {
+              setError('No se encontraron estudiantes con materias reprobadas (calificaciones menores a 7).');
             }
-          });
-        });
-
-        const ranking = Object.entries(subjectCounts)
-          .map(([subject, count]) => ({ subject, count }))
-          .sort((a, b) => b.count - a.count || a.subject.localeCompare(b.subject));
-        console.log('Ranking de materias reprobadas:', ranking); // Depuración
-        setFailedSubjectsRanking(ranking);
-
-        if (estudiantesProcesados.length === 0) {
-          setError('No se encontraron estudiantes con materias reprobadas (calificaciones menores a 7).');
+          } else {
+            setError('No hay datos disponibles offline. Conéctate para cargar los datos.');
+            setTutorInfo({
+              nombreTutor: 'Desconocido',
+              grupo: 'Desconocido',
+              cuatrimestre: 'Desconocido',
+              periodo: 'Desconocido',
+              carrera: 'Tecnologías de la Información',
+            });
+            setEstudiantes([]);
+            setFailedSubjectsRanking([]);
+          }
         }
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -282,13 +342,15 @@ const AlumnosRiesgoAsesorView = () => {
             ? 'No se encontraron datos para el tutor o grupo especificado.'
             : 'Error al cargar los datos. Verifique la conexión con el servidor.'
         );
+        setEstudiantes([]);
+        setFailedSubjectsRanking([]);
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, []);
+  }, [isOffline]);
 
   return (
     <Card sx={{ maxWidth: '95%', margin: 'auto', mt: 4, p: 3, boxShadow: 5, borderRadius: 3 }}>
@@ -296,6 +358,13 @@ const AlumnosRiesgoAsesorView = () => {
         <Typography variant="h4" fontWeight="bold" align="center" color="#921F45" gutterBottom>
           Lista de Estudiantes
         </Typography>
+
+        {/* Indicador de conexión */}
+        {isOffline && (
+          <Alert severity="warning" sx={{ mb: 3, borderRadius: '12px' }}>
+            ⚠️ Estás sin conexión. Se están mostrando los datos guardados.
+          </Alert>
+        )}
 
         <Grid container spacing={2} sx={{ mb: 3 }}>
           <Grid item xs={12} sm={6}>

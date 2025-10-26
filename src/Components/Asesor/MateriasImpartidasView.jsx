@@ -25,7 +25,7 @@ import Chart from 'react-google-charts';
 import { obtenerMatricula } from '../Access/SessionService';
 
 const CLV_DOCENTE = obtenerMatricula(); // ID del docente
-const BaseURL = import.meta.env.VITE_URL_BASE_API; 
+const BaseURL = import.meta.env.VITE_URL_BASE_API;
 
 const MateriasImpartidasView = () => {
   const [materias, setMaterias] = useState([]);
@@ -41,12 +41,45 @@ const MateriasImpartidasView = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalData, setModalData] = useState([]);
   const [modalTitle, setModalTitle] = useState('');
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+
+  // 🔌 Detectar conexión/desconexión en tiempo real
+  useEffect(() => {
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  // Restaurar modal y selecciones previas en carga inicial
+  useEffect(() => {
+    const savedMateria = localStorage.getItem('selectedMateria');
+    const savedGrupo = localStorage.getItem('selectedGrupo');
+    const savedModalData = localStorage.getItem('modalData');
+    const savedModalTitle = localStorage.getItem('modalTitle');
+    const savedModalOpen = localStorage.getItem('modalOpen');
+
+    if (savedMateria) setMateria(savedMateria);
+    if (savedGrupo) setGrupo(savedGrupo);
+    if (savedModalData) setModalData(JSON.parse(savedModalData));
+    if (savedModalTitle) setModalTitle(savedModalTitle);
+    if (savedModalOpen) setModalOpen(JSON.parse(savedModalOpen));
+  }, []);
 
   // Función para cerrar el modal
   const handleCloseModal = () => {
     setModalOpen(false);
     setModalData([]);
     setModalTitle('');
+    localStorage.setItem('modalOpen', JSON.stringify(false));
+    localStorage.setItem('modalData', JSON.stringify([]));
+    localStorage.setItem('modalTitle', JSON.stringify(''));
   };
 
   // Función para manejar el clic en las barras
@@ -89,6 +122,10 @@ const MateriasImpartidasView = () => {
 
     setModalData(filteredStudents);
     setModalOpen(true);
+    // Guardar en localStorage
+    localStorage.setItem('modalData', JSON.stringify(filteredStudents));
+    localStorage.setItem('modalTitle', JSON.stringify(modalTitle));
+    localStorage.setItem('modalOpen', JSON.stringify(true));
   };
 
   // Obtener datos del docente
@@ -97,21 +134,36 @@ const MateriasImpartidasView = () => {
       setLoading(true);
       setError(null);
       try {
-        const response = await axios.get(`${BaseURL}DatosDocente?ClvDocente=${CLV_DOCENTE}`);
-        const docenteData = response.data.data[0] || { Nombre: 'Desconocido', PeriodoMasReciente: 'Desconocido' };
-        setDocenteInfo({
-          Nombre: docenteData.Nombre.trim(),
-          PeriodoMasReciente: formatPeriodo(docenteData.PeriodoMasReciente),
-        });
+        if (!isOffline) {
+          const response = await axios.get(`${BaseURL}DatosDocente?ClvDocente=${CLV_DOCENTE}`);
+          const docenteData = response.data.data[0] || { Nombre: 'Desconocido', PeriodoMasReciente: 'Desconocido' };
+          const formattedDocenteInfo = {
+            Nombre: docenteData.Nombre.trim(),
+            PeriodoMasReciente: formatPeriodo(docenteData.PeriodoMasReciente),
+          };
+          setDocenteInfo(formattedDocenteInfo);
+          // Guardar en localStorage
+          localStorage.setItem('docenteInfoData', JSON.stringify(formattedDocenteInfo));
+        } else {
+          console.warn('⚠️ Sin conexión, cargando datos del docente guardados...');
+          const localData = localStorage.getItem('docenteInfoData');
+          if (localData) {
+            setDocenteInfo(JSON.parse(localData));
+          } else {
+            setError('No hay datos disponibles offline. Conéctate para cargar los datos.');
+            setDocenteInfo({ Nombre: 'Desconocido', PeriodoMasReciente: 'Desconocido' });
+          }
+        }
       } catch (err) {
         setError('No se pudieron cargar los datos del docente. Verifique la conexión con el servidor.');
         setDocenteInfo({ Nombre: 'Desconocido', PeriodoMasReciente: 'Desconocido' });
+        console.error('Error fetching docente info:', err);
       } finally {
         setLoading(false);
       }
     };
     fetchDocenteInfo();
-  }, []);
+  }, [isOffline]);
 
   // Formatear el período para mostrarlo de forma legible
   const formatPeriodo = (periodo) => {
@@ -132,16 +184,40 @@ const MateriasImpartidasView = () => {
       setLoading(true);
       setError(null);
       try {
-        const response = await axios.get(`${BaseURL}materiasxDocente/?ClvDocente=${CLV_DOCENTE}`);
-        setMaterias(response.data.data);
+        if (!isOffline) {
+          const response = await axios.get(`${BaseURL}materiasxDocente/?ClvDocente=${CLV_DOCENTE}`);
+          setMaterias(response.data.data);
+          // Guardar en localStorage
+          localStorage.setItem('materiasData', JSON.stringify(response.data.data));
+          // Restaurar materia seleccionada
+          const savedMateria = localStorage.getItem('selectedMateria');
+          if (savedMateria && response.data.data.some((m) => m.ClvMateria === savedMateria)) {
+            setMateria(savedMateria);
+          }
+        } else {
+          console.warn('⚠️ Sin conexión, cargando materias guardadas...');
+          const localData = localStorage.getItem('materiasData');
+          if (localData) {
+            setMaterias(JSON.parse(localData));
+            const savedMateria = localStorage.getItem('selectedMateria');
+            if (savedMateria && JSON.parse(localData).some((m) => m.ClvMateria === savedMateria)) {
+              setMateria(savedMateria);
+            }
+          } else {
+            setError('No hay datos disponibles offline. Conéctate para cargar los datos.');
+            setMaterias([]);
+          }
+        }
       } catch (err) {
         setError('No se pudieron cargar las materias. Verifique la conexión con el servidor.');
+        setMaterias([]);
+        console.error('Error fetching materias:', err);
       } finally {
         setLoading(false);
       }
     };
     fetchMaterias();
-  }, []);
+  }, [isOffline]);
 
   // Obtener grupos cuando se selecciona una materia
   useEffect(() => {
@@ -150,13 +226,36 @@ const MateriasImpartidasView = () => {
         setLoading(true);
         setError(null);
         try {
-          const response = await axios.get(
-            `${BaseURL}gruposxMateria/?ClvMateria=${materia}&ClvDocente=${CLV_DOCENTE}`
-          );
-          setGrupos(response.data.data);
+          if (!isOffline) {
+            const response = await axios.get(
+              `${BaseURL}gruposxMateria/?ClvMateria=${materia}&ClvDocente=${CLV_DOCENTE}`
+            );
+            setGrupos(response.data.data);
+            // Guardar en localStorage
+            localStorage.setItem('gruposData', JSON.stringify(response.data.data));
+            // Restaurar grupo seleccionado
+            const savedGrupo = localStorage.getItem('selectedGrupo');
+            if (savedGrupo && response.data.data.some((g) => g.Grupo === savedGrupo)) {
+              setGrupo(savedGrupo);
+            }
+          } else {
+            console.warn('⚠️ Sin conexión, cargando grupos guardados...');
+            const localData = localStorage.getItem('gruposData');
+            if (localData) {
+              setGrupos(JSON.parse(localData));
+              const savedGrupo = localStorage.getItem('selectedGrupo');
+              if (savedGrupo && JSON.parse(localData).some((g) => g.Grupo === savedGrupo)) {
+                setGrupo(savedGrupo);
+              }
+            } else {
+              setError('No hay datos disponibles offline. Conéctate para cargar los datos.');
+              setGrupos([]);
+            }
+          }
         } catch (err) {
           setError('No se pudieron cargar los grupos. Verifique la materia seleccionada.');
           setGrupos([]);
+          console.error('Error fetching grupos:', err);
         } finally {
           setLoading(false);
         }
@@ -170,7 +269,7 @@ const MateriasImpartidasView = () => {
       setEstudiantes([]);
       setEstudiantesAllGroups([]);
     }
-  }, [materia]);
+  }, [materia, isOffline]);
 
   // Obtener estudiantes de todos los grupos
   useEffect(() => {
@@ -179,51 +278,64 @@ const MateriasImpartidasView = () => {
         setLoadingCharts(true);
         setError(null);
         try {
-          const clvCuatrimestre = grupos[0]?.ClvCuatrimestre || '5';
-          const periodo = docenteInfo.PeriodoMasReciente
-            ? docenteInfo.PeriodoMasReciente.split(' ')[2] +
-              (docenteInfo.PeriodoMasReciente.includes('Enero')
-                ? '1'
-                : docenteInfo.PeriodoMasReciente.includes('Mayo')
-                  ? '2'
-                  : '3')
-            : '';
-          if (!periodo) {
-            setError('Período no disponible. Seleccione una materia válida.');
-            setEstudiantesAllGroups([]);
-            setLoadingCharts(false);
-            return;
-          }
-          const response = await axios.get(
-            `${BaseURL}CalificacionesXMateriaGrupo?ClvMateria=${materia}&ClvCuatrimestre=${clvCuatrimestre}`
-          );
-          if (response.data.data.length === 0) {
-            setEstudiantesAllGroups([]);
-            setError('No hay calificaciones disponibles para esta materia.');
+          if (!isOffline) {
+            const clvCuatrimestre = grupos[0]?.ClvCuatrimestre || '5';
+            const periodo = docenteInfo.PeriodoMasReciente
+              ? docenteInfo.PeriodoMasReciente.split(' ')[2] +
+                (docenteInfo.PeriodoMasReciente.includes('Enero')
+                  ? '1'
+                  : docenteInfo.PeriodoMasReciente.includes('Mayo')
+                    ? '2'
+                    : '3')
+              : '';
+            if (!periodo) {
+              setError('Período no disponible. Seleccione una materia válida.');
+              setEstudiantesAllGroups([]);
+              setLoadingCharts(false);
+              return;
+            }
+            const response = await axios.get(
+              `${BaseURL}CalificacionesXMateriaGrupo?ClvMateria=${materia}&ClvCuatrimestre=${clvCuatrimestre}`
+            );
+            if (response.data.data.length === 0) {
+              setEstudiantesAllGroups([]);
+              setError('No hay calificaciones disponibles para esta materia.');
+            } else {
+              const estudiantesConEfectivas = response.data.data.map((estudiante) => ({
+                ...estudiante,
+                Parcial1Efectiva: Math.max(
+                  estudiante.Parcial1 || 0,
+                  estudiante.Parcial1E1 || 0,
+                  estudiante.Parcial1E2 || 0,
+                  estudiante.Parcial1E3 || 0
+                ),
+                Parcial2Efectiva: Math.max(
+                  estudiante.Parcial2 || 0,
+                  estudiante.Parcial2E1 || 0,
+                  estudiante.Parcial2E2 || 0,
+                  estudiante.Parcial2E3 || 0
+                ),
+                Parcial3Efectiva: Math.max(
+                  estudiante.Parcial3 || 0,
+                  estudiante.Parcial3E1 || 0,
+                  estudiante.Parcial3E2 || 0,
+                  estudiante.Parcial3E3 || 0
+                ),
+                PromedioFinal: estudiante.PromedioFinal || 0,
+              }));
+              setEstudiantesAllGroups(estudiantesConEfectivas);
+              // Guardar en localStorage
+              localStorage.setItem('estudiantesAllGroupsData', JSON.stringify(estudiantesConEfectivas));
+            }
           } else {
-            const estudiantesConEfectivas = response.data.data.map((estudiante) => ({
-              ...estudiante,
-              Parcial1Efectiva: Math.max(
-                estudiante.Parcial1 || 0,
-                estudiante.Parcial1E1 || 0,
-                estudiante.Parcial1E2 || 0,
-                estudiante.Parcial1E3 || 0
-              ),
-              Parcial2Efectiva: Math.max(
-                estudiante.Parcial2 || 0,
-                estudiante.Parcial2E1 || 0,
-                estudiante.Parcial2E2 || 0,
-                estudiante.Parcial2E3 || 0
-              ),
-              Parcial3Efectiva: Math.max(
-                estudiante.Parcial3 || 0,
-                estudiante.Parcial3E1 || 0,
-                estudiante.Parcial3E2 || 0,
-                estudiante.Parcial3E3 || 0
-              ),
-              PromedioFinal: estudiante.PromedioFinal || 0,
-            }));
-            setEstudiantesAllGroups(estudiantesConEfectivas);
+            console.warn('⚠️ Sin conexión, cargando estudiantes de todos los grupos guardados...');
+            const localData = localStorage.getItem('estudiantesAllGroupsData');
+            if (localData) {
+              setEstudiantesAllGroups(JSON.parse(localData));
+            } else {
+              setError('No hay datos disponibles offline. Conéctate para cargar los datos.');
+              setEstudiantesAllGroups([]);
+            }
           }
         } catch (err) {
           console.error('Error en fetchEstudiantesAllGroups:', err);
@@ -241,7 +353,7 @@ const MateriasImpartidasView = () => {
     } else {
       setEstudiantesAllGroups([]);
     }
-  }, [materia, grupos, docenteInfo.PeriodoMasReciente]);
+  }, [materia, grupos, docenteInfo.PeriodoMasReciente, isOffline]);
 
   // Obtener estudiantes cuando se selecciona un grupo
   useEffect(() => {
@@ -250,38 +362,51 @@ const MateriasImpartidasView = () => {
         setLoading(true);
         setError(null);
         try {
-          const grupoData = grupos.find((g) => g.Grupo === grupo);
-          const clvCuatrimestre = grupoData ? grupoData.ClvCuatrimestre : '5';
-          const response = await axios.get(
-            `${BaseURL}CalificacionesXMateriaGrupo?ClvMateria=${materia}&ClvCuatrimestre=${clvCuatrimestre}&Grupo=${grupo}`
-          );
-          if (response.data.data.length === 0) {
-            setError('No hay calificaciones disponibles para este grupo y materia.');
-            setEstudiantes([]);
+          if (!isOffline) {
+            const grupoData = grupos.find((g) => g.Grupo === grupo);
+            const clvCuatrimestre = grupoData ? grupoData.ClvCuatrimestre : '5';
+            const response = await axios.get(
+              `${BaseURL}CalificacionesXMateriaGrupo?ClvMateria=${materia}&ClvCuatrimestre=${clvCuatrimestre}&Grupo=${grupo}`
+            );
+            if (response.data.data.length === 0) {
+              setError('No hay calificaciones disponibles para este grupo y materia.');
+              setEstudiantes([]);
+            } else {
+              const estudiantesConEfectivas = response.data.data.map((estudiante) => ({
+                ...estudiante,
+                Parcial1Efectiva: Math.max(
+                  estudiante.Parcial1 || 0,
+                  estudiante.Parcial1E1 || 0,
+                  estudiante.Parcial1E2 || 0,
+                  estudiante.Parcial1E3 || 0
+                ),
+                Parcial2Efectiva: Math.max(
+                  estudiante.Parcial2 || 0,
+                  estudiante.Parcial2E1 || 0,
+                  estudiante.Parcial2E2 || 0,
+                  estudiante.Parcial2E3 || 0
+                ),
+                Parcial3Efectiva: Math.max(
+                  estudiante.Parcial3 || 0,
+                  estudiante.Parcial3E1 || 0,
+                  estudiante.Parcial3E2 || 0,
+                  estudiante.Parcial3E3 || 0
+                ),
+                PromedioFinal: estudiante.PromedioFinal || 0,
+              }));
+              setEstudiantes(estudiantesConEfectivas);
+              // Guardar en localStorage
+              localStorage.setItem('estudiantesData', JSON.stringify(estudiantesConEfectivas));
+            }
           } else {
-            const estudiantesConEfectivas = response.data.data.map((estudiante) => ({
-              ...estudiante,
-              Parcial1Efectiva: Math.max(
-                estudiante.Parcial1 || 0,
-                estudiante.Parcial1E1 || 0,
-                estudiante.Parcial1E2 || 0,
-                estudiante.Parcial1E3 || 0
-              ),
-              Parcial2Efectiva: Math.max(
-                estudiante.Parcial2 || 0,
-                estudiante.Parcial2E1 || 0,
-                estudiante.Parcial2E2 || 0,
-                estudiante.Parcial2E3 || 0
-              ),
-              Parcial3Efectiva: Math.max(
-                estudiante.Parcial3 || 0,
-                estudiante.Parcial3E1 || 0,
-                estudiante.Parcial3E2 || 0,
-                estudiante.Parcial3E3 || 0
-              ),
-              PromedioFinal: estudiante.PromedioFinal || 0,
-            }));
-            setEstudiantes(estudiantesConEfectivas);
+            console.warn('⚠️ Sin conexión, cargando estudiantes guardados...');
+            const localData = localStorage.getItem('estudiantesData');
+            if (localData) {
+              setEstudiantes(JSON.parse(localData));
+            } else {
+              setError('No hay datos disponibles offline. Conéctate para cargar los datos.');
+              setEstudiantes([]);
+            }
           }
         } catch (err) {
           console.error('Error en fetchEstudiantes:', err);
@@ -299,14 +424,18 @@ const MateriasImpartidasView = () => {
     } else {
       setEstudiantes([]);
     }
-  }, [materia, grupo, grupos]);
+  }, [materia, grupo, grupos, isOffline]);
 
   const handleMateriaChange = (event) => {
-    setMateria(event.target.value);
+    const newMateria = event.target.value;
+    setMateria(newMateria);
+    localStorage.setItem('selectedMateria', newMateria);
   };
 
   const handleGrupoChange = (event) => {
-    setGrupo(event.target.value);
+    const newGrupo = event.target.value;
+    setGrupo(newGrupo);
+    localStorage.setItem('selectedGrupo', newGrupo);
   };
 
   // Función auxiliar para determinar la fuente de la calificación parcial efectiva
@@ -677,15 +806,22 @@ const MateriasImpartidasView = () => {
           Materias Impartidas
         </Typography>
 
+        {/* 🔌 Indicador de conexión */}
+        {isOffline && (
+          <Alert severity="warning" sx={{ mb: 3, borderRadius: '12px' }}>
+            ⚠️ Estás sin conexión. Se están mostrando los datos guardados.
+          </Alert>
+        )}
+
         <Grid container spacing={2} sx={{ mb: 3 }}>
           <Grid item xs={12} sm={6}>
             <Typography variant="body2" color="text.secondary">
-              Docente: {docenteInfo.Nombre}
+              Docente: {docenteInfo.Nombre || 'Cargando...'}
             </Typography>
           </Grid>
           <Grid item xs={12} sm={6} sx={{ textAlign: { xs: 'left', sm: 'right' } }}>
             <Typography variant="body2" color="text.secondary">
-              Período: {docenteInfo.PeriodoMasReciente}
+              Período: {docenteInfo.PeriodoMasReciente || 'Cargando...'}
             </Typography>
           </Grid>
         </Grid>
@@ -705,7 +841,13 @@ const MateriasImpartidasView = () => {
               <Typography variant="body2" fontWeight="bold" gutterBottom color="#921F45">
                 Seleccionar Materia
               </Typography>
-              <Select value={materia} onChange={handleMateriaChange} displayEmpty sx={{ color: 'text.primary' }}>
+              <Select
+                value={materia}
+                onChange={handleMateriaChange}
+                displayEmpty
+                sx={{ color: 'text.primary' }}
+                disabled={materias.length === 0}
+              >
                 <MenuItem sx={{ color: 'text.primary' }} value="" disabled>
                   -- Seleccionar --
                 </MenuItem>
@@ -718,11 +860,16 @@ const MateriasImpartidasView = () => {
             </FormControl>
           </Grid>
           <Grid item xs={12} sm={6}>
-            <FormControl fullWidth disabled={!materia}>
+            <FormControl fullWidth disabled={!materia || grupos.length === 0}>
               <Typography variant="body2" fontWeight="bold" gutterBottom color="#921F45">
                 Seleccionar Grupo
               </Typography>
-              <Select value={grupo} onChange={handleGrupoChange} displayEmpty sx={{ color: 'text.primary' }}>
+              <Select
+                value={grupo}
+                onChange={handleGrupoChange}
+                displayEmpty
+                sx={{ color: 'text.primary' }}
+              >
                 <MenuItem sx={{ color: 'text.primary' }} value="" disabled>
                   -- Seleccionar --
                 </MenuItem>
@@ -788,7 +935,7 @@ const MateriasImpartidasView = () => {
         {materia && (
           <>
             <Typography variant="h5" sx={{ mt: 4, fontWeight: 'bold', color: '#921F45' }}>
-              Análisis de {materias.find((m) => m.ClvMateria === materia)?.NomMateria}
+              Análisis de {materias.find((m) => m.ClvMateria === materia)?.NomMateria || 'Cargando...'}
             </Typography>
             {loadingCharts && <CircularProgress sx={{ display: 'block', mx: 'auto', my: 2 }} />}
             {!loadingCharts && estudiantesAllGroups.length === 0 && !loadingCharts && (
@@ -1007,7 +1154,7 @@ const MateriasImpartidasView = () => {
 
             <Typography variant="h5" sx={{ mt: 4, fontWeight: 'bold', color: '#921F45' }}>
               Tendencia de Desempeño del Grupo {grupo} en{' '}
-              {materias.find((m) => m.ClvMateria === materia)?.NomMateria}
+              {materias.find((m) => m.ClvMateria === materia)?.NomMateria || 'Cargando...'}
             </Typography>
             <Chart
               chartType="LineChart"

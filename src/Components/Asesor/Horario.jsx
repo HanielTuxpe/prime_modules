@@ -11,6 +11,7 @@ import {
   Typography,
   CircularProgress,
   Box,
+  Alert,
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import { obtenerMatricula } from '../Access/SessionService';
@@ -29,6 +30,21 @@ const HorarioDocente = () => {
   const [error, setError] = useState(null);
   const [nombreDocente, setNombreDocente] = useState('');
   const [docenteCompleto, setDocenteCompleto] = useState('');
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+
+  // 🔌 Detectar conexión/desconexión en tiempo real
+  useEffect(() => {
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   // Obtener el día actual de la semana
   useEffect(() => {
@@ -37,34 +53,52 @@ const HorarioDocente = () => {
     setCurrentDay(days[today]);
   }, []);
 
-  // Obtener datos del docente desde la API
+  // Obtener datos del docente
   useEffect(() => {
     const fetchDocenteData = async () => {
       try {
-        const response = await fetch(URL_DOCENTE);
-        if (!response.ok) {
-          throw new Error(`Error al obtener datos del docente: ${response.statusText}`);
+        if (!isOffline) {
+          const response = await fetch(URL_DOCENTE);
+          if (!response.ok) {
+            throw new Error(`Error al obtener datos del docente: ${response.statusText}`);
+          }
+          const result = await response.json();
+          const docenteData = result.data[0];
+          if (!docenteData) {
+            throw new Error('No se encontraron datos para el docente');
+          }
+          // Extraer solo el nombre sin el prefijo (Ing., Mtro., etc.)
+          const nombreCorto = docenteData.Nombre.split(' ')
+            .join(' ')
+            .split(' ')[0]; // Tomar solo el primer nombre
+          setNombreDocente(nombreCorto); // Ejemplo: 'Gadiel'
+          setDocenteCompleto(`${docenteData.Nombre}`); // Ejemplo: 'Ing. Gadiel Ramos Hernández'
+          // Guardar en localStorage
+          localStorage.setItem('docenteData', JSON.stringify({
+            nombreDocente: nombreCorto,
+            docenteCompleto: docenteData.Nombre,
+          }));
+        } else {
+          console.warn('⚠️ Sin conexión, cargando datos del docente guardados...');
+          const localData = localStorage.getItem('docenteData');
+          if (localData) {
+            const { nombreDocente, docenteCompleto } = JSON.parse(localData);
+            setNombreDocente(nombreDocente);
+            setDocenteCompleto(docenteCompleto);
+          } else {
+            setError('No hay datos disponibles offline. Conéctate para cargar el horario.');
+          }
         }
-        const result = await response.json();
-        const docenteData = result.data[0];
-        if (!docenteData) {
-          throw new Error('No se encontraron datos para el docente');
-        }
-        // Extraer solo el nombre sin el prefijo (Ing., Mtro., etc.)
-        const nombreCorto = docenteData.Nombre.split(' ')
-          .join(' ')
-          .split(' ')[0]; // Tomar solo el primer nombre
-        setNombreDocente(nombreCorto); // Ejemplo: 'Gadiel'
-        setDocenteCompleto(`${docenteData.Nombre}`); // Ejemplo: 'Ing. Gadiel Ramos Hernández'
       } catch (err) {
         console.error('Error al obtener datos del docente:', err.message);
         setError(err.message);
+      } finally {
         setLoading(false);
       }
     };
 
     fetchDocenteData();
-  }, []);
+  }, [isOffline]);
 
   // Cargar horario una vez que se tenga el nombre del docente
   useEffect(() => {
@@ -72,103 +106,125 @@ const HorarioDocente = () => {
 
     const cargarHorario = async () => {
       try {
-        const response = await fetch(URL_HORARIOS);
-        if (!response.ok) {
-          console.error('Error en la respuesta del servidor:', response.status, response.statusText);
-          throw new Error(`Error al cargar el horario: ${response.statusText}`);
-        }
-        const blob = await response.blob();
-        const arrayBuffer = await blob.arrayBuffer();
-        const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+        if (!isOffline) {
+          const response = await fetch(URL_HORARIOS);
+          if (!response.ok) {
+            throw new Error(`Error al cargar el horario: ${response.statusText}`);
+          }
+          const blob = await response.blob();
+          const arrayBuffer = await blob.arrayBuffer();
+          const workbook = XLSX.read(arrayBuffer, { type: 'array' });
 
-        console.log('Nombres de las hojas en el Excel:', workbook.SheetNames);
+          console.log('Nombres de las hojas en el Excel:', workbook.SheetNames);
 
-        if (!workbook.SheetNames.includes(nombreDocente)) {
-          throw new Error(`No existe hoja para el docente: ${nombreDocente}`);
-        }
+          if (!workbook.SheetNames.includes(nombreDocente)) {
+            throw new Error(`No existe hoja para el docente: ${nombreDocente}`);
+          }
 
-        const sheet = workbook.Sheets[nombreDocente];
-        const data = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-        console.log('Datos crudos de la hoja:', data);
+          const sheet = workbook.Sheets[nombreDocente];
+          const data = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+          console.log('Datos crudos de la hoja:', data);
 
-        // Extraer PERIODO y CARRERA
-        const metaPeriodo = data.find((row) => row[0]?.toString().toUpperCase().includes('PERIODO'));
-        const metaCarrera = data.find((row) => row[0]?.toString().toUpperCase().includes('CARRERA'));
+          // Extraer PERIODO y CARRERA
+          const metaPeriodo = data.find((row) => row[0]?.toString().toUpperCase().includes('PERIODO'));
+          const metaCarrera = data.find((row) => row[0]?.toString().toUpperCase().includes('CARRERA'));
 
-        if (metaPeriodo) setPeriodo(metaPeriodo[1] || '');
-        if (metaCarrera) setCarrera(metaCarrera[1] || '');
+          const periodoValue = metaPeriodo ? metaPeriodo[1] || '' : '';
+          const carreraValue = metaCarrera ? metaCarrera[1] || '' : '';
+          setPeriodo(periodoValue);
+          setCarrera(carreraValue);
 
-        const esHoraValida = (valor) => {
-          if (!valor) return false;
-          const texto = valor.toString().trim();
-          return /^[0-2]?[0-9]:[0-5][0-9]\s*-\s*[0-2]?[0-9]:[0-5][0-9]$/.test(texto);
-        };
+          // Guardar periodo y carrera en localStorage
+          localStorage.setItem('periodoData', JSON.stringify(periodoValue));
+          localStorage.setItem('carreraData', JSON.stringify(carreraValue));
 
-        // Convertir hora inicial y final a minutos para comparación
-        const timeToMinutes = (timeStr, isEnd = false) => {
-          if (!timeStr || !esHoraValida(timeStr)) return isEnd ? -Infinity : Infinity;
-          const time = timeStr.split('-').map((t) => t.trim())[isEnd ? 1 : 0];
-          const [hours, minutes] = time.split(':').map(Number);
-          return hours * 60 + minutes;
-        };
+          const esHoraValida = (valor) => {
+            if (!valor) return false;
+            const texto = valor.toString().trim();
+            return /^[0-2]?[0-9]:[0-5][0-9]\s*-\s*[0-2]?[0-9]:[0-5][0-9]$/.test(texto);
+          };
 
-        // Filtrar filas con horas válidas
-        let filas = data
-          .filter((fila) => esHoraValida(fila[0]))
-          .map((fila) => ({
-            hora: fila[0],
-            lunes: fila[1] || '',
-            martes: fila[2] || '',
-            miercoles: fila[3] || '',
-            jueves: fila[4] || '',
-            viernes: fila[5] || '',
-          }));
+          // Convertir hora inicial y final a minutos para comparación
+          const timeToMinutes = (timeStr, isEnd = false) => {
+            if (!timeStr || !esHoraValida(timeStr)) return isEnd ? -Infinity : Infinity;
+            const time = timeStr.split('-').map((t) => t.trim())[isEnd ? 1 : 0];
+            const [hours, minutes] = time.split(':').map(Number);
+            return hours * 60 + minutes;
+          };
 
-        console.log('Filas con horas válidas:', filas);
+          // Filtrar filas con horas válidas
+          let filas = data
+            .filter((fila) => esHoraValida(fila[0]))
+            .map((fila) => ({
+              hora: fila[0],
+              lunes: fila[1] || '',
+              martes: fila[2] || '',
+              miercoles: fila[3] || '',
+              jueves: fila[4] || '',
+              viernes: fila[5] || '',
+            }));
 
-        // Filtrar filas con al menos una clase (excluyendo RECESO)
-        const filasConClases = filas.filter((fila) => {
-          return ['lunes', 'martes', 'miercoles', 'jueves', 'viernes'].some(
-            (day) =>
-              fila[day] &&
-              !/R\s*E\s*C\s*E\s*S\s*O|Receso/i.test(fila[day].toString())
+          console.log('Filas con horas válidas:', filas);
+
+          // Filtrar filas con al menos una clase (excluyendo RECESO)
+          const filasConClases = filas.filter((fila) => {
+            return ['lunes', 'martes', 'miercoles', 'jueves', 'viernes'].some(
+              (day) =>
+                fila[day] &&
+                !/R\s*E\s*C\s*E\s*S\s*O|Receso/i.test(fila[day].toString())
+            );
+          });
+
+          console.log('Filas con clases (sin RECESO):', filasConClases);
+
+          if (filasConClases.length === 0) {
+            throw new Error('No se encontraron clases para el docente');
+          }
+
+          // Encontrar la hora más temprana y más tardía con clases
+          const earliestClassTime = Math.min(
+            ...filasConClases.map((fila) => timeToMinutes(fila.hora, false))
           );
-        });
+          const latestClassTime = Math.max(
+            ...filasConClases.map((fila) => timeToMinutes(fila.hora, true))
+          );
 
-        console.log('Filas con clases (sin RECESO):', filasConClases);
+          console.log('Hora más temprana:', earliestClassTime, 'Hora más tardía:', latestClassTime);
 
-        if (filasConClases.length === 0) {
-          throw new Error('No se encontraron clases para el docente');
+          // Identificar filas con RECESO
+          const filasReceso = filas.filter((fila) =>
+            ['lunes', 'martes', 'miercoles', 'jueves', 'viernes'].some(
+              (day) => fila[day] && /R\s*E\s*C\s*E\s*S\s*O|Receso/i.test(fila[day].toString())
+            )
+          );
+          console.log('Filas con RECESO:', filasReceso);
+
+          // Filtrar filas para incluir solo las que están dentro del rango de clases
+          filas = filas.filter((fila) => {
+            const rowStartTime = timeToMinutes(fila.hora, false);
+            const rowEndTime = timeToMinutes(fila.hora, true);
+            return rowStartTime >= earliestClassTime && rowEndTime <= latestClassTime;
+          });
+
+          console.log('Filas filtradas finales:', filas);
+
+          setHorario(filas);
+          // Guardar horario en localStorage
+          localStorage.setItem('horarioData', JSON.stringify(filas));
+        } else {
+          console.warn('⚠️ Sin conexión, cargando horario guardado...');
+          const localHorario = localStorage.getItem('horarioData');
+          const localPeriodo = localStorage.getItem('periodoData');
+          const localCarrera = localStorage.getItem('carreraData');
+          if (localHorario && localPeriodo && localCarrera) {
+            setHorario(JSON.parse(localHorario));
+            setPeriodo(JSON.parse(localPeriodo));
+            setCarrera(JSON.parse(localCarrera));
+          } else {
+            setError('No hay datos disponibles offline. Conéctate para cargar el horario.');
+            setHorario([]);
+          }
         }
-
-        // Encontrar la hora más temprana y más tardía con clases
-        const earliestClassTime = Math.min(
-          ...filasConClases.map((fila) => timeToMinutes(fila.hora, false))
-        );
-        const latestClassTime = Math.max(
-          ...filasConClases.map((fila) => timeToMinutes(fila.hora, true))
-        );
-
-        console.log('Hora más temprana:', earliestClassTime, 'Hora más tardía:', latestClassTime);
-
-        // Identificar filas con RECESO
-        const filasReceso = filas.filter((fila) =>
-          ['lunes', 'martes', 'miercoles', 'jueves', 'viernes'].some(
-            (day) => fila[day] && /R\s*E\s*C\s*E\s*S\s*O|Receso/i.test(fila[day].toString())
-          )
-        );
-        console.log('Filas con RECESO:', filasReceso);
-
-        // Filtrar filas para incluir solo las que están dentro del rango de clases
-        filas = filas.filter((fila) => {
-          const rowStartTime = timeToMinutes(fila.hora, false);
-          const rowEndTime = timeToMinutes(fila.hora, true);
-          return rowStartTime >= earliestClassTime && rowEndTime <= latestClassTime;
-        });
-
-        console.log('Filas filtradas finales:', filas);
-
-        setHorario(filas);
       } catch (err) {
         console.error('Error:', err.message);
         setError(err.message);
@@ -179,7 +235,7 @@ const HorarioDocente = () => {
     };
 
     cargarHorario();
-  }, [nombreDocente]);
+  }, [nombreDocente, isOffline]);
 
   // Variantes de animación para Framer Motion
   const containerVariants = {
@@ -218,6 +274,13 @@ const HorarioDocente = () => {
       animate="visible"
       style={{ maxWidth: 1000, margin: 'auto', padding: '16px' }}
     >
+      {/* 🔌 Indicador de conexión */}
+      {isOffline && (
+        <Alert severity="warning" sx={{ mb: 2, borderRadius: '12px' }}>
+          ⚠️ Estás sin conexión. Se están mostrando los datos guardados.
+        </Alert>
+      )}
+
       <Box
         sx={{
           backgroundColor: '#ffffff',
@@ -245,7 +308,7 @@ const HorarioDocente = () => {
           Horario del Docente
         </Typography>
         <Typography variant="body1" align="center" sx={{ color: '#616161' }}>
-          Docente: {docenteCompleto}
+          Docente: {docenteCompleto || 'Cargando...'}
         </Typography>
         {periodo && (
           <Typography variant="body2" align="center" sx={{ color: '#616161' }}>
@@ -419,7 +482,7 @@ const HorarioDocente = () => {
             align="center"
             sx={{ mt: 2, fontSize: '0.9rem', fontWeight: 'medium' }}
           >
-            No se encontraron datos de horario para el docente: {nombreDocente}
+            No se encontraron datos de horario para el docente: {nombreDocente || 'Cargando...'}
           </Typography>
         </motion.div>
       )}
