@@ -21,7 +21,7 @@ export default defineConfig({
         short_name: "PRIME",
         description:
           "Plataforma académica con análisis, predicciones y trazabilidad estudiantil.",
-        theme_color: "#921F45",
+        theme_color: "#8f1e44ff",
         background_color: "#ffffff",
         display: "standalone",
         start_url: "/",
