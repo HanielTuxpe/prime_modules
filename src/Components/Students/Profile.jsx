@@ -159,82 +159,78 @@ const Profile = () => {
   };
 
   // Iniciar escaneo de QR
-  const startScanner = () => {
-    if (scannerRef.current) {
-      scannerRef.current.clear();
-    }
-    const html5QrcodeScanner = new Html5QrcodeScanner(
-      'qr-reader',
-      { fps: 10, qrbox: { width: 250, height: 250 } },
-      false
-    );
-    scannerRef.current = html5QrcodeScanner;
+  // 🔹 Iniciar escáner QR (sin interfaz integrada)
+  const startScanner = async () => {
+    try {
+      const html5QrCode = new Html5Qrcode("qr-reader");
+      scannerRef.current = html5QrCode;
+      setScannerActive(true);
 
-    html5QrcodeScanner.render(
-      (decodedText) => {
-        // Validar el contenido del QR
-        const validQRCodes = ['Entrada_26/10/2025_asdf', 'Salida_26/10/2025_asdr'];
-        if (!validQRCodes.includes(decodedText)) {
-          setScanError('Código QR no válido. Usa un código QR autorizado.');
-          return;
+      await html5QrCode.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: { width: 250, height: 250 } },
+        (decodedText) => {
+          // Validar QR
+          const validQRCodes = ["Entrada_26/10/2025_asdf", "Salida_26/10/2025_asdr"];
+          if (!validQRCodes.includes(decodedText)) {
+            setScanError("Código QR no válido. Usa un QR autorizado.");
+            return;
+          }
+
+          const now = new Date().toLocaleString("es-MX", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+          });
+          const type = decodedText.includes("Entrada") ? "Entrada" : "Salida";
+          const lastRecord = attendanceRecords[0];
+          if (lastRecord && lastRecord.type === type) {
+            setScanError(`No se puede registrar ${type} consecutivamente.`);
+            return;
+          }
+
+          const newRecord = { date: now, type };
+          const updatedRecords = [newRecord, ...attendanceRecords];
+          setAttendanceRecords(updatedRecords);
+          localStorage.setItem("attendanceRecords", JSON.stringify(updatedRecords));
+
+          setScanSuccess(true);
+
+          // ✅ detener escáner con retardo para evitar parpadeo
+          setTimeout(() => stopScanner(), 500);
+        },
+        (err) => {
+          if (!err.includes("No MultiFormat Readers")) console.warn("Error escáner:", err);
         }
-
-        // Determinar tipo de registro
-        const now = new Date().toLocaleString('es-MX', {
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-          hour: '2-digit',
-          minute: '2-digit',
-          hour12: true,
-        });
-        const type = decodedText.includes('Entrada') ? 'Entrada' : 'Salida';
-
-        // Evitar registro duplicado del mismo tipo consecutivamente
-        const lastRecord = attendanceRecords[0]; // Most recent at index 0
-        if (lastRecord && lastRecord.type === type) {
-          setScanError(`No se puede registrar ${type} consecutivamente.`);
-          return;
-        }
-
-        // Agregar nuevo registro al inicio (más reciente arriba)
-        const newRecord = { date: now, type };
-        setAttendanceRecords((prev) => {
-          const updatedRecords = [newRecord, ...prev];
-          localStorage.setItem('attendanceRecords', JSON.stringify(updatedRecords));
-          return updatedRecords;
-        });
-        setScanSuccess(true);
-        stopScanner(); // Detener escaneo tras éxito
-      },
-      (error) => {
-        // Suprimir errores repetitivos en consola
-        if (!error.includes('No MultiFormat Readers were able to detect the code')) {
-          console.warn('Error al escanear QR:', error);
-        }
-      }
-    );
-
-    setScannerActive(true);
-  };
-
-  // Detener escaneo de QR
-  const stopScanner = () => {
-    if (scannerRef.current) {
-      scannerRef.current.clear();
+      );
+    } catch (err) {
+      console.error("Error al iniciar escáner:", err);
+      setScanError("No se pudo iniciar la cámara.");
       setScannerActive(false);
     }
   };
 
-  // Cerrar feedback de éxito
-  const handleCloseSuccess = () => {
-    setScanSuccess(false);
+  // Detener escaneo de QR
+   const stopScanner = async () => {
+    try {
+      if (scannerRef.current) {
+        await scannerRef.current.stop();
+        await scannerRef.current.clear();
+        console.log("✅ Escáner detenido correctamente");
+      }
+    } catch (err) {
+      console.warn("⚠️ Error al detener escáner:", err);
+    } finally {
+      setScannerActive(false);
+    }
   };
 
-  // Cerrar feedback de error
-  const handleCloseError = () => {
-    setScanError(null);
-  };
+  // Cerrar notificaciones
+  const handleCloseSuccess = () => setScanSuccess(false);
+  const handleCloseError = () => setScanError(null);
 
   // Datos ficticios para consultas médicas
   const medicalConsultations = {
