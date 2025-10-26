@@ -603,17 +603,18 @@ const Profile = () => {
                   id="qr-reader"
                   sx={{
                     width: '100%',
-                    height: { xs: 'calc(80vw - 32px)', sm: 300 }, // Dynamic height based on viewport width for mobile
-                    maxHeight: { xs: 300, sm: 400 }, // Prevent excessive height
-                    aspectRatio: '1 / 1', // Maintain square aspect ratio
-                    border: '2px solid #921F45',
-                    borderRadius: 2,
+                    maxWidth: 360, // tamaño máximo en pantallas grandes
+                    margin: '0 auto',
+                    borderRadius: 3,
                     overflow: 'hidden',
-                    display: scannerActive ? 'block' : 'none',
-                    backgroundColor: scannerActive ? '#e0e0e0' : 'transparent', // Light gray background when active
                     position: 'relative',
+                    border: '3px solid #921F45',
+                    boxShadow: '0 6px 18px rgba(0,0,0,0.2)',
+                    backgroundColor: '#f9f9f9',
+                    display: scannerActive ? 'block' : 'none',
                   }}
                 >
+                  {/* Texto superior flotante */}
                   {scannerActive && (
                     <Typography
                       variant="body2"
@@ -622,16 +623,23 @@ const Profile = () => {
                         top: 8,
                         left: 8,
                         color: '#fff',
-                        bgcolor: 'rgba(0, 0, 0, 0.5)',
-                        p: 1,
+                        bgcolor: 'rgba(0, 0, 0, 0.6)',
+                        px: 1.5,
+                        py: 0.5,
                         borderRadius: 1,
                         fontSize: { xs: 12, sm: 14 },
+                        zIndex: 2,
                       }}
                     >
                       Escanea el código QR
                     </Typography>
                   )}
+
+             
+
+           
                 </Box>
+
                 {scanError && (
                   <Alert severity="error" sx={{ mt: 2, width: '100%', borderRadius: 1 }} onClose={handleCloseError}>
                     {scanError}
