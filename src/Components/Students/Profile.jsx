@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Container,
   Box,
@@ -15,14 +15,14 @@ import {
   useMediaQuery,
   useTheme,
   Alert,
+  Button,
 } from '@mui/material';
-import QRCode from 'react-qr-code';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
 import PsychologyIcon from '@mui/icons-material/Psychology';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import axios from 'axios';
 import { obtenerMatricula } from '../Access/SessionService';
+import { Html5QrcodeScanner } from 'html5-qrcode';
 
 const BaseURL = import.meta.env.VITE_URL_BASE_API;
 
@@ -45,6 +45,9 @@ const Profile = () => {
   const [selectedPerformance, setSelectedPerformance] = useState(null);
   const [expandedMedical, setExpandedMedical] = useState(null);
   const [expandedPsychological, setExpandedPsychological] = useState(null);
+  const [attendanceRecords, setAttendanceRecords] = useState([]);
+  const [scannerActive, setScannerActive] = useState(false);
+  const scannerRef = useRef(null);
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -85,7 +88,6 @@ const Profile = () => {
               periodo: data.Periodo,
             };
             setStudentData(newStudentData);
-            // Guardar en localStorage
             localStorage.setItem('studentData', JSON.stringify(newStudentData));
           } else {
             throw new Error('Datos no válidos recibidos de la API');
@@ -111,6 +113,12 @@ const Profile = () => {
         setLoading(false);
       }
     };
+
+    // Cargar registros de asistencia desde localStorage
+    const savedAttendance = localStorage.getItem('attendanceRecords');
+    if (savedAttendance) {
+      setAttendanceRecords(JSON.parse(savedAttendance));
+    }
 
     // Seleccionar un perfil de rendimiento al azar al cargar
     const performances = ['Muy Alto Rendimiento', 'Alto Rendimiento', 'Rendimiento Medio', 'Rendimiento Bajo'];
@@ -146,20 +154,7 @@ const Profile = () => {
     return `${year}-${term}`;
   };
 
-  // Datos ficticios para registros de entrada y salida
-  const attendanceRecords = [
-    { date: '2025-07-15 08:00', type: 'Entrada' },
-    { date: '2025-07-15 14:30', type: 'Salida' },
-    { date: '2025-07-14 07:45', type: 'Entrada' },
-    { date: '2025-07-14 15:00', type: 'Salida' },
-    { date: '2025-07-13 08:15', type: 'Entrada' },
-    { date: '2025-07-13 14:00', type: 'Salida' },
-    { date: '2025-07-12 08:30', type: 'Entrada' },
-    { date: '2025-07-12 15:30', type: 'Salida' },
-    { date: '2025-07-11 07:50', type: 'Entrada' },
-    { date: '2025-07-11 14:45', type: 'Salida' }
-  ];
-
+  // Datos ficticios para consultas médicas y psicológicas (mantenidos como estaban)
   // Datos ficticios para consultas médicas
   const medicalConsultations = {
     'Muy Alto Rendimiento': [
@@ -444,6 +439,50 @@ const Profile = () => {
     setExpandedPsychological(expandedPsychological === index ? null : index);
   };
 
+  // Iniciar escaneo de QR
+  const startScanner = () => {
+    if (scannerRef.current) {
+      scannerRef.current.clear();
+    }
+    const html5QrcodeScanner = new Html5QrcodeScanner(
+      'qr-reader',
+      { fps: 10, qrbox: { width: 250, height: 250 } },
+      /* verbose= */ false
+    );
+    scannerRef.current = html5QrcodeScanner;
+
+    html5QrcodeScanner.render((decodedText, decodedResult) => {
+      // Al detectar un QR, registrar entrada o salida
+      const now = new Date().toLocaleString('es-MX', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
+      });
+      const lastRecord = attendanceRecords[attendanceRecords.length - 1];
+      const type = lastRecord?.type === 'Entrada' ? 'Salida' : 'Entrada';
+      const newRecord = { date: now, type };
+      setAttendanceRecords((prev) => [...prev, newRecord]);
+      localStorage.setItem('attendanceRecords', JSON.stringify([...attendanceRecords, newRecord]));
+      html5QrcodeScanner.clear(); // Detener escaneo después de un éxito
+      setScannerActive(false);
+    }, (error) => {
+      console.warn('Error al escanear QR:', error);
+    });
+
+    setScannerActive(true);
+  };
+
+  // Detener escaneo de QR
+  const stopScanner = () => {
+    if (scannerRef.current) {
+      scannerRef.current.clear();
+      setScannerActive(false);
+    }
+  };
+
   return (
     <Container
       sx={{
@@ -476,7 +515,7 @@ const Profile = () => {
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, width: '100%' }}>
             {/* Perfil del Estudiante */}
             <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 3, width: '100%' }}>
-              {/* QR Section */}
+              {/* QR Scanner Section */}
               <Card
                 sx={{
                   flex: 1,
@@ -493,28 +532,36 @@ const Profile = () => {
                 }}
               >
                 <Typography variant="h6" sx={{ fontWeight: 600, color: '#921F45', mb: 2, fontSize: { xs: 16, sm: 20 } }}>
-                  QR de Acceso
+                  Escaneo para Registro
                 </Typography>
+                {!scannerActive ? (
+                  <Button
+                    variant="contained"
+                    sx={{ bgcolor: '#921F45', color: '#fff', '&:hover': { bgcolor: '#7a1a38' }, mb: 2 }}
+                    onClick={startScanner}
+                  >
+                    Iniciar Escaneo
+                  </Button>
+                ) : (
+                  <Button
+                    variant="contained"
+                    sx={{ bgcolor: '#921F45', color: '#fff', '&:hover': { bgcolor: '#7a1a38' }, mb: 2 }}
+                    onClick={stopScanner}
+                  >
+                    Detener Escaneo
+                  </Button>
+                )}
                 <Box
+                  id="qr-reader"
                   sx={{
-                    p: 2,
-                    bgcolor: '#fff',
-                    borderRadius: 2,
+                    width: '100%',
+                    height: { xs: 200, md: 300 },
                     border: '2px solid #921F45',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
+                    borderRadius: 2,
+                    overflow: 'hidden',
+                    display: scannerActive ? 'block' : 'none',
                   }}
-                >
-                  <QRCode
-                    size={200}
-                    style={{ height: 'auto', maxWidth: '100%', width: '100%' }}
-                    value={studentData.matricula.toString()}
-                    viewBox={`0 0 256 256`}
-                    bgColor="#ffffff"
-                    fgColor="#000000"
-                  />
-                </Box>
+                />
                 <Box sx={{ width: '100%', mt: 3 }}>
                   <Typography variant="h6" sx={{ fontWeight: 600, color: '#921F45', mb: 2, fontSize: { xs: 16, sm: 20 } }}>
                     Registro de Entrada y Salida
@@ -550,7 +597,7 @@ const Profile = () => {
                 </Box>
               </Card>
 
-              {/* Student Information Section */}
+              {/* Student Information Section (sin cambios) */}
               <Card
                 sx={{
                   flex: 2,
@@ -646,7 +693,7 @@ const Profile = () => {
               </Card>
             </Box>
 
-            {/* Servicios Médicos */}
+            {/* Servicios Médicos (sin cambios) */}
             <Card
               sx={{
                 width: '100%',
@@ -665,7 +712,6 @@ const Profile = () => {
                     Historial de Consultas Médicas
                   </Typography>
                 </Box>
-
                 <List>
                   {selectedPerformance && medicalConsultations[selectedPerformance].length > 0 ? (
                     medicalConsultations[selectedPerformance].map((consultation, index) => (
@@ -673,12 +719,7 @@ const Profile = () => {
                         <ListItem
                           button
                           onClick={() => handleMedicalToggle(index)}
-                          sx={{
-                            bgcolor: '#f9f9f9',
-                            mb: 1,
-                            borderRadius: 1,
-                            '&:hover': { bgcolor: '#f0f0f0' }
-                          }}
+                          sx={{ bgcolor: '#f9f9f9', mb: 1, borderRadius: 1, '&:hover': { bgcolor: '#f0f0f0' } }}
                         >
                           <ListItemText
                             primary={`Consulta - ${consultation.date}`}
@@ -733,7 +774,7 @@ const Profile = () => {
               </CardContent>
             </Card>
 
-            {/* Servicios Psicológicos */}
+            {/* Servicios Psicológicos (sin cambios) */}
             <Card
               sx={{
                 width: '100%',
@@ -752,7 +793,6 @@ const Profile = () => {
                     Historial de Consultas Psicológicas
                   </Typography>
                 </Box>
-
                 <List>
                   {selectedPerformance && psychologicalConsultations[selectedPerformance].length > 0 ? (
                     psychologicalConsultations[selectedPerformance].map((consultation, index) => (
@@ -760,12 +800,7 @@ const Profile = () => {
                         <ListItem
                           button
                           onClick={() => handlePsychologicalToggle(index)}
-                          sx={{
-                            bgcolor: '#f9f9f9',
-                            mb: 1,
-                            borderRadius: 1,
-                            '&:hover': { bgcolor: '#f0f0f0' }
-                          }}
+                          sx={{ bgcolor: '#f9f9f9', mb: 1, borderRadius: 1, '&:hover': { bgcolor: '#f0f0f0' } }}
                         >
                           <ListItemText
                             primary={`Sesión - ${consultation.date}`}
