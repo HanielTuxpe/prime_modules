@@ -578,7 +578,7 @@ const Profile = () => {
                       color: '#fff',
                       '&:hover': { bgcolor: '#7a1a38' },
                       mb: 2,
-                      width: { xs: '80%', sm: 'auto' }, // Wider button on mobile
+                      width: { xs: '70%', sm: 'auto' }, // Wider button on mobile
                     }}
                     onClick={startScanner}
                   >
