@@ -1,12 +1,22 @@
-import { CircularProgress, Card, CardContent, Typography, Box, Grid, useTheme, useMediaQuery } from '@mui/material';
-import { Chart } from "react-google-charts";
-import axios from "axios";
-import { useState, useEffect } from "react";
+import {
+  CircularProgress,
+  Card,
+  CardContent,
+  Typography,
+  Box,
+  Grid,
+  useTheme,
+  useMediaQuery,
+  Alert,
+} from '@mui/material';
+import { Chart } from 'react-google-charts';
+import axios from 'axios';
+import { useState, useEffect } from 'react';
 import { obtenerMatricula } from '../Access/SessionService';
 
 export default function RendimientoAlumnos() {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm")); // Detects screens smaller than 'sm' (600px)
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm')); // Detects screens smaller than 'sm' (600px)
   const matricula = obtenerMatricula();
   const [data, setData] = useState([]);
   const [promedioGeneral, setPromedioGeneral] = useState(0);
@@ -14,39 +24,132 @@ export default function RendimientoAlumnos() {
   const [materiasChartData, setMateriasChartData] = useState({});
   const [currentCuatrimestre, setCurrentCuatrimestre] = useState(1);
   const [loadingMaterias, setLoadingMaterias] = useState(true);
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
   const BaseURL = import.meta.env.VITE_URL_BASE_API;
 
+  // 🔌 Detectar conexión/desconexión en tiempo real
+  useEffect(() => {
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
   const fetchDataEStatus = async () => {
     try {
-      const response = await axios.get(BaseURL + 'historial', {
-        params: { matricula: matricula },
-      });
-      if (response.status === 200 && response.data.history) {
-        const processedData = processHistorialData(response.data.history);
-        setPromedioGeneral(processedData.promedioGeneral);
-        setPredicciones(processedData.predicciones);
+      if (!isOffline) {
+        const response = await axios.get(`${BaseURL}historial`, {
+          params: { matricula },
+        });
+        if (response.status === 200 && response.data.history) {
+          const processedData = processHistorialData(response.data.history);
+          setPromedioGeneral(processedData.promedioGeneral);
+          setPredicciones(processedData.predicciones);
+          // Guardar en localStorage
+          localStorage.setItem('historialData', JSON.stringify(response.data.history));
+          localStorage.setItem('promedioGeneral', processedData.promedioGeneral);
+          localStorage.setItem('predicciones', JSON.stringify(processedData.predicciones));
+        }
+      } else {
+        console.warn('⚠️ Sin conexión, cargando historial guardado...');
+        const localHistorial = localStorage.getItem('historialData');
+        const localPromedio = localStorage.getItem('promedioGeneral');
+        const localPredicciones = localStorage.getItem('predicciones');
+        if (localHistorial) {
+          const processedData = processHistorialData(JSON.parse(localHistorial));
+          setPromedioGeneral(localPromedio ? parseFloat(localPromedio) : processedData.promedioGeneral);
+          setPredicciones(localPredicciones ? JSON.parse(localPredicciones) : processedData.predicciones);
+        }
       }
     } catch (error) {
-      console.error("Error detected:", error);
+      console.warn('⚠️ Error al cargar historial, intentando con datos locales...');
+      const localHistorial = localStorage.getItem('historialData');
+      const localPromedio = localStorage.getItem('promedioGeneral');
+      const localPredicciones = localStorage.getItem('predicciones');
+      if (localHistorial) {
+        const processedData = processHistorialData(JSON.parse(localHistorial));
+        setPromedioGeneral(localPromedio ? parseFloat(localPromedio) : processedData.promedioGeneral);
+        setPredicciones(localPredicciones ? JSON.parse(localPredicciones) : processedData.predicciones);
+      } else {
+        console.error('Error detected:', error);
+      }
     }
   };
 
   const fetchMateriasData = async () => {
     try {
-      const response = await axios.get(BaseURL + 'fullHistorial', {
-        params: { matricula: matricula },
-      });
-      if (response.status === 200 && response.data.data) {
-        const formattedData = formatMateriasData(response.data.data);
+      setLoadingMaterias(true);
+      if (!isOffline) {
+        const response = await axios.get(`${BaseURL}fullHistorial`, {
+          params: { matricula },
+        });
+        if (response.status === 200 && response.data.data) {
+          const formattedData = formatMateriasData(response.data.data);
+          setMateriasChartData(formattedData);
+          const cuatrimestres = Object.keys(formattedData).map(Number).sort((a, b) => a - b);
+          setCurrentCuatrimestre(cuatrimestres[0]?.toString() || '1');
+          // Guardar en localStorage
+          localStorage.setItem('materiasData', JSON.stringify(formattedData));
+        }
+      } else {
+        console.warn('⚠️ Sin conexión, cargando materias guardadas...');
+        const localMaterias = localStorage.getItem('materiasData');
+        if (localMaterias) {
+          const formattedData = JSON.parse(localMaterias);
+          setMateriasChartData(formattedData);
+          const cuatrimestres = Object.keys(formattedData).map(Number).sort((a, b) => a - b);
+          setCurrentCuatrimestre(cuatrimestres[0]?.toString() || '1');
+        }
+      }
+    } catch (error) {
+      console.warn('⚠️ Error al cargar materias, intentando con datos locales...');
+      const localMaterias = localStorage.getItem('materiasData');
+      if (localMaterias) {
+        const formattedData = JSON.parse(localMaterias);
         setMateriasChartData(formattedData);
         const cuatrimestres = Object.keys(formattedData).map(Number).sort((a, b) => a - b);
         setCurrentCuatrimestre(cuatrimestres[0]?.toString() || '1');
+      } else {
+        console.error('Error detected:', error);
       }
-    } catch (error) {
-      console.error("Error detected:", error);
     } finally {
       setLoadingMaterias(false);
+    }
+  };
+
+  const fetchData = async () => {
+    try {
+      if (!isOffline) {
+        const response = await axios.get(`${BaseURL}data`, {
+          params: { matricula },
+        });
+        if (response.status === 200 && response.data.data) {
+          setData(response.data.data);
+          // Guardar en localStorage
+          localStorage.setItem('alumnoData', JSON.stringify(response.data.data));
+        }
+      } else {
+        console.warn('⚠️ Sin conexión, usando datos locales...');
+        const localData = localStorage.getItem('alumnoData');
+        if (localData) {
+          setData(JSON.parse(localData));
+        }
+      }
+    } catch (error) {
+      console.warn('⚠️ Error al cargar datos, usando datos locales...');
+      const localData = localStorage.getItem('alumnoData');
+      if (localData) {
+        setData(JSON.parse(localData));
+      } else {
+        console.error('Error detected:', error);
+      }
     }
   };
 
@@ -66,7 +169,7 @@ export default function RendimientoAlumnos() {
         groupedData[Cuatrimestre].total += PromedioFinal;
         groupedData[Cuatrimestre].count += 1;
       } else {
-        console.warn("Datos faltantes o incorrectos:", { Cuatrimestre, PromedioFinal });
+        console.warn('Datos faltantes o incorrectos:', { Cuatrimestre, PromedioFinal });
       }
     });
 
@@ -83,7 +186,7 @@ export default function RendimientoAlumnos() {
     }
 
     // Create array for Google Charts and generate predictions
-    const result = [["Cuatrimestre", "Promedio"]];
+    const result = [['Cuatrimestre', 'Promedio']];
     let previoPromedio = 0;
     Object.keys(groupedData).forEach((cuatri, index) => {
       const promedio = groupedData[cuatri].total / groupedData[cuatri].count;
@@ -93,7 +196,7 @@ export default function RendimientoAlumnos() {
       const prediccion = index === 0 ? 8.0 : parseFloat((previoPromedio + (Math.random() - 0.5) * 0.5).toFixed(2));
       predicciones.push({
         cuatrimestre: cuatri,
-        tipoPrediccion: "Promedio General",
+        tipoPrediccion: 'Promedio General',
         calificacionPredicha: prediccion,
         calificacionReal: parseFloat(promedio.toFixed(2)),
       });
@@ -112,7 +215,7 @@ export default function RendimientoAlumnos() {
       const proximoCuatrimestre = ultimoCuatrimestre;
       predicciones.push({
         cuatrimestre: proximoCuatrimestre.toString(),
-        tipoPrediccion: "Promedio General",
+        tipoPrediccion: 'Promedio General',
         calificacionPredicha: parseFloat((promedioGeneral + (Math.random() - 0.5) * 0.5).toFixed(2)),
         calificacionReal: null,
       });
@@ -133,14 +236,14 @@ export default function RendimientoAlumnos() {
     data.forEach((item) => {
       const { Cuatrimestre, Materia, PromedioFinal } = item;
       if (!cuatrimestresData[Cuatrimestre]) {
-        cuatrimestresData[Cuatrimestre] = [["Materia", "Predicción", "Calificación Real"]];
+        cuatrimestresData[Cuatrimestre] = [['Materia', 'Predicción', 'Calificación Real']];
       }
       // Generate coherent prediction based on previous final grade
       const prediccion = ultimoPromedioPorMateria[Materia]
         ? parseFloat((ultimoPromedioPorMateria[Materia] + (Math.random() - 0.5) * 0.5).toFixed(2))
         : PromedioFinal
-          ? parseFloat((PromedioFinal + (Math.random() - 0.5) * 0.5).toFixed(2))
-          : 8.0;
+        ? parseFloat((PromedioFinal + (Math.random() - 0.5) * 0.5).toFixed(2))
+        : 8.0;
       const calificacionReal = PromedioFinal ? parseFloat(PromedioFinal.toFixed(2)) : null;
       cuatrimestresData[Cuatrimestre].push([Materia, prediccion, calificacionReal]);
       ultimoPromedioPorMateria[Materia] = calificacionReal || prediccion;
@@ -153,7 +256,7 @@ export default function RendimientoAlumnos() {
     // Add the next cuatrimestre with predictions
     if (ultimoCuatrimestre) {
       const proximoCuatrimestre = (ultimoCuatrimestre + 1).toString();
-      cuatrimestresData[proximoCuatrimestre] = [["Materia", "Predicción", "Calificación Real"]];
+      cuatrimestresData[proximoCuatrimestre] = [['Materia', 'Predicción', 'Calificación Real']];
       // Use the last cuatrimestre's subjects
       const materiasUltimoCuatri = cuatrimestresData[ultimoCuatrimestre].slice(1).map((row) => row[0]);
       materiasUltimoCuatri.forEach((materia) => {
@@ -194,22 +297,9 @@ export default function RendimientoAlumnos() {
 
   const estatus = getEstatusImage(promedioGeneral);
 
-  const fetchData = async () => {
-    try {
-      const response = await axios.get(BaseURL + 'data', {
-        params: { matricula: matricula },
-      });
-      if (response.status === 200 && response.data) {
-        setData(response.data.data);
-      }
-    } catch (error) {
-      console.error("Error detected:", error);
-    }
-  };
-
   // Prepare data for predictions chart
   const prediccionesChartData = [
-    ["Cuatrimestre", "Calificación Predicha", "Calificación Real"],
+    ['Cuatrimestre', 'Calificación Predicha', 'Calificación Real'],
     ...predicciones.map((p) => [
       p.cuatrimestre,
       p.calificacionPredicha,
@@ -220,7 +310,7 @@ export default function RendimientoAlumnos() {
   // Responsive chart options for predictions
   const prediccionesOptions = {
     hAxis: {
-      title: "Cuatrimestre",
+      title: 'Cuatrimestre',
       gridlines: { count: isMobile ? 4 : 6 }, // Fewer gridlines on mobile
       format: '0',
       titleTextStyle: {
@@ -232,7 +322,7 @@ export default function RendimientoAlumnos() {
       },
     },
     vAxis: {
-      title: "Calificación",
+      title: 'Calificación',
       minValue: 0,
       maxValue: 10,
       format: '0.0',
@@ -244,10 +334,10 @@ export default function RendimientoAlumnos() {
         color: '#000',
       },
     },
-    colors: ["#4CAF50", "#1f77b4"], // Green for predictions, blue for real grades
+    colors: ['#4CAF50', '#1f77b4'], // Green for predictions, blue for real grades
     pointSize: isMobile ? 3 : 5, // Smaller points on mobile
     lineWidth: isMobile ? 2 : 3, // Thinner lines on mobile
-    bar: { groupWidth: isMobile ? "30%" : "40%" }, // Narrower bars on mobile
+    bar: { groupWidth: isMobile ? '30%' : '40%' }, // Narrower bars on mobile
     annotations: {
       alwaysOutside: true,
       textStyle: {
@@ -257,27 +347,27 @@ export default function RendimientoAlumnos() {
       },
     },
     legend: {
-      position: isMobile ? "top" : "bottom", // Legend at top on mobile
+      position: isMobile ? 'top' : 'bottom', // Legend at top on mobile
       textStyle: {
         fontSize: isMobile ? 10 : 12,
       },
     },
     chartArea: {
-      width: isMobile ? "85%" : "80%", // More width on mobile
-      height: isMobile ? "70%" : "80%", // Less height on mobile
+      width: isMobile ? '85%' : '80%', // More width on mobile
+      height: isMobile ? '70%' : '80%', // Less height on mobile
     },
   };
 
   // Responsive chart options for materias (ScatterChart)
   const materiasOptions = {
-    title: ` ${currentCuatrimestre} Cuatrimestre`,
+    title: `${currentCuatrimestre} Cuatrimestre`,
     titleTextStyle: {
       fontSize: isMobile ? 14 : 16, // Smaller title on mobile
       bold: true,
       color: '#921F45',
     },
     hAxis: {
-      title: "Materia",
+      title: 'Materia',
       titleTextStyle: {
         fontSize: isMobile ? 12 : 14,
         color: '#000',
@@ -288,7 +378,7 @@ export default function RendimientoAlumnos() {
       },
     },
     vAxis: {
-      title: "Calificación",
+      title: 'Calificación',
       minValue: 0,
       maxValue: 10,
       format: '0.0',
@@ -302,14 +392,14 @@ export default function RendimientoAlumnos() {
       },
     },
     legend: {
-      position: isMobile ? "top" : "bottom", // Legend at top on mobile
+      position: isMobile ? 'top' : 'bottom', // Legend at top on mobile
       textStyle: {
         fontSize: isMobile ? 10 : 12,
       },
     },
     animation: {
       duration: isMobile ? 1500 : 2000, // Faster animation on mobile
-      easing: "out",
+      easing: 'out',
     },
     colors: ['#4CAF50', '#1f77b4'], // Green for predictions, blue for real grades
     pointSize: isMobile ? 5 : 8, // Smaller points on mobile
@@ -324,8 +414,8 @@ export default function RendimientoAlumnos() {
       },
     },
     chartArea: {
-      width: isMobile ? "85%" : "80%", // More width on mobile
-      height: isMobile ? "70%" : "80%", // Less height on mobile
+      width: isMobile ? '85%' : '80%', // More width on mobile
+      height: isMobile ? '70%' : '80%', // Less height on mobile
     },
   };
 
@@ -335,7 +425,7 @@ export default function RendimientoAlumnos() {
       fetchData();
       fetchMateriasData();
     }
-  }, [matricula]);
+  }, [matricula, isOffline]);
 
   useEffect(() => {
     const intervalId = setInterval(() => {
@@ -351,27 +441,29 @@ export default function RendimientoAlumnos() {
     return () => clearInterval(intervalId);
   }, [materiasChartData, currentCuatrimestre, isMobile]);
 
-  if (data.length === 0) {
+  if (data.length === 0 && !localStorage.getItem('alumnoData')) {
     return (
       <Box sx={{ p: isMobile ? 2 : 4, minHeight: '100vh' }}>
-        <Card sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          borderRadius: '16px',
-          boxShadow: '0 6px 18px rgba(0, 0, 0, 0.1)',
-          transition: 'all 0.3s ease-in-out',
-          backgroundColor: theme.palette.paper,
-          justifyContent: 'center',
-          alignItems: 'center',
-          padding: isMobile ? 2 : 4,
-        }}>
-          <Typography sx={{ color: '#000' }} variant={isMobile ? "h6" : "h5"} gutterBottom>
+        <Card
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            borderRadius: '16px',
+            boxShadow: '0 6px 18px rgba(0, 0, 0, 0.1)',
+            transition: 'all 0.3s ease-in-out',
+            backgroundColor: theme.palette.paper,
+            justifyContent: 'center',
+            alignItems: 'center',
+            padding: isMobile ? 2 : 4,
+          }}
+        >
+          <Typography sx={{ color: '#000' }} variant={isMobile ? 'h6' : 'h5'} gutterBottom>
             No hay datos disponibles.
           </Typography>
           <Typography sx={{ color: '#000' }} variant="body1">
-            Cargando datos.
+            Cargando datos...
           </Typography>
-          <CircularProgress size={isMobile ? 30 : 40} /> {/* Smaller loader on mobile */}
+          <CircularProgress size={isMobile ? 30 : 40} />
         </Card>
       </Box>
     );
@@ -379,14 +471,21 @@ export default function RendimientoAlumnos() {
 
   return (
     <Box sx={{ p: isMobile ? 2 : 4, minHeight: '100vh' }}>
-      <Card sx={{
-        borderRadius: '16px',
-        boxShadow: '0 6px 18px rgba(0, 0, 0, 0.1)',
-        transition: 'all 0.3s ease-in-out',
-        backgroundColor: theme.palette.paper,
+      {/* 🔌 Indicador de conexión */}
+      {isOffline && (
+        <Alert severity="warning" sx={{ mb: 2, borderRadius: '12px' }}>
+          ⚠️ Estás sin conexión. Se están mostrando los datos guardados.
+        </Alert>
+      )}
 
-      }}>
-
+      <Card
+        sx={{
+          borderRadius: '16px',
+          boxShadow: '0 6px 18px rgba(0, 0, 0, 0.1)',
+          transition: 'all 0.3s ease-in-out',
+          backgroundColor: theme.palette.paper,
+        }}
+      >
         {/* Tarjeta de datos del alumno */}
         <Card
           sx={{
@@ -420,10 +519,10 @@ export default function RendimientoAlumnos() {
                         whiteSpace: 'nowrap',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
-                        fontSize: { xs: '0.8rem', sm: '1.2rem' }, // tamaño pequeño en móvil, grande en desktop
+                        fontSize: { xs: '0.8rem', sm: '1.2rem' },
                       }}
                     >
-                      {data[0].Nombre} {data[0].APaterno} {data[0].AMaterno}
+                      {data[0]?.Nombre} {data[0]?.APaterno} {data[0]?.AMaterno}
                     </Typography>
                     <Typography
                       variant="body1"
@@ -432,10 +531,10 @@ export default function RendimientoAlumnos() {
                         whiteSpace: 'nowrap',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
-                        fontSize: { xs: '0.6rem', sm: '1.2rem' }, // tamaño adaptativo
+                        fontSize: { xs: '0.6rem', sm: '1.2rem' },
                       }}
                     >
-                      CUATRIMESTRE: {data[0].Cuatrimestre}º | GRUPO: {data[0].Grupo}
+                      CUATRIMESTRE: {data[0]?.Cuatrimestre}º | GRUPO: {data[0]?.Grupo}
                     </Typography>
                   </Box>
 
@@ -470,11 +569,11 @@ export default function RendimientoAlumnos() {
                   variant="body1"
                   sx={{
                     mt: 1,
-                    fontSize: { xs: '0.7rem', sm: '1.2rem' }, // tamaño adaptativo para nombre de carrera
-                    wordBreak: 'break-word', // asegura que palabras largas también bajen de línea
+                    fontSize: { xs: '0.7rem', sm: '1.2rem' },
+                    wordBreak: 'break-word',
                   }}
                 >
-                  {data[0].NombreCarrera}
+                  {data[0]?.NombreCarrera}
                 </Typography>
               </Grid>
             </Grid>
@@ -482,20 +581,20 @@ export default function RendimientoAlumnos() {
         </Card>
 
         {/* Gráfica de predicciones existente */}
-        <Card sx={{
-          borderRadius: '16px',
-          boxShadow: '0 6px 18px rgba(0, 0, 0, 0.1)',
-          transition: 'all 0.3s ease-in-out',
-          backgroundColor: theme.palette.paper,
-
-        }}>
+        <Card
+          sx={{
+            borderRadius: '16px',
+            boxShadow: '0 6px 18px rgba(0, 0, 0, 0.1)',
+            transition: 'all 0.3s ease-in-out',
+            backgroundColor: theme.palette.paper,
+          }}
+        >
           <CardContent>
             <Typography
-              variant={isMobile ? "h6" : "h5"}
+              variant={isMobile ? 'h6' : 'h5'}
               sx={{
                 color: '#921F45',
                 fontWeight: 'bold',
-
                 fontSize: isMobile ? '1rem' : '1.25rem',
               }}
             >
@@ -506,11 +605,11 @@ export default function RendimientoAlumnos() {
                 No hay predicciones disponibles.
               </Typography>
             ) : (
-              <Box sx={{ minHeight: isMobile ? "200px" : "400px" }}>
+              <Box sx={{ minHeight: isMobile ? '200px' : '400px' }}>
                 <Chart
                   chartType="ColumnChart"
                   width="100%"
-                  height={isMobile ? "200px" : "400px"} // Smaller chart on mobile
+                  height={isMobile ? '200px' : '400px'}
                   data={prediccionesChartData}
                   options={prediccionesOptions}
                 />
@@ -519,17 +618,19 @@ export default function RendimientoAlumnos() {
           </CardContent>
         </Card>
 
-        {/* Gráfica de predicciones y calificaciones reales de materias por cuatrimestre (ScatterChart animado) */}
-        <Card sx={{
-          borderRadius: '16px',
-          boxShadow: '0 6px 18px rgba(0, 0, 0, 0.1)',
-          transition: 'all 0.3s ease-in-out',
-          backgroundColor: theme.palette.paper,
-          mb: isMobile ? 2 : 4,
-        }}>
+        {/* Gráfica de predicciones y calificaciones reales de materias por cuatrimestre */}
+        <Card
+          sx={{
+            borderRadius: '16px',
+            boxShadow: '0 6px 18px rgba(0, 0, 0, 0.1)',
+            transition: 'all 0.3s ease-in-out',
+            backgroundColor: theme.palette.paper,
+            mb: isMobile ? 2 : 4,
+          }}
+        >
           <CardContent>
             <Typography
-              variant={isMobile ? "h6" : "h5"}
+              variant={isMobile ? 'h6' : 'h5'}
               sx={{
                 color: '#921F45',
                 fontWeight: 'bold',
@@ -540,11 +641,11 @@ export default function RendimientoAlumnos() {
               Predicciones y Calificaciones Reales de Materias por Cuatrimestre
             </Typography>
             {loadingMaterias ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: isMobile ? "300px" : "400px" }}>
-                <CircularProgress size={isMobile ? 30 : 40} /> {/* Smaller loader on mobile */}
+              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: isMobile ? '200px' : '400px' }}>
+                <CircularProgress size={isMobile ? 30 : 40} />
               </Box>
             ) : (
-              <Box sx={{ minHeight: isMobile ? "200px" : "400px" }}>
+              <Box sx={{ minHeight: isMobile ? '200px' : '400px' }}>
                 {Object.keys(materiasChartData).length === 0 ? (
                   <Typography sx={{ color: '#921F45' }} variant="body1">
                     No hay datos disponibles.
@@ -553,8 +654,8 @@ export default function RendimientoAlumnos() {
                   <Chart
                     chartType="ScatterChart"
                     width="100%"
-                    height={isMobile ? "200px" : "400px"} // Smaller chart on mobile
-                    data={materiasChartData[currentCuatrimestre] || [["Materia", "Predicción", "Calificación Real"]]}
+                    height={isMobile ? '200px' : '400px'}
+                    data={materiasChartData[currentCuatrimestre] || [['Materia', 'Predicción', 'Calificación Real']]}
                     options={materiasOptions}
                   />
                 )}

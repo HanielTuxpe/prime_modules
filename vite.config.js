@@ -46,13 +46,13 @@ export default defineConfig({
         ],
       },
 
-      // 👇 ESTA ES LA SECCIÓN NUEVA IMPORTANTE
+      // 👇 SECCIÓN DE CACHÉ ACTUALIZADA PARA TU NUEVO BACKEND
       workbox: {
         runtimeCaching: [
           {
-            // 🧩 Coincide con tus peticiones a la API (ajusta el dominio si cambia)
+            // 🧠 Coincide con tu API actual en Render
             urlPattern:
-              /^https:\/\/ocelot-unique-ocelot\.ngrok-free\.app\/.*$/i,
+              /^https:\/\/prime-api-iawe\.onrender\.com\/.*$/i,
             handler: "NetworkFirst",
             options: {
               cacheName: "prime-api-cache",
@@ -67,8 +67,8 @@ export default defineConfig({
             },
           },
           {
-            // 👇 También puedes cachear imágenes o íconos grandes
-            urlPattern: /\.(?:png|jpg|jpeg|svg|gif)$/,
+            // 👇 Cachea imágenes institucionales, íconos y recursos estáticos
+            urlPattern: /\.(?:png|jpg|jpeg|svg|gif)$/i,
             handler: "CacheFirst",
             options: {
               cacheName: "prime-images",
