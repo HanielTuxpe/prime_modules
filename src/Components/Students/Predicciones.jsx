@@ -242,8 +242,8 @@ export default function RendimientoAlumnos() {
       const prediccion = ultimoPromedioPorMateria[Materia]
         ? parseFloat((ultimoPromedioPorMateria[Materia] + (Math.random() - 0.5) * 0.5).toFixed(2))
         : PromedioFinal
-        ? parseFloat((PromedioFinal + (Math.random() - 0.5) * 0.5).toFixed(2))
-        : 8.0;
+          ? parseFloat((PromedioFinal + (Math.random() - 0.5) * 0.5).toFixed(2))
+          : 8.0;
       const calificacionReal = PromedioFinal ? parseFloat(PromedioFinal.toFixed(2)) : null;
       cuatrimestresData[Cuatrimestre].push([Materia, prediccion, calificacionReal]);
       ultimoPromedioPorMateria[Materia] = calificacionReal || prediccion;
@@ -270,30 +270,14 @@ export default function RendimientoAlumnos() {
     return cuatrimestresData;
   };
 
-  // Function to determine status based on average
+  // 🏅 Determinar imagen según promedio
   const getEstatusImage = (promedioFinal) => {
-    if (promedioFinal >= 9) {
-      return {
-        src: '../../assets/MEDALLA_PLATA.png',
-        alt: 'Excelente',
-      };
-    } else if (promedioFinal >= 8) {
-      return {
-        src: '../../assets/MEDALLA_MORADO.png',
-        alt: 'Bueno',
-      };
-    } else if (promedioFinal >= 7) {
-      return {
-        src: '../../assets/MEDALLA_VERDE.png',
-        alt: 'Regular',
-      };
-    } else {
-      return {
-        src: '../../assets/MEDALLA_ROJA.png',
-        alt: 'Necesita mejorar',
-      };
-    }
+    if (promedioFinal >= 9) return { src: MEDALLA_PLATA, alt: "Excelente" };
+    if (promedioFinal >= 8) return { src: MEDALLA_MORADO, alt: "Bueno" };
+    if (promedioFinal >= 7) return { src: MEDALLA_VERDE, alt: "Regular" };
+    return { src: MEDALLA_ROJA, alt: "Necesita mejorar" };
   };
+
 
   const estatus = getEstatusImage(promedioGeneral);
 
