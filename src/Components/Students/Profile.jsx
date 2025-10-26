@@ -236,7 +236,7 @@ const Profile = () => {
     setScanError(null);
   };
 
-   // Datos ficticios para consultas médicas
+  // Datos ficticios para consultas médicas
   const medicalConsultations = {
     'Muy Alto Rendimiento': [
       {
@@ -555,11 +555,11 @@ const Profile = () => {
               <Card
                 sx={{
                   flex: 1,
-                  maxWidth: { xs: '100%', md: '35%' },
+                  width: { xs: '100%', md: '35%' }, // Full width on mobile
                   boxShadow: 3,
                   borderRadius: 3,
                   bgcolor: '#ffffff',
-                  p: 3,
+                  p: { xs: 2, sm: 3 },
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
@@ -573,7 +573,13 @@ const Profile = () => {
                 {!scannerActive ? (
                   <Button
                     variant="contained"
-                    sx={{ bgcolor: '#921F45', color: '#fff', '&:hover': { bgcolor: '#7a1a38' }, mb: 2 }}
+                    sx={{
+                      bgcolor: '#921F45',
+                      color: '#fff',
+                      '&:hover': { bgcolor: '#7a1a38' },
+                      mb: 2,
+                      width: { xs: '80%', sm: 'auto' }, // Wider button on mobile
+                    }}
                     onClick={startScanner}
                   >
                     Iniciar Escaneo
@@ -581,7 +587,13 @@ const Profile = () => {
                 ) : (
                   <Button
                     variant="contained"
-                    sx={{ bgcolor: '#921F45', color: '#fff', '&:hover': { bgcolor: '#7a1a38' }, mb: 2 }}
+                    sx={{
+                      bgcolor: '#921F45',
+                      color: '#fff',
+                      '&:hover': { bgcolor: '#7a1a38' },
+                      mb: 2,
+                      width: { xs: '80%', sm: 'auto' },
+                    }}
                     onClick={stopScanner}
                   >
                     Detener Escaneo
@@ -591,16 +603,37 @@ const Profile = () => {
                   id="qr-reader"
                   sx={{
                     width: '100%',
-                    height: { xs: 200, md: 300 },
+                    height: { xs: 'calc(80vw - 32px)', sm: 300 }, // Dynamic height based on viewport width for mobile
+                    maxHeight: { xs: 300, sm: 400 }, // Prevent excessive height
+                    aspectRatio: '1 / 1', // Maintain square aspect ratio
                     border: '2px solid #921F45',
                     borderRadius: 2,
                     overflow: 'hidden',
                     display: scannerActive ? 'block' : 'none',
-                    backgroundColor: scannerActive ? '#f0f0f0' : 'transparent',
+                    backgroundColor: scannerActive ? '#e0e0e0' : 'transparent', // Light gray background when active
+                    position: 'relative',
                   }}
-                />
+                >
+                  {scannerActive && (
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        position: 'absolute',
+                        top: 8,
+                        left: 8,
+                        color: '#fff',
+                        bgcolor: 'rgba(0, 0, 0, 0.5)',
+                        p: 1,
+                        borderRadius: 1,
+                        fontSize: { xs: 12, sm: 14 },
+                      }}
+                    >
+                      Escanea el código QR
+                    </Typography>
+                  )}
+                </Box>
                 {scanError && (
-                  <Alert severity="error" sx={{ mt: 2, width: '100%' }} onClose={handleCloseError}>
+                  <Alert severity="error" sx={{ mt: 2, width: '100%', borderRadius: 1 }} onClose={handleCloseError}>
                     {scanError}
                   </Alert>
                 )}
@@ -610,30 +643,39 @@ const Profile = () => {
                   </Typography>
                   <Box
                     sx={{
-                      maxHeight: { xs: '150px', md: '300px' },
+                      maxHeight: { xs: 150, sm: 300 },
                       overflowY: 'auto',
                       pr: 1,
+                      bgcolor: '#f9f9f9',
+                      borderRadius: 1,
+                      p: 1,
                     }}
                   >
                     <List>
-                      {attendanceRecords.map((record, index) => (
-                        <ListItem
-                          key={index}
-                          sx={{
-                            bgcolor: '#f9f9f9',
-                            mb: 1,
-                            borderRadius: 1,
-                            '&:hover': { bgcolor: '#f0f0f0' }
-                          }}
-                        >
-                          <ListItemText
-                            primary={`${record.date}`}
-                            secondary={`Tipo: ${record.type}`}
-                            primaryTypographyProps={{ color: '#000', fontWeight: 600, fontSize: { xs: 12, sm: 16 } }}
-                            secondaryTypographyProps={{ color: '#000', fontSize: { xs: 10, sm: 14 } }}
-                          />
-                        </ListItem>
-                      ))}
+                      {attendanceRecords.length > 0 ? (
+                        attendanceRecords.map((record, index) => (
+                          <ListItem
+                            key={index}
+                            sx={{
+                              bgcolor: '#ffffff',
+                              mb: 1,
+                              borderRadius: 1,
+                              '&:hover': { bgcolor: '#f0f0f0' },
+                            }}
+                          >
+                            <ListItemText
+                              primary={`${record.date}`}
+                              secondary={`Tipo: ${record.type}`}
+                              primaryTypographyProps={{ color: '#000', fontWeight: 600, fontSize: { xs: 12, sm: 16 } }}
+                              secondaryTypographyProps={{ color: '#000', fontSize: { xs: 10, sm: 14 } }}
+                            />
+                          </ListItem>
+                        ))
+                      ) : (
+                        <Typography variant="body2" sx={{ color: '#000', textAlign: 'center', fontSize: { xs: 12, sm: 14 } }}>
+                          No hay registros de asistencia.
+                        </Typography>
+                      )}
                     </List>
                   </Box>
                 </Box>
