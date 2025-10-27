@@ -1,6 +1,5 @@
 name: CI - Gamificación Frontend
 
-
 on:
   push:
     branches: [ "main" ]
@@ -25,10 +24,14 @@ jobs:
 
       - name: Run Linter (skip errors)
         run: |
-          npm run lint || true
+          npm run lint || echo "⚠️ Linter warnings detected, continuing pipeline..."
 
       - name: Build project
         run: npm run build
+
+      # 👇 Crear carpeta para reportes antes de ejecutar pruebas
+      - name: Create reports folder
+        run: mkdir -p tests/reports
 
       - name: Run API Tests (Postman)
         run: npx newman run tests/collections/api.postman.json -e tests/env.postman.json \
