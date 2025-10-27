@@ -1,58 +1,60 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { TextField, Button, Container, Typography, Box, Link, IconButton } from '@mui/material';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { useNavigate } from 'react-router-dom';
-import banner from '../../assets/banner-login.png';
+import banner from '../../assets/banner-login.jpeg';
 import { useMediaQuery } from '@mui/material';
-import ReCAPTCHA from 'react-google-recaptcha';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import { iniciarSesion } from './SessionService';
+import PropTypes from 'prop-types';
+import DOMPurify from 'dompurify';
 
-const Login = ({ onLogin }) => {
-    const [username, setUsername] = useState('');
+const BaseURL = import.meta.env.VITE_URL_BASE_API;
+
+const Login = () => {
+    const [matricula, setMatricula] = useState('');
     const [password, setPassword] = useState('');
     const [userType, setUserType] = useState('');
     const [code, setCode] = useState('');
-    const [recaptchaToken, setRecaptchaToken] = useState(null);
     const [showPassword, setShowPassword] = useState(false);
-    const [isCodeRequired, setIsCodeRequired] = useState(false); // Nuevo estado para manejar el código
-    const navigate = useNavigate();
+    const [isCodeRequired, setIsCodeRequired] = useState(false);
     const isMobile = useMediaQuery('(max-width: 600px)');
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (!username.trim() || !password.trim() || !userType.trim()) {
+        if (!matricula.trim() || !password.trim() || !userType.trim()) {
             toast.warning('Por favor, complete todos los campos.');
             return;
         }
 
-        if (!recaptchaToken) {
-            toast.warning('La validación de reCAPTCHA es necesaria.');
-            return;
-        }
+        const sanitizedMatricula = DOMPurify.sanitize(matricula.trim());
+        const sanitizedPassword = DOMPurify.sanitize(password.trim());
+        const sanitizedUserType = DOMPurify.sanitize(userType.trim());
 
+    
         try {
-            // Validar reCAPTCHA
-            await axios.post('https://prj-server.onrender.com/validate-recaptcha', {
-                recaptchaToken,
+            const loginResponse = await axios.post(BaseURL + 'access', {
+                matricula: sanitizedMatricula,
+                password: sanitizedPassword,
+                userType: sanitizedUserType,
             });
-
-            // Si el reCAPTCHA es exitoso, proceder a validar las credenciales de usuario
-            const loginResponse = await axios.post('https://prj-server.onrender.com/login', {
-                username,
-                password,
-                userType,
-            });
-            
 
             if (loginResponse.status === 200) {
                 toast.success(loginResponse.data.message);
-                setIsCodeRequired(true); // Mostrar el campo de código
-                setRecaptchaToken(null);
-            } 
+
+                if (sanitizedUserType === 'estudiante') {
+                    // Solo para estudiantes: solicitar código de verificación
+                    setIsCodeRequired(true);
+               
+                } else if (sanitizedUserType === 'docente') {
+                    // Para docentes: iniciar sesión directo sin código
+                    iniciarSesion('Docente', sanitizedMatricula);
+                    toast.success('Bienvenido docente');
+                    window.location.replace('/Docente/');
+                }
+            }
         } catch (error) {
             if (error.response) {
                 const errorMessage = error.response.data.message || 'Error en el proceso de inicio de sesión.';
@@ -74,19 +76,19 @@ const Login = ({ onLogin }) => {
 
         try {
             // Verificar código
-            const verifyResponse = await axios.post('https://prj-server.onrender.com/code-login', {
-                username,
+            const verifyResponse = await axios.post(BaseURL + 'CodigoVerificacion', {
+                matricula,
                 code: Number(code),
             });
 
+            const TipodeUsuario = 'Estudiante';
+
             if (verifyResponse.status === 200) {
-                iniciarSesion(verifyResponse.data.type);
+                iniciarSesion(TipodeUsuario, matricula);
 
                 // Aseguramos la redirección después de un tiempo breve para garantizar el flujo correcto.
                 toast.success(verifyResponse.data.message);
- 
-                window.location.replace('/index');
-
+                window.location.replace('/Estudiante/');
             }
         } catch (error) {
             if (error.response) {
@@ -103,9 +105,6 @@ const Login = ({ onLogin }) => {
         setShowPassword(!showPassword);
     };
 
-    const onRecaptchaChange = (token) => {
-        setRecaptchaToken(token);
-    };
 
     return (
         <Container
@@ -115,6 +114,7 @@ const Login = ({ onLogin }) => {
                 flexDirection: 'column',
                 width: '100%',
                 color: '#fff',
+                marginTop: '1%'
             }}
         >
             <Box
@@ -127,6 +127,7 @@ const Login = ({ onLogin }) => {
                     maxWidth: isMobile ? 'auto' : '100%',
                     marginLeft: '0 !important',
                     marginRight: '0 !important',
+                    background: '#BC955B',
                 }}
             >
                 {/* Banner Izquierdo */}
@@ -191,8 +192,8 @@ const Login = ({ onLogin }) => {
                                     onChange={(e) => setUserType(e.target.value)}
                                 >
                                     <option value=" "> </option>
-                                    <option value="Admin">Admin</option>
-                                    <option value="Student">Estudiante</option>
+                                    <option value="estudiante">Estudiante</option>
+                                    <option value="docente">Docente</option>
                                 </TextField>
 
                                 <TextField
@@ -200,14 +201,15 @@ const Login = ({ onLogin }) => {
                                     margin="normal"
                                     required
                                     fullWidth
-                                    id="username"
-                                    label="Usuario"
-                                    name="username"
-                                    autoComplete="username"
+                                    id="matricula"
+                                    label={userType === 'docente' ? 'Clave Docente' : 'Matrícula'}
+                                    name="matricula"
+                                    autoComplete="matricula"
                                     autoFocus
-                                    value={username}
-                                    onChange={(e) => setUsername(e.target.value)}
+                                    value={matricula}
+                                    onChange={(e) => setMatricula(e.target.value)}
                                 />
+
                                 <Box sx={{ position: 'relative' }}>
                                     <TextField
                                         variant="outlined"
@@ -230,10 +232,7 @@ const Login = ({ onLogin }) => {
                                         {showPassword ? <VisibilityIcon /> : <VisibilityOffIcon />}
                                     </IconButton>
                                 </Box>
-                                <ReCAPTCHA
-                                    sitekey="6Le3YWUqAAAAAAsmFo9W0iT84R3qyVKtLuPJ9hhr"
-                                    onChange={onRecaptchaChange}
-                                />
+                               
                             </>
                         )}
 
@@ -262,12 +261,8 @@ const Login = ({ onLogin }) => {
                         </Button>
 
                         <Typography variant="body2" align="center">
-                            <Link href="/forgot-password" variant="h5" sx={{ mr: 1, fontSize: 18, color: '#fff' }}>
+                            <Link href="/Publico/forgot-password" variant="h5" sx={{ mr: 1, fontSize: 18, color: '#fff' }}>
                                 ¿Olvidaste tu contraseña?
-                            </Link>
-                            O &nbsp;
-                            <Link href="/SignUp" variant="h5" sx={{ mr: 1, fontSize: 18, color: '#fff' }}>
-                                Regístrate
                             </Link>
                         </Typography>
                     </Box>
@@ -275,6 +270,10 @@ const Login = ({ onLogin }) => {
             </Box>
         </Container>
     );
+};
+
+Login.propTypes = {
+    onLogin: PropTypes.func.isRequired,
 };
 
 export default Login;

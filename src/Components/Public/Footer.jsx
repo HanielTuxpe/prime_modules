@@ -1,7 +1,5 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Box, Link, Typography, IconButton, useTheme, Container, useMediaQuery } from '@mui/material';
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 
 const ResponsiveFooter = () => {
     const theme = useTheme();
@@ -41,12 +39,18 @@ const ResponsiveFooter = () => {
                             {/* Texto y flecha */}
                             <Box display="flex" alignItems="center" justifyContent="center">
 
-                                <Typography variant={"h7"}>
-                                    Universidad Tecnológica de la Huasteca Hidalguense
-                                </Typography>
+
 
                                 <IconButton onClick={toggleLinks} color="inherit">
-                                    {showLinks ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                                    <Typography variant={"h7"}
+                                        sx={{
+                                            color: '#FFFFFF',
+                                            fontSize: 'clamp(1rem, 1.5vw, 2.5rem)', // texto adaptable
+                                            maxWidth: '70%',
+                                            fontWeight: 400,
+                                        }}>
+                                        Universidad Tecnológica de la Huasteca Hidalguense
+                                    </Typography>
                                 </IconButton>
                             </Box>
                             {/* Enlaces en columna */}
@@ -59,16 +63,13 @@ const ResponsiveFooter = () => {
                                     gap={1}
                                     mt={1}
                                 >
-                                    <Link href="/privacy-policy" variant={"h7"} sx={{ color: "#fff", textDecoration: "none" }}>
+                                    <Link href="/Publico/Politicas" variant={"h7"} sx={{ color: "#fff", textDecoration: "none" }}>
                                         Política de Privacidad
                                     </Link>
-                                    <Link href="/terms-conditions" variant={"h7"} sx={{ color: "#fff", textDecoration: "none" }}>
-                                        Términos y Condiciones
+                                    <Link href="/Publico/FAQS" variant={"h7"} sx={{ color: "#fff", textDecoration: "none" }}>
+                                        FAQS
                                     </Link>
-                                    <Link href="/legal-disclaimer" variant={"h7"} sx={{ color: "#fff", textDecoration: "none" }}>
-                                        Deslinde Legal
-                                    </Link>
-                                    <Link href="/about"  variant={"h7"} sx={{ color: "#fff", textDecoration: "none" }}>
+                                    <Link href="/Publico/Acercade" variant={"h7"} sx={{ color: "#fff", textDecoration: "none" }}>
                                         Acerca de...
                                     </Link>
                                 </Box>
@@ -96,16 +97,13 @@ const ResponsiveFooter = () => {
                                 gap={1}
                                 alignItems="center"
                             >
-                                <Link href="/privacy-policy" variant={"h7"} sx={{ color: '#fff', textDecoration: 'none' }}>
+                                <Link href="/Publico/Politicas" variant={"h7"} sx={{ color: '#fff', textDecoration: 'none' }}>
                                     Política de Privacidad
                                 </Link>
-                                <Link href="/terms-conditions" variant={"h7"} sx={{ color: '#fff', textDecoration: 'none' }}>
-                                    Términos y Condiciones
+                                <Link href="/Publico/fAQS" variant={"h7"} sx={{ color: '#fff', textDecoration: 'none' }}>
+                                    FAQS
                                 </Link>
-                                <Link href="/legal-disclaimer" variant={"h7"} sx={{ color: '#fff', textDecoration: 'none' }}>
-                                    Deslinde Legal
-                                </Link>
-                                <Link href="/about" variant={"h7"} sx={{ color: '#fff', textDecoration: 'none' }}>
+                                <Link href="/Publico/Acercade" variant={"h7"} sx={{ color: '#fff', textDecoration: 'none' }}>
                                     Acerca de...
                                 </Link>
                             </Box>

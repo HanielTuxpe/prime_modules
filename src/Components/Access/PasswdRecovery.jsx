@@ -1,12 +1,15 @@
-import React, { useState } from 'react';
-import { TextField, Button, Container, Typography, Box, LinearProgress, IconButton } from '@mui/material';
+import { useState } from 'react';
+import { TextField, Button, Container, Typography, Box, LinearProgress, IconButton, Link } from '@mui/material';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
-import banner from '../../assets/banner-login.png';
+import banner from '../../assets/banner-login.jpeg';
 import { useMediaQuery } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import DOMPurify from 'dompurify';
+
+const BaseURL = import.meta.env.VITE_URL_BASE_API;
 
 const ForgotPassword = () => {
     const [email, setEmail] = useState('');
@@ -20,6 +23,7 @@ const ForgotPassword = () => {
     const navigate = useNavigate();
 
     const isMobile = useMediaQuery('(max-width: 600px)');
+
 
     // Función para calcular el progreso de la fortaleza de la contraseña
     const calculatePasswordProgress = () => {
@@ -55,24 +59,25 @@ const ForgotPassword = () => {
         return '#FFFFFF'; // Color por defecto
     };
 
-
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (!email.trim()) {
+        const sanitizedEmail = DOMPurify.sanitize(email);  // Sanitizamos el email para evitar inyecciones XSS
+
+        if (!sanitizedEmail.trim()) {
             toast.warning('Por favor, ingrese su correo electrónico.');
             return;
         }
 
         const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailPattern.test(email)) {
+        if (!emailPattern.test(sanitizedEmail)) {
             toast.warning('Por favor, ingresa un correo electrónico válido.');
             return;
         }
 
         try {
-            const response = await axios.post('https://prj-server.onrender.com/forgot-password', {
-                email,
+            const response = await axios.post(`${BaseURL}TokenEmail`, {
+                email: sanitizedEmail,
             });
 
             if (response.status === 200) {
@@ -94,9 +99,20 @@ const ForgotPassword = () => {
     const handleVerify = async (e) => {
         e.preventDefault();
 
+        const sanitizedEmail = DOMPurify.sanitize(email);
+        const sanitizedCodigo = DOMPurify.sanitize(codigo);  // Sanitizamos el código para evitar inyecciones XSS
+
+        console.log(sanitizedCodigo);
+        console.log(sanitizedEmail);
+        if (!sanitizedCodigo.trim()) {
+            toast.warning('Por favor, ingrese el código de verificación.');
+            return;
+        }
+
         try {
-            const response = await axios.post('https://prj-server.onrender.com/verify-code', {
-                code: codigo,
+            const response = await axios.post(`${BaseURL}VerifiTokenEmail`, {
+                email: sanitizedEmail,
+                token: sanitizedCodigo,
             });
 
             if (response.status === 200) {
@@ -108,45 +124,47 @@ const ForgotPassword = () => {
             }
         } catch (error) {
             toast.error('Error al verificar el código.');
+             console.log(error.response);
         }
     };
 
     const handleResetPassword = async (e) => {
         e.preventDefault();
 
-        if (!newPassword.trim()) {
+        const sanitizedEmail = DOMPurify.sanitize(email);
+        const sanitizedNewPassword = DOMPurify.sanitize(newPassword);  // Sanitizamos la nueva contraseña
+
+         console.log(sanitizedNewPassword);
+        console.log(sanitizedEmail);
+
+        if (!sanitizedNewPassword.trim()) {
             toast.warning('Por favor, ingrese su nueva contraseña.');
             return;
         }
 
         const passwordPattern = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*()_+.,;:])[A-Za-z\d!@#$%^&*()_+.,;:]{8,}$/;
-        if (!passwordPattern.test(newPassword)) {
+        if (!passwordPattern.test(sanitizedNewPassword)) {
             toast.warning('La contraseña debe tener al menos 8 caracteres, incluyendo mayúsculas, minúsculas, números y caracteres especiales (.!@#$%^&*()_+).');
             return;
         }
 
         try {
-
-            // Realizar la solicitud con fetch
-            const response = await fetch('https://prj-server.onrender.com/reset-password', {
+            const response = await fetch(`${BaseURL}EmailPassword`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    token,
-                    newPassword,
+                    email: sanitizedEmail,
+                    nuevaPassword: sanitizedNewPassword,
                 }),
             });
 
-            // Parsear la respuesta
             const data = await response.json();
 
-            console.log(data);
-
-            if (response.ok) { // `response.ok` es equivalente a verificar si el status es 200-299
+            if (response.ok) {
                 toast.success(data.message);
-                navigate('/login');
+                navigate('/Publico/login');
             } else {
                 toast.warning(data.message || 'Error inesperado');
             }
@@ -239,6 +257,13 @@ const ForgotPassword = () => {
                             >
                                 Enviar Correo de Recuperación
                             </Button>
+
+                            <Typography variant="body2" align="center">
+                                <Link href="/Publico/login" variant="h5" sx={{ mr: 1, fontSize: 18, color: '#fff' }}>
+                                    Regresar
+                                </Link>
+                            </Typography>
+
                         </Box>
                     ) : !isCodeVerified ? (
                         <Box component="form" onSubmit={handleVerify} sx={{ mt: 3 }}>
@@ -266,6 +291,7 @@ const ForgotPassword = () => {
                             >
                                 Verificar Código
                             </Button>
+
                         </Box>
                     ) : (
                         <Box component="form" onSubmit={handleResetPassword} sx={{ mt: 3 }}>
@@ -303,13 +329,9 @@ const ForgotPassword = () => {
                                 }}
                             />
                             <Typography variant="body1" sx={{ mt: 1 }}>
-                                {passwordProgress === 0 && ''}
-                                {passwordProgress === 20 && 'Muy débil'}
-                                {passwordProgress === 40 && 'Débil'}
-                                {passwordProgress === 60 && 'Moderada'}
-                                {passwordProgress === 80 && 'Fuerte'}
-                                {passwordProgress === 100 && 'Contraseña segura'}
+                                {passwordProgress === 100 ? 'Contraseña segura' : 'Crea una contraseña más segura'}
                             </Typography>
+
                             <Button
                                 type="submit"
                                 fullWidth

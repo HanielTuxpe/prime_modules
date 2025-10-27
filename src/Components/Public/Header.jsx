@@ -1,16 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Typography from '@mui/material/Typography';
 import { Box, IconButton, useMediaQuery, Container, useTheme, Tooltip } from '@mui/material';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
-import Brightness4Icon from '@mui/icons-material/Brightness4';
-import Brightness7Icon from '@mui/icons-material/Brightness7';
 import LoginIcon from '@mui/icons-material/Login';
 import Home from '@mui/icons-material/Home';
 import MenuIcon from '@mui/icons-material/Menu'; // Icono para el menú
 import { useNavigate } from 'react-router-dom';
-import logo from '../../assets/uthh.png';
+import logo from '../../assets/PRIME V2.gif';
 import MenuPrincipal from '../Public/Menu'; // Importa tu menú
 import { obtenerTipoUsuario } from '../Access/SessionService';
+import PropTypes from 'prop-types';
 
 const Header = ({ usuario, onLogout, toggleDarkMode, darkMode }) => {
     const theme = useTheme();
@@ -22,30 +21,37 @@ const Header = ({ usuario, onLogout, toggleDarkMode, darkMode }) => {
     const tituloLargo = "Plataforma de Rendimiento Integral y Monitoreo Educativo de la UTHH";
     const tituloCorto = "PRIME UTHH";
 
+    const userType = obtenerTipoUsuario();
+
     // Cargar usuario inicial al montar el componente
     useEffect(() => {
         const savedUser = obtenerTipoUsuario();
+        
         if (savedUser) {
             setUser(savedUser);
         }
     }, []);
 
     const handleLoginClick = () => {
-        navigate('/login');
+        navigate('/Publico/login');
     };
 
     const handleLogoutClick = () => {
         onLogout();
-        navigate('/');
+        navigate('/Publico/');
     };
 
     const handleGoIndex = () => {
         // Verifica si hay un usuario almacenado
-        if (user) {
-            navigate('/index'); // Si hay usuario, navega a /index
-        } else {
-            navigate('/'); // Si no hay usuario, navega a /
-        }
+
+            if (userType === 'Docente') {
+                navigate('/Docente/');  // Redirige a la vista de docente
+            } else if (userType === 'Estudiante') {
+                navigate('/Estudiante/');  // Redirige a la vista de alumno
+            } else {
+                navigate('/Publico/'); // Fallback si no coincide
+            }
+        
     };
 
     const toggleMenu = () => {
@@ -71,7 +77,6 @@ const Header = ({ usuario, onLogout, toggleDarkMode, darkMode }) => {
                     alignItems: "center",
                     flexDirection: isSmallScreen ? 'row' : 'row', // Cambia la dirección a columna en pantallas pequeñas
                     maxWidth: "none",
-                    alignItems: "center", // Centra el contenido verticalmente
                     '@media (min-width: 600px)': {
                         paddingLeft: 0, // Elimina el padding a partir de 600px
                         paddingRight: 0, // Elimina el padding a partir de 600px
@@ -88,9 +93,12 @@ const Header = ({ usuario, onLogout, toggleDarkMode, darkMode }) => {
                         src={logo}
                         alt="Logo"
                         style={{
-                            maxWidth: "80px", height: "auto",
-                            marginRight: "10%", marginLeft: isSmallScreen ? '0' : '40%',
+                            maxWidth: "60px", height: "auto",
+                            marginRight: "20%", marginLeft: isSmallScreen ? '0' : '40%',
                             filter: theme.custom.dropShadow,
+                            borderRadius: '50%',
+                            marginTop: "10%",
+                            marginBottom:"10%"
                         }}
                     />
                 </Box>
@@ -100,7 +108,7 @@ const Header = ({ usuario, onLogout, toggleDarkMode, darkMode }) => {
                     {/* Contenedor de Título */}
                     <Typography
                         variant="h5"
-                      
+
                         sx={{
                             fontWeight: "bold",
                             display: isSmallScreen ? 'none' : 'block',
@@ -111,7 +119,7 @@ const Header = ({ usuario, onLogout, toggleDarkMode, darkMode }) => {
                     </Typography>
                     <Typography
                         variant="h5"
-                      
+
                         sx={{
                             fontWeight: "bold",
                             display: isSmallScreen ? 'block' : 'none',
@@ -123,6 +131,7 @@ const Header = ({ usuario, onLogout, toggleDarkMode, darkMode }) => {
 
                 {/* Contenedor de Funciones (Botones e Iconos) */}
                 <Box display="flex" alignItems="center" gap={2} sx={{ flexGrow: 0, marginRight: "2%", marginTop: isSmallScreen ? '10px' : '0' }}>
+                    {/*}
                     <Tooltip title="Modo" arrow>
                         <IconButton color="inherit" onClick={toggleDarkMode}
                             sx={{
@@ -131,7 +140,8 @@ const Header = ({ usuario, onLogout, toggleDarkMode, darkMode }) => {
                         >
                             {darkMode ? <Brightness7Icon /> : <Brightness4Icon />}
                         </IconButton>
-                    </Tooltip>
+                    </Tooltip> {*/}
+
                     {usuario ? (
                         <Tooltip title="Exit" arrow>
                             <IconButton color="inherit" onClick={handleLogoutClick}
@@ -175,6 +185,14 @@ const Header = ({ usuario, onLogout, toggleDarkMode, darkMode }) => {
         </Box>
 
     );
+};
+
+Header.propTypes = {
+    usuario: PropTypes.bool.isRequired,
+    toggleMenu: PropTypes.func.isRequired,
+    onLogout: PropTypes.func.isRequired,
+    toggleDarkMode: PropTypes.func.isRequired,
+    darkMode: PropTypes.bool.isRequired,
 };
 
 export default Header;
