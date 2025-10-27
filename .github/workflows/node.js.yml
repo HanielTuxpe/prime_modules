@@ -42,4 +42,11 @@ jobs:
         run: bash tests/zap/owasp-scan.sh > tests/reports/owasp-report.log
 
       - name: Generate Dummy Sonar Report
-        run: echo "✅ Simulación de análisis SonarQube completado correctamente"
+        run: echo "✅ Simulación de análisis SonarQube completado correctamente" > tests/reports/sonar-report.log
+
+    
+      - name: Upload reports as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: gamificacion-reports
+          path: tests/reports/
