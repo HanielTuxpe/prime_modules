@@ -1,0 +1,47 @@
+name: CI - Gamificación Frontend
+
+# 🚀 Este flujo se ejecuta automáticamente cada vez que haces push a la rama MAIN
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest   # 🧩 Máquina virtual de GitHub Actions (Ubuntu)
+
+    steps:
+      # 🪣 1️⃣ Clona tu repositorio en la máquina de CI
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      # ⚙️ 2️⃣ Configura Node.js versión 20 (igual que en tu entorno local)
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # 📦 3️⃣ Instala dependencias según tu package-lock.json
+      - name: Install dependencies
+        run: npm ci
+
+      # 🧹 4️⃣ Analiza el código con ESLint para detectar errores o malas prácticas
+      - name: Run Linter
+        run: npm run lint
+
+      # 🏗️ 5️⃣ Construye el proyecto (equivalente a npm run build)
+      - name: Build project
+        run: npm run build
+
+      # 🔍 6️⃣ Ejecuta las pruebas de integración con Postman (API endpoints)
+      - name: Run API Tests (Postman)
+        run: npx newman run tests/collections/api.postman.json -e tests/env.postman.json
+
+      # 🛡️ 7️⃣ Ejecuta el análisis de seguridad OWASP ZAP (revisión de vulnerabilidades)
+      - name: Run Security Scan (OWASP ZAP)
+        run: bash tests/zap/owasp-scan.sh
+
+      # 🧠 8️⃣ Genera un reporte simulado de análisis SonarQube (sin cuenta)
+      - name: Generate Dummy Sonar Report
+        run: echo "✅ Simulación de análisis SonarQube completado correctamente"
