@@ -145,7 +145,7 @@ export default function RendimientoAlumnos() {
         localStorage.setItem("alumnoData", JSON.stringify(response.data.data));
       }
     } catch (error) {
-     
+      console.warn("⚠️ Sin conexión, usando datos locales...");
       const localData = localStorage.getItem("alumnoData");
       if (localData) {
         setData(JSON.parse(localData));
