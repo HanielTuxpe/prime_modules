@@ -29,7 +29,6 @@ jobs:
       - name: Build project
         run: npm run build
 
-      # 👇 Crear carpeta para reportes antes de ejecutar pruebas
       - name: Create reports folder
         run: mkdir -p tests/reports
 
@@ -38,15 +37,33 @@ jobs:
               --reporters cli,json \
               --reporter-json-export tests/reports/newman-report.json
 
-      - name: Run Security Scan (OWASP ZAP)
-        run: bash tests/zap/owasp-scan.sh > tests/reports/owasp-report.log
 
-      - name: Generate Dummy Sonar Report
-        run: echo "✅ Simulación de análisis SonarQube completado correctamente" > tests/reports/sonar-report.log
+      - name: Run OWASP ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.11.0
+        with:
+          target: "https://prime-api-iawe.onrender.com"
+          cmd_options: "-r tests/reports/owasp-zap-report.html"
+        continue-on-error: true
 
-    
+      # 🧩 Análisis REAL de SonarQube (SonarCloud)
+      - name: SonarQube Scan
+        uses: SonarSource/sonarcloud-github-action@v2
+        with:
+          projectBaseDir: .
+          args: >
+            -Dsonar.organization=tracemind
+            -Dsonar.projectKey=prime_modules
+            -Dsonar.sources=src
+            -Dsonar.exclusions=**/tests/**
+            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        continue-on-error: true
+
+      
       - name: Upload reports as artifact
         uses: actions/upload-artifact@v4
         with:
           name: gamificacion-reports
           path: tests/reports/
+
