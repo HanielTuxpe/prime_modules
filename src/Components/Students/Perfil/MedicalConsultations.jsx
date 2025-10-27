@@ -209,7 +209,7 @@ const MedicalConsultations = ({ selectedPerformance, expandedMedical, handleMedi
             ))
           ) : (
             <Typography variant="body1" sx={{ color: '#000', fontSize: { xs: 12, sm: 16 } }}>
-              No hay consultas médicas disponibles.
+              No hay consultas médicas disponibles
             </Typography>
           )}
         </List>
