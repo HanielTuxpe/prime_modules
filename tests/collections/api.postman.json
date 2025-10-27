@@ -1,0 +1,80 @@
+{
+  "info": {
+    "_postman_id": "b9af5f7a-5f2c-4d77-b8a1-30a4101b98d9",
+    "name": "PRIME Gamificación API",
+    "description": "Colección de pruebas automatizadas para los endpoints del módulo de gamificación de PRIME.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Consultar Historial Académico",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/historial?matricula=20221026",
+          "host": ["{{base_url}}"],
+          "path": ["historial"],
+          "query": [
+            { "key": "matricula", "value": "20221026" }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// ✅ Verificar código de estado",
+              "pm.test('Código de estado 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "// ✅ Verificar que la respuesta contenga el campo 'history'",
+              "pm.test('Respuesta contiene datos de historial', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('history');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Consultar Datos del Alumno",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/data?matricula=20221026",
+          "host": ["{{base_url}}"],
+          "path": ["data"],
+          "query": [
+            { "key": "matricula", "value": "20221026" }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// ✅ Verificar código de estado",
+              "pm.test('Código de estado 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "// ✅ Validar que el JSON tenga el campo 'data'",
+              "pm.test('Respuesta contiene datos del alumno', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('data');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    }
+  ]
+}
