@@ -169,7 +169,7 @@ const Profile = () => {
       {/* Alerta Offline */}
       {isOffline && (
         <Alert severity="warning" sx={{ mb: 2, borderRadius: "12px", width: "100%" }}>
-          ⚠️ Estás sin conexión. Se están mostrando los datos guardados.
+          ⚠️ Estás sin conexión. Se están mostrando los datos guardados
         </Alert>
       )}
 
