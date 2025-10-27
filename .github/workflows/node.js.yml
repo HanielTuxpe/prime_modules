@@ -33,15 +33,16 @@ jobs:
         run: mkdir -p tests/reports
 
       - name: Run API Tests (Postman)
-        run: npx newman run tests/collections/api.postman.json -e tests/env.postman.json \
-              --reporters cli,json \
-              --reporter-json-export tests/reports/newman-report.json
+        run: |
+          npx newman run tests/collections/api.postman.json -e tests/env.postman.json \
+            --reporters cli,json \
+            --reporter-json-export tests/reports/newman-report.json
 
       - name: Run OWASP ZAP Baseline Scan
         uses: zaproxy/action-baseline@v0.11.0
         with:
           target: "https://prime-api-iawe.onrender.com"
-          cmd_options: "-r owasp-zap-report.html"
+          cmd_options: "-r /zap/wrk/owasp-zap-report.html"
         continue-on-error: true
 
       - name: Move ZAP report
@@ -49,6 +50,9 @@ jobs:
           if [ -f owasp-zap-report.html ]; then
             mv owasp-zap-report.html tests/reports/
             echo "OWASP ZAP report moved successfully."
+          elif [ -f /zap/wrk/owasp-zap-report.html ]; then
+            mv /zap/wrk/owasp-zap-report.html tests/reports/
+            echo "OWASP ZAP report moved successfully from /zap/wrk."
           else
             echo "OWASP ZAP report not found, check Docker permissions."
           fi
@@ -62,6 +66,7 @@ jobs:
             -Dsonar.projectKey=raulcrescencio_prime_modules
             -Dsonar.sources=src
             -Dsonar.exclusions=**/tests/**
+            -Dsonar.qualitygate.wait=false
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         continue-on-error: true
