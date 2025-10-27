@@ -9,41 +9,33 @@ on:
 
 jobs:
   build-test:
-    runs-on: ubuntu-latest 
+    runs-on: ubuntu-latest
 
     steps:
-     
       - name: Checkout repo
         uses: actions/checkout@v4
 
-     
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
-     
       - name: Install dependencies
         run: npm ci
 
-     
       - name: Run Linter
-        run: npm run lint || true
+        run: npm run lint
 
-     
       - name: Build project
         run: npm run build
 
-     
       - name: Run API Tests (Postman)
         run: npx newman run tests/collections/api.postman.json -e tests/env.postman.json \
               --reporters cli,json \
               --reporter-json-export tests/reports/newman-report.json
 
-     
       - name: Run Security Scan (OWASP ZAP)
-        run: bash tests/zap/owasp-scan.sh
+        run: bash tests/zap/owasp-scan.sh > tests/reports/owasp-report.log
 
-     
       - name: Generate Dummy Sonar Report
         run: echo "✅ Simulación de análisis SonarQube completado correctamente"
