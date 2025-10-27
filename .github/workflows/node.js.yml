@@ -11,58 +11,48 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-
       - name: Checkout repo
         uses: actions/checkout@v4
 
-     
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
-
       - name: Install dependencies
         run: npm ci
 
-      
       - name: Run Linter (skip errors)
         run: |
-          npm run lint || echo "⚠️ Linter warnings detected, continuing pipeline..."
-
+          npm run lint || echo "Linter warnings detected, continuing pipeline..."
 
       - name: Build project
         run: npm run build
 
-    
-      - name: Create reports folders
+      - name: Create reports folder
         run: mkdir -p tests/reports
 
-      
       - name: Run API Tests (Postman)
         run: npx newman run tests/collections/api.postman.json -e tests/env.postman.json \
               --reporters cli,json \
               --reporter-json-export tests/reports/newman-report.json
 
-     
       - name: Run OWASP ZAP Baseline Scan
         uses: zaproxy/action-baseline@v0.11.0
         with:
           target: "https://prime-api-iawe.onrender.com"
-          cmd_options: "-r /zap/wrk/owasp-zap-report.html"
+          cmd_options: "-r owasp-zap-report.html"
         continue-on-error: true
 
-     
       - name: Move ZAP report
         run: |
           if [ -f owasp-zap-report.html ]; then
             mv owasp-zap-report.html tests/reports/
-            echo " OWASP ZAP report moved successfully."
+            echo "OWASP ZAP report moved successfully."
           else
-            echo " OWASP ZAP report not found, check Docker permissions."
+            echo "OWASP ZAP report not found, check Docker permissions."
           fi
 
-     
       - name: SonarQube Scan
         uses: SonarSource/sonarcloud-github-action@v2
         with:
@@ -76,18 +66,16 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         continue-on-error: true
 
-      
       - name: Save Sonar log
         run: echo "SonarCloud analysis completed successfully on $(date)" > tests/reports/sonar-report.log
 
-      
       - name: Append Summary Report
         if: always()
         run: |
-          echo "##  CI Summary - PRIME Gamificación" >> $GITHUB_STEP_SUMMARY
-          echo "###  Postman API Tests: Completed Successfully" >> $GITHUB_STEP_SUMMARY
+          echo "## CI Summary - PRIME Gamificación" >> $GITHUB_STEP_SUMMARY
+          echo "### Postman API Tests:" >> $GITHUB_STEP_SUMMARY
           if [ -f tests/reports/newman-report.json ]; then
-            echo " Newman report generated." >> $GITHUB_STEP_SUMMARY
+            echo "Newman report generated successfully." >> $GITHUB_STEP_SUMMARY
           else
             echo "Newman report missing." >> $GITHUB_STEP_SUMMARY
           fi
@@ -99,14 +87,13 @@ jobs:
             echo "OWASP ZAP report missing." >> $GITHUB_STEP_SUMMARY
           fi
 
-          echo "###  SonarCloud:" >> $GITHUB_STEP_SUMMARY
+          echo "### SonarCloud Analysis:" >> $GITHUB_STEP_SUMMARY
           if [ -f tests/reports/sonar-report.log ]; then
-            echo " SonarCloud analysis completed." >> $GITHUB_STEP_SUMMARY
+            echo "SonarCloud analysis completed." >> $GITHUB_STEP_SUMMARY
           else
             echo "SonarCloud report missing." >> $GITHUB_STEP_SUMMARY
           fi
 
-     
       - name: Upload reports as artifact
         uses: actions/upload-artifact@v4
         with:
