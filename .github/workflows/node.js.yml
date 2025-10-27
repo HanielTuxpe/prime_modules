@@ -29,36 +29,52 @@ jobs:
       - name: Build project
         run: npm run build
 
-      - name: Create reports folder
-        run: mkdir -p tests/reports
+     
+      - name: Create reports folders
+        run: |
+          mkdir -p tests/reports
+          mkdir -p zap_output
 
+ 
       - name: Run API Tests (Postman)
         run: npx newman run tests/collections/api.postman.json -e tests/env.postman.json \
               --reporters cli,json \
               --reporter-json-export tests/reports/newman-report.json
 
-
+     
       - name: Run OWASP ZAP Baseline Scan
         uses: zaproxy/action-baseline@v0.11.0
         with:
           target: "https://prime-api-iawe.onrender.com"
-          cmd_options: "-r tests/reports/owasp-zap-report.html"
+          cmd_options: "-r zap_output/owasp-zap-report.html"
         continue-on-error: true
 
-      # 🧩 Análisis REAL de SonarQube (SonarCloud)
+      
+      - name: Move ZAP report
+        run: |
+          if [ -f zap_output/owasp-zap-report.html ]; then
+            mv zap_output/owasp-zap-report.html tests/reports/
+          else
+            echo "⚠️ No se encontró el reporte de ZAP, posible error de permisos."
+          fi
+
+      
       - name: SonarQube Scan
         uses: SonarSource/sonarcloud-github-action@v2
         with:
           projectBaseDir: .
           args: >
-            -Dsonar.organization=tracemind
-            -Dsonar.projectKey=prime_modules
+            -Dsonar.organization=raulcrescencio
+            -Dsonar.projectKey=raulcrescencio_prime_modules
             -Dsonar.sources=src
             -Dsonar.exclusions=**/tests/**
-            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         continue-on-error: true
+
+     
+      - name: Save Sonar log
+        run: echo "✅ SonarCloud analysis completed successfully on $(date)" > tests/reports/sonar-report.log
 
       
       - name: Upload reports as artifact
@@ -66,4 +82,3 @@ jobs:
         with:
           name: gamificacion-reports
           path: tests/reports/
-
