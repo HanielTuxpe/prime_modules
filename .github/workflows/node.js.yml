@@ -31,9 +31,6 @@ jobs:
           npm run lint || echo "⚠️ Linter warnings detected, continuing pipeline..."
 
 
-      - name: Build project
-        run: npm run build
-
     
       - name: Create reports folders
         run: mkdir -p tests/reports
@@ -112,3 +109,6 @@ jobs:
         with:
           name: gamificacion-reports
           path: tests/reports/
+
+      - name: Build project
+        run: npm run build
