@@ -79,6 +79,22 @@ export default defineConfig({
               },
             },
           },
+          {
+            // NUEVO — cache para Excel / CSV (políticas, términos, acerca de)
+            urlPattern: /\.(?:xlsx|xls|csv)$/i,
+            handler: "NetworkFirst",
+            options: {
+              cacheName: "prime-politicas-terminos-about-cache",
+              expiration: {
+                maxEntries: 25,
+                maxAgeSeconds: 60 * 60 * 24 * 7, // 7 días
+              },
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+            },
+          },
+
         ],
       },
     }),
