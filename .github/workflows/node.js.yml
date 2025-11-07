@@ -1,4 +1,4 @@
-name: CI - Gamificación Frontend
+name: CI/CD - Gamificación Frontend + Deploy Render
 
 on:
   push:
@@ -11,40 +11,29 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-
       - name: Checkout repo
         uses: actions/checkout@v4
-
      
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
-
       - name: Install dependencies
         run: npm ci
 
-      
       - name: Run Linter (skip errors)
         run: |
-          npm run lint || echo "⚠️ Linter warnings detected, continuing pipeline..."
+          npm run lint || echo "⚠ Linter warnings detected, continuing pipeline..."
 
-
-      - name: Build project
-        run: npm run build
-
-    
       - name: Create reports folders
         run: mkdir -p tests/reports
 
-      
       - name: Run API Tests (Postman)
         run: npx newman run tests/collections/api.postman.json -e tests/env.postman.json \
               --reporters cli,json \
               --reporter-json-export tests/reports/newman-report.json
 
-     
       - name: Run OWASP ZAP Baseline Scan
         uses: zaproxy/action-baseline@v0.11.0
         with:
@@ -52,7 +41,6 @@ jobs:
           cmd_options: "-r /zap/wrk/owasp-zap-report.html"
         continue-on-error: true
 
-     
       - name: Move ZAP report
         run: |
           if [ -f owasp-zap-report.html ]; then
@@ -62,7 +50,6 @@ jobs:
             echo " OWASP ZAP report not found, check Docker permissions."
           fi
 
-     
       - name: SonarQube Scan
         uses: SonarSource/sonarcloud-github-action@v2
         with:
@@ -71,16 +58,14 @@ jobs:
             -Dsonar.organization=raulcrescencio
             -Dsonar.projectKey=raulcrescencio_prime_modules
             -Dsonar.sources=src
-            -Dsonar.exclusions=**/tests/**
+            -Dsonar.exclusions=/tests/**
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         continue-on-error: true
 
-      
       - name: Save Sonar log
         run: echo "SonarCloud analysis completed successfully on $(date)" > tests/reports/sonar-report.log
 
-      
       - name: Append Summary Report
         if: always()
         run: |
@@ -91,14 +76,12 @@ jobs:
           else
             echo "Newman report missing." >> $GITHUB_STEP_SUMMARY
           fi
-
           echo "### OWASP ZAP Scan:" >> $GITHUB_STEP_SUMMARY
           if [ -f tests/reports/owasp-zap-report.html ]; then
             echo "OWASP ZAP report generated successfully." >> $GITHUB_STEP_SUMMARY
           else
             echo "OWASP ZAP report missing." >> $GITHUB_STEP_SUMMARY
           fi
-
           echo "###  SonarCloud:" >> $GITHUB_STEP_SUMMARY
           if [ -f tests/reports/sonar-report.log ]; then
             echo " SonarCloud analysis completed." >> $GITHUB_STEP_SUMMARY
@@ -106,9 +89,27 @@ jobs:
             echo "SonarCloud report missing." >> $GITHUB_STEP_SUMMARY
           fi
 
-     
       - name: Upload reports as artifact
         uses: actions/upload-artifact@v4
         with:
           name: gamificacion-reports
           path: tests/reports/
+
+      - name: Build project
+        run: npm run build
+
+  deploy:
+    needs: build-test   # <-- Solo se ejecuta si el job anterior fue exitoso
+    runs-on: ubuntu-latest
+    if: success()       # <-- Evita desplegar si falló algo
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🚀 Trigger Render Deploy Hook
+        run: |
+          echo "🔁 Desplegando en Render..."
+          curl -X POST "$RENDER_DEPLOY_HOOK"
+        env:
+          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
