@@ -73,7 +73,18 @@ const FAQs = () => {
   ];
 
   // Obtener FAQs desde la API
+  // Obtener FAQs desde la API con cache local PWA
   useEffect(() => {
+    const localData = localStorage.getItem("faqs");
+
+    // si hay cache se carga al instante
+    if (localData) {
+      setFaqs(JSON.parse(localData));
+    } else {
+      // primer render sin conexión → default directo
+      setFaqs(defaultFaqs);
+    }
+
     const fetchFaqs = async () => {
       try {
         const baseUrl = import.meta.env.VITE_URL_BASE_API || '';
@@ -81,18 +92,18 @@ const FAQs = () => {
         if (response.ok) {
           const data = await response.json();
           setFaqs(data);
+          localStorage.setItem("faqs", JSON.stringify(data));
         } else {
-          console.error('Error al obtener los datos de la API');
-          setFaqs(defaultFaqs);
+          console.error("Error API, se mantiene cache/local");
         }
       } catch (error) {
-        console.error('Error al obtener las FAQs:', error);
-        setFaqs(defaultFaqs);
+        console.warn("No se pudo actualizar desde servidor. Se mantiene cache/local.");
       }
     };
 
     fetchFaqs();
   }, []);
+
 
   const handleToggle = (index) => {
     setExpanded(expanded === index ? null : index);
@@ -219,55 +230,55 @@ const FAQs = () => {
             <Box>
               <Box display="flex" flexDirection="column" alignItems="center">
                 <img src={uthh} alt="UTHH Logo" style={{ maxWidth: '100px', marginBottom: '16px' }} />
-                
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      fontSize: 'clamp(0.8rem, 1.2vw, 1rem)',
-                      fontWeight: 400,
-                    }}
-                  >
-                    © {new Date().getFullYear()}. Todos los derechos reservados.
-                  </Typography>
-             
-              </Box>
-             
-                <List
+
+                <Typography
+                  variant="body2"
                   sx={{
-                    display: 'flex',
-                    justifyContent: 'center',
-                    flexWrap: 'wrap',
-                    p: 0,
-                    mt: 1,
+                    fontSize: 'clamp(0.8rem, 1.2vw, 1rem)',
+                    fontWeight: 400,
                   }}
                 >
-                  {socialLinks.map((social, index) => (
-                    <ListItem
-                      key={index}
+                  © {new Date().getFullYear()}. Todos los derechos reservados.
+                </Typography>
+
+              </Box>
+
+              <List
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  flexWrap: 'wrap',
+                  p: 0,
+                  mt: 1,
+                }}
+              >
+                {socialLinks.map((social, index) => (
+                  <ListItem
+                    key={index}
+                    sx={{
+                      width: 'auto',
+                      px: 1,
+                    }}
+                  >
+                    <Link
+                      href={social.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       sx={{
-                        width: 'auto',
-                        px: 1,
+                        color: 'text.secondary',
+                        '&:hover': { color: '#921F45' },
                       }}
                     >
-                      <Link
-                        href={social.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        sx={{
-                          color: 'text.secondary',
-                          '&:hover': { color: '#921F45' },
-                        }}
-                      >
-                        <img
-                          src={social.icon}
-                          alt={`${social.name} icon`}
-                          style={{ width: '20px', height: '20px' }}
-                        />
-                      </Link>
-                    </ListItem>
-                  ))}
-                </List>
-             
+                      <img
+                        src={social.icon}
+                        alt={`${social.name} icon`}
+                        style={{ width: '20px', height: '20px' }}
+                      />
+                    </Link>
+                  </ListItem>
+                ))}
+              </List>
+
             </Box>
           ) : (
             <Box>

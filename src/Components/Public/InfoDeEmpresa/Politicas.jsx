@@ -44,7 +44,14 @@ const PrivacyPolicy = () => {
   };
 
   // Obtener y procesar el archivo Excel
+  // Obtener y procesar el archivo Excel
   useEffect(() => {
+    const localData = localStorage.getItem("politicas");
+    if (localData) {
+      setPoliticas(JSON.parse(localData));
+      setLoading(false); // se muestra inmediatamente
+    }
+
     const fetchPoliticas = async () => {
       try {
         const baseUrl = import.meta.env.VITE_URL_BASE_API || '';
@@ -52,6 +59,7 @@ const PrivacyPolicy = () => {
         if (!response.ok) {
           throw new Error(`Error al cargar el archivo de políticas: ${response.statusText}`);
         }
+
         const blob = await response.blob();
         const arrayBuffer = await blob.arrayBuffer();
         const workbook = XLSX.read(arrayBuffer, { type: 'array' });
@@ -59,42 +67,47 @@ const PrivacyPolicy = () => {
         if (!sheet) {
           throw new Error('No se encontró la hoja "Hoja1" en el archivo Excel');
         }
+
         const data = XLSX.utils.sheet_to_json(sheet, {
           header: ['Seccion', 'TipoElemento', 'Contenido'],
-          range: 1, // Ignorar la primera fila (encabezados)
+          range: 1,
         });
 
-        // Agrupar datos por sección
         const secciones = data.reduce((acc, row) => {
           const seccionId = row.Seccion;
-          if (!acc[seccionId]) {
-            acc[seccionId] = [];
-          }
+          if (!acc[seccionId]) acc[seccionId] = [];
+
           acc[seccionId].push({
             tipoElemento: row.TipoElemento.trim().toLowerCase(),
             contenido: row.Contenido,
           });
+
           return acc;
         }, {});
 
-        // Convertir a array de secciones ordenadas por id
-        const seccionesOrdenadas = Object.keys(secciones)
+        const ordenadas = Object.keys(secciones)
           .map((seccionId) => ({
             id: parseInt(seccionId),
             elementos: secciones[seccionId],
           }))
           .sort((a, b) => a.id - b.id);
 
-        setPoliticas(seccionesOrdenadas);
-      } catch (err) {
-        setError(err.message);
-      } finally {
+        setPoliticas(ordenadas);
+        localStorage.setItem("politicas", JSON.stringify(ordenadas));
         setLoading(false);
+      } catch (err) {
+        console.warn("No se pudo actualizar desde servidor. Se mantienen datos locales si existen.");
+
+        if (!localData) {
+          setError(err.message);
+          setLoading(false);
+        }
       }
     };
 
     fetchPoliticas();
   }, []);
+
 
   if (loading) {
     return (
