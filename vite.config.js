@@ -80,20 +80,34 @@ export default defineConfig({
             },
           },
           {
-            // NUEVO — cache para Excel / CSV (políticas, términos, acerca de)
-            urlPattern: /\.(?:xlsx|xls|csv)$/i,
+            urlPattern: /^https:\/\/prime-api-iawe\.onrender\.com\/Politicas$/i,
             handler: "NetworkFirst",
             options: {
-              cacheName: "prime-politicas-terminos-about-cache",
+              cacheName: "prime-politicas-cache",
               expiration: {
                 maxEntries: 25,
-                maxAgeSeconds: 60 * 60 * 24 * 7, // 7 días
+                maxAgeSeconds: 60 * 60 * 24 * 7,
               },
               cacheableResponse: {
                 statuses: [0, 200],
               },
             },
           },
+          {
+            urlPattern: /^https:\/\/prime-api-iawe\.onrender\.com\/faqs$/i,
+            handler: "NetworkFirst",
+            options: {
+              cacheName: "prime-faqs-cache",
+              expiration: {
+                maxEntries: 25,
+                maxAgeSeconds: 60 * 60 * 24 * 7,
+              },
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+            },
+          },
+
 
         ],
       },

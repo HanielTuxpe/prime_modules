@@ -144,7 +144,7 @@ const Index = () => {
           }}
         >
           {/* Calendario con eventos y función para manejar el clic */}
-          <StudentCalendar onSelectEvent={setSelectedEvent} events={events} matricula={matricula} />
+          <StudentCalendar onSelectEvent={setSelectedEvent} events={events} />
         </Box>
 
         {/* Box donde se muestra la actividad seleccionada */}
