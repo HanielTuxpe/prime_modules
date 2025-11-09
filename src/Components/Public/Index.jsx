@@ -120,7 +120,7 @@ const Index = () => {
           }}
         >
           <Typography sx={{ color:'#fff', fontSize:'clamp(1rem,1.5vw,2.5rem)', fontWeight:400, maxWidth:'90%' }}>
-            PRIME, nace para apoyar de manera virtual al estudiante, a través del uso de las tecnologías...
+           PRIME, nace para apoyar de manera virtual al estudiante, a través del uso de las tecnologías de la información y comunicación, como medida estratégica al Programa Institucional de Tutorías y para ayudar en el desempeño académico.
           </Typography>
         </Box>
       </Box>
